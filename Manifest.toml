@@ -79,9 +79,9 @@ version = "0.7.18"
 
 [[FileIO]]
 deps = ["Pkg", "Random", "Test"]
-git-tree-sha1 = "c94b0787956629036fb2b20fccde9e52b89d079a"
+git-tree-sha1 = "da32159d4a2e526338506685e280e39ed2f18961"
 uuid = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
-version = "1.0.5"
+version = "1.0.6"
 
 [[Future]]
 deps = ["Random"]
@@ -274,11 +274,11 @@ uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [[TextParse]]
 deps = ["CodecZlib", "DataStructures", "Dates", "DoubleFloats", "Mmap", "Nullables", "PooledArrays", "Random", "Test", "WeakRefStrings"]
-git-tree-sha1 = "cc7aa42aea3490a68552fcdb1df9ce5732a6a4de"
+git-tree-sha1 = "1fa977717f72c3e3c792d1e298354e53355460b3"
 repo-rev = "master"
 repo-url = "https://github.com/dataiku/TextParse.jl"
 uuid = "e0df1984-e451-5cb5-8b61-797a481e67e3"
-version = "0.9.0"
+version = "0.9.0+"
 
 [[TranscodingStreams]]
 deps = ["Pkg", "Random", "Test"]
