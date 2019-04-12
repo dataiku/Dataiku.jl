@@ -1,7 +1,7 @@
 struct DSSRecipe <: DSSObject
+    project::DSSProject
     name::AbstractString
-    projectKey::AbstractString
-    DSSRecipe(name::AbstractString, projectKey=get_projectKey()) = new(name, projectKey)
+    DSSRecipe(name::AbstractString, project::DSSProject=get_current_project()) = new(project, name)
 end
 
 macro recipe_str(str)
@@ -11,29 +11,29 @@ end
 export @recipe_str
 export DSSRecipe
 
-list_recipes(projectKey=get_projectKey()) = request("GET", "projects/$(projectKey)/recipes/")
+list_recipes(project::DSSProject=get_current_project()) = request("GET", "projects/$(project.key)/recipes/")
 
-get_settings(recipe::DSSRecipe) = request("GET", "projects/$(recipe.projectKey)/recipes/$(recipe.name)")
+get_definition(recipe::DSSRecipe) = request("GET", "projects/$(recipe.project.key)/recipes/$(recipe.name)")
 
 # Doesnt work with empty payloads?
-set_settings(recipe::DSSRecipe, settings::AbstractDict) = request("PUT", "projects/$(recipe.projectKey)/recipes/$(recipe.name)")
+set_definition(recipe::DSSRecipe, settings::AbstractDict) = request("PUT", "projects/$(recipe.project.key)/recipes/$(recipe.name)")
 
-get_metadata(recipe::DSSRecipe) = request("GET", "projects/$(recipe.projectKey)/recipes/$(recipe.name)/metadata")
+get_metadata(recipe::DSSRecipe) = request("GET", "projects/$(recipe.project.key)/recipes/$(recipe.name)/metadata")
 
-set_metadata(recipe::DSSRecipe, metadata::AbstractDict) = request("PUT", "projects/$(recipe.projectKey)/recipes/$(recipe.name)/metadata", metadata)
+set_metadata(recipe::DSSRecipe, metadata::AbstractDict) = request("PUT", "projects/$(recipe.project.key)/recipes/$(recipe.name)/metadata", metadata)
 
 
 # should we add DSSRecipeCreator ?
-function create_recipe(recipe::AbstractDict, projectKey=get_projectKey(); creationSettings::AbstractDict=Dict())
-    recipe["projectKey"] = projectKey
+function create_recipe(recipe::AbstractDict, project::DSSProject=get_current_project(); creationSettings::AbstractDict=Dict())
+    recipe["projectKey"] = project.key
     body = Dict(
         "recipePrototype"  => recipe,
         "creationSettings" => creationSettings
     )
-    request("POST", "projects/$(projectKey)/recipes/", body)
-    return DSSRecipe(recipe["name"], projectKey)
+    request("POST", "projects/$(project.key)/recipes/", body)
+    DSSRecipe(recipe["name"], project)
 end
 
-delete(recipe::DSSRecipe) = request("DELETE", "projects/$(recipe.projectKey)/recipes/$(recipe.name)")
+delete(recipe::DSSRecipe) = request("DELETE", "projects/$(recipe.project.key)/recipes/$(recipe.name)")
 
 export create_recipe

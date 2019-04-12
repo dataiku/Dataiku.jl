@@ -1,10 +1,48 @@
-using DataFrames
-using Dates
-using CSVFiles
 
-const datasetName = "test_dataset"
 
-function test_dataframe(df::AbstractDataFrame)
+@testset "Datasets" begin
+    df = get_dataframe(dataset; infer_types=false)
+
+    @testset "API" begin
+
+        @testset "Schema" begin
+            schema = get_schema(dataset)
+            columns = schema["columns"]
+            @test length(Dataiku.get_column_names(columns)) == 18
+
+            @test columns[1] == Dict("name" => "id", "type" => "bigint")
+            @test columns[2] == Dict("name" => "Date", "type" => "string")
+            @test columns[3] == Dict("name" => "Date_parsed", "type" => "date")
+            @test columns[4] == Dict("name" => "holiday_bank", "type" => "boolean")
+            @test columns[end] == Dict("name" => "nb_colis", "type" => "double")
+
+            schema["userModified"] = false
+        end
+
+        @testset "Settings" begin
+            settings = Dataiku.get_settings(dataset)
+
+            @test length(settings) == 19
+            @test dataset.project.key == projectKey
+            @test settings["formatType"] == "csv"
+            @test settings["schema"] == get_schema(dataset)
+
+            @test set_settings(dataset, settings)["msg"] == "Updated dataset $projectKey.$datasetName"
+        end
+
+        @testset "Metadata" begin
+            metadata = get_metadata(dataset)
+
+            @test length(metadata) == 3
+            @test haskey(metadata, "checklists")
+            @test haskey(metadata, "tags")
+            @test haskey(metadata, "custom")
+
+            @test set_metadata(dataset, metadata)["msg"] == "updated metadata for $projectKey.$datasetName" 
+        end
+
+        @test list_partitions(dataset)[1] == "NP"
+    end
 
     @testset "DataFrame" begin
 
@@ -44,63 +82,4 @@ function test_dataframe(df::AbstractDataFrame)
             @test df[6][4] == true
         end
     end
-end
-
-@testset "Datasets" begin
-
-    df = load(joinpath(dirname(pathof(Dataiku)), "..", "test/data/colis_80.csv")) |> DataFrame
-    df[:Date] = map(Dataiku.date_to_string, df[:Date]) # change type to date manually
-
-    Dataiku.create_dataset(datasetName, projectKey)
-    ds = Dataiku.DSSDataset(datasetName, projectKey)
-    write_with_schema(ds, df)
-
-    df = get_dataframe(ds; infer_types=false)
-
-    @testset "API" begin
-
-        @testset "Schema" begin
-            schema = get_schema(ds)
-            columns = schema["columns"]
-            @test length(Dataiku.get_column_names(columns)) == 18
-
-            @test columns[1] == Dict("name" => "id", "type" => "bigint")
-            @test columns[2] == Dict("name" => "Date", "type" => "string")
-            @test columns[3] == Dict("name" => "Date_parsed", "type" => "date")
-            @test columns[4] == Dict("name" => "holiday_bank", "type" => "boolean")
-            @test columns[end] == Dict("name" => "nb_colis", "type" => "double")
-
-            schema["userModified"] = false
-
-            @test set_schema(ds, schema)["userModified"]
-        end
-
-        @testset "Settings" begin
-            settings = Dataiku.get_settings(ds)
-
-            @test length(settings) == 19
-            @test ds.projectKey == projectKey
-            @test settings["formatType"] == "csv"
-            @test settings["schema"] == get_schema(ds)
-
-            @test set_settings(ds, settings)["msg"] == "Updated dataset $projectKey.$datasetName"
-        end
-
-        @testset "Metadata" begin
-            metadata = get_metadata(ds)
-
-            @test length(metadata) == 3
-            @test haskey(metadata, "checklists")
-            @test haskey(metadata, "tags")
-            @test haskey(metadata, "custom")
-
-            @test set_metadata(ds, metadata)["msg"] == "updated metadata for $projectKey.$datasetName" 
-        end
-
-        @test list_partitions(ds)[1] == "NP"
-        @test Dataiku.clear_data(ds) == []
-        @test delete(ds)["msg"] == "Deleted dataset $projectKey.$datasetName"
-    end
-
-    test_dataframe(df)
 end

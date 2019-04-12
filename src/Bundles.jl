@@ -1,7 +1,7 @@
 struct DSSBundle <: DSSObject
+    project::DSSProject
     id::AbstractString
-    projectKey::AbstractString
-    DSSBundle(name, projectKey=get_projectKey()) = new(name, projectKey)
+    DSSBundle(name::AbstractString, project::DSSProject=get_current_project()) = new(project, name)
 end
 
 macro bundle_str(str)
@@ -11,44 +11,24 @@ end
 export @bundle_str
 export DSSBundle
 
+get_details(bundle::DSSBundle) = request("GET", "projects/$(bundle.project.key)/bundles/exported/$(bundle.id)")
 
-function get_details(bundle::DSSBundle)
-    request("GET", "projects/$(bundle.projectKey)/bundles/exported/$(bundle.id)")
-end
+download_file(bundle::DSSBundle) = request("GET", "projects/$(bundle.project.key)/bundles/exported/$(bundle.id)/archive"; stream=true)
 
-function download_file(bundle::DSSBundle)
-    request("GET", "projects/$(bundle.projectKey)/bundles/exported/$(bundle.id)/archive"; stream=true)
-end
+list_exported_bundles(project::DSSProject=get_current_project()) = request("GET", "projects/$(projectKey)/bundles/exported")["bundles"]
+list_imported_bundles(project::DSSProject=get_current_project()) = request("GET", "projects/$(projectKey)/bundles/imported")["bundles"]
 
-function list_exported_bundles(projectKey=get_projectKey())
-    request("GET", "projects/$(projectKey)/bundles/exported")["bundles"]
-end
+import_bundle_from_archive_file(path::AbstractString, project::DSSProject=get_current_project()) =
+    request("POST", "projects/$(project.key)/bundles/imported/actions/importFromArchive"; params=Dict("archivePath" => path))
 
-function list_imported_bundles(projectKey=get_projectKey())
-    request("GET", "projects/$(projectKey)/bundles/imported")["bundles"]
-end
+preload_a_bundle(bundle::DSSBundle) = uest("POST", "projects/$(bundle.project.key)/bundles/imported/$(bundle.id)/actions/preload")
 
+activate_a_bundle(bundle::DSSBundle) = uest("POST", "projects/$(bundle.project.key)/bundles/imported/$(bundle.id)/actions/activate")
 
-function import_bundle_from_archive_file(path::AbstractString)
-    request("POST", "projects/$(get_projectKey())/bundles/imported/actions/importFromArchive"; params=Dict("archivePath" => path))
-end
+create_project_from_a_bundle(file::IO) = t_multipart("projectsFromBundle/", file)
 
-function preload_a_bundle(bundle::DSSBundle)
-	request("POST", "projects/$(bundle.projectKey)/bundles/imported/$(bundle.id)/actions/preload")
-end
-
-function activate_a_bundle(bundle::DSSBundle)
-	request("POST", "projects/$(bundle.projectKey)/bundles/imported/$(bundle.id)/actions/activate")
-end
-
-function create_project_from_a_bundle(file::IO)
-	post_multipart("projectsFromBundle/", file)
-end
-
-function create_project_from_a_bundle(archivePath::AbstractString)
+create_project_from_a_bundle(archivePath::AbstractString) =
     request("POST", "projectsFromBundle/fromArchive"; params=Dict("archivePath" => archivePath))
-end
 
-function create_a_new_bundle(name::AbstractString, projectKey=get_projectKey()) 
-    request("PUT", "projects/$(projectKey)/bundles/exported/$(name)")
-end
+create_a_new_bundle(name::AbstractString, project::DSSProject=get_current_project()) =
+    request("PUT", "projects/$(project.key)/bundles/exported/$(name)")

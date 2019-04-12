@@ -10,7 +10,7 @@
         @test haskey(settings, "exposedObjects")
 
         @test length(settings["settings"]) == 17
-        @test set_settings(project, settings) == ""
+        @test set_settings(project, settings) == nothing
     end
 
     @testset "API" begin
@@ -18,25 +18,26 @@
 
         @test length(metadata) == 4
         metadata["tags"] = ["test_tag1", "test_tag2"]
-        @test set_metadata(project, metadata) == ""
+        @test set_metadata(project, metadata) == nothing
 
         tags = get_tags(project)
         @test length(tags["tags"]) == 2
-        @test set_tags(project, tags) == ""
+        @test set_tags(project, tags) == nothing
 
         variables = get_variables(project)
         @test length(variables) == 2
-        @test set_variables(project, variables) == ""
+        @test set_variables(project, variables) == nothing
 
         permissions = get_permissions(project)
         @test length(permissions) == 4
-        @test set_permissions(project, permissions) == ""
+        @test set_permissions(project, permissions) == nothing
     end
 
     io = export_project(project)
     @test length(read(io)) > 3000
 
+    try Dataiku.delete(DSSProject("NEW_"*projectKey)) catch end
     new_project = duplicate(project, "new_"*projectName, "NEW_"*projectKey)
     @test length(list_projects()) > 1
-    @test delete(new_project) == ""
+    @test delete(new_project) == nothing
 end

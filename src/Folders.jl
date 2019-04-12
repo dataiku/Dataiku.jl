@@ -3,9 +3,9 @@
     get_contents(::DSSFolder)
 """
 struct DSSFolder <: DSSObject
+    project::DSSProject
     id::AbstractString
-    projectKey::AbstractString
-    DSSFolder(id::AbstractString, projectKey=get_projectKey()) = new(id, projectKey)
+    DSSFolder(id::AbstractString, project::DSSProject=get_current_project()) = new(project, id)
 end
 
 macro folder_str(str)
@@ -15,11 +15,10 @@ end
 export @folder_str
 export DSSFolder
 
-list_managed_folders(projectKey=get_projectKey()) = request("GET", "projects/$(projectKey)/managedfolders/")
+list_managed_folders(project::DSSProject=get_current_project()) = request("GET", "projects/$(projectKey)/managedfolders/")
 
-function create_managed_folder(name::AbstractString, projectKey=get_projectKey();
-                               connection::AbstractString="filesystem_folders",
-                               path::AbstractString="$(projectKey)/$(name)")
+function create_managed_folder(name::AbstractString, project::DSSProject=get_current_project();
+    connection::AbstractString="filesystem_folders", path="$(project.key)/$(name)")
     body = Dict(
         "name"   => name,
         "params" => Dict(
@@ -27,41 +26,36 @@ function create_managed_folder(name::AbstractString, projectKey=get_projectKey()
             "path"       => path
         )
     )
-    response = request("POST", "projects/$(projectKey)/managedfolders/", body)
-    return DSSFolder(response["id"])
+    response = request("POST", "projects/$(project.key)/managedfolders/", body)
+    DSSFolder(response["id"])
 end
 
-delete(folder::DSSFolder) = request("DELETE", "projects/$(folder.projectKey)/managedfolders/$(folder.id)")
+delete(folder::DSSFolder) = request("DELETE", "projects/$(folder.project.key)/managedfolders/$(folder.id)")
+
+# get_definition might be better 
+get_settings(folder::DSSFolder)= request("GET", "projects/$(folder.project.key)/managedfolders/$(folder.id)")
 
 
-function get_settings(folder::DSSFolder) # get_definition might be better
-    request("GET", "projects/$(folder.projectKey)/managedfolders/$(folder.id)")
-end
-
-function set_settings(folder::DSSFolder, settings::AbstractDict)
-    request("PUT", "projects/$(folder.projectKey)/managedfolders/$(folder.id)", settings)
-end
+set_settings(folder::DSSFolder, settings::AbstractDict) =
+    request("PUT", "projects/$(folder.project.key)/managedfolders/$(folder.id)", settings)
 
 ## Files
 
-function list_contents(folder::DSSFolder)
-    request("GET", "projects/$(folder.projectKey)/managedfolders/$(folder.id)/contents/")
-end
+list_contents(folder::DSSFolder) = request("GET", "projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/")
 
-function download_file(folder::DSSFolder, path::AbstractString)
-    data = request("GET", "projects/$(folder.projectKey)/managedfolders/$(folder.id)/contents/$(path)"; parse_json=true)
-    IOBuffer(data)
-end
 
-upload_file(folder::DSSFolder, path::AbstractString, filename::AbstractString=path) = upload_file(folder, open(path; read=true), filename)
+download_file(folder::DSSFolder, path::AbstractString) =
+    request("GET", "projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/$(path)"; stream=true)
 
-function upload_file(folder::DSSFolder, file::IO, filename::AbstractString)
-    post_multipart("$(public_url)/projects/$(folder.projectKey)/managedfolders/$(folder.id)/contents/", file, filename)
-end
+upload_file(folder::DSSFolder, path::AbstractString, filename::AbstractString=path) =
+    upload_file(folder, open(path; read=true), filename)
 
-function delete_file(folder::DSSFolder, path::AbstractString)
-    request("DELETE", "projects/$(folder.projectKey)/managedfolders/$(folder.id)/contents/$(path)")
-end
+upload_file(folder::DSSFolder, file::IO, filename::AbstractString) =
+    post_multipart("$(public_url)/projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/", file, filename)
+
+delete_file(folder::DSSFolder, path::AbstractString) =
+    request("DELETE", "projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/$(path)")
+
 
 export list_contents
 export download_file

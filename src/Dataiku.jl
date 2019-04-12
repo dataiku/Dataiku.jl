@@ -2,9 +2,11 @@ module Dataiku
 
     abstract type DSSObject end
 
+    using JSON
+
     include("HttpUtils.jl")
-    include("Datasets.jl")
     include("Projects.jl")
+    include("Datasets.jl")
     include("Recipes.jl")
     include("Jobs.jl")
     include("Scenarios.jl")
@@ -16,12 +18,12 @@ module Dataiku
 
     using .HttpUtils
 
-    using JSON
-
     export get_dataframe
     export write_with_schema
 
     export full_name
+    export get_definition
+    export set_definition
     export get_settings
     export set_settings
     export get_metadata
@@ -29,26 +31,51 @@ module Dataiku
     export create
     export delete
 
+    createobject(::Type{T}, id) where {T <: DSSObject} = '.' in id ? T(split(id, '.')[end], DSSProject(split(id, '.')[1])) : T(id)
 
-    createobject(::Type{T}, id) where {T <: DSSObject} = '.' in id ? T(split(id, '.')[2], split(id, '.')[1]) : T(id)
-    full_name(object::DSSObject) = object.projectKey * "." * (:id in fieldnames(typeof(object)) ? object.id : object.name)
+    full_name(object::DSSObject) = object.project.key * "." * (:id in fieldnames(typeof(object)) ? object.id : object.name)
 
-    get_projectKey() = ENV["DKU_CURRENT_PROJECT_KEY"]
-
-    start_a_query(data::AbstractString) = request("POST", "sql/queries/", data)
-
-    function stream_the_data(queryId::AbstractString; params...)
-        params = Dict()
-        if formatParams != nothing params["formatParams"] = formatParams end
-        if format != nothing
-            params["format"] = format
-            request("GET", "sql/queries/$(queryId)/stream/"; params=params, parse_json=false)
-        else
-            request("GET", "sql/queries/$(queryId)/stream/"; params=params)
+    """
+get the global variable FLOW that would be defined if running inside DSS
+    """
+    function get_flow()
+        if isdefined(Main, :FLOW)
+            show(Main.FLOW)
+            Main.FLOW
         end
     end
 
-    verify_a_query(queryId::AbstractString) = request("GET", "sql/queries/$(queryId)/finish-streaming"; parse_json=false)
+    runs_remotely() = isdefined(Main, :DKU_ENV) ? Main.DKU_ENV["runsRemotely"] : true
+
+    """
+```julia
+find_field(list::AbstractArray, field::AbstractString, value)
+```
+look for a dict that has this `value` at this `field` in an array of dict
+    """
+    function find_field(dict::AbstractArray, field::AbstractString, value)
+        for item in dict
+            if value == item[field]
+                return item
+            end
+        end
+    end
+
+    function get_current_project()
+        if !haskey(ENV, "DKU_CURRENT_PROJECT_KEY")
+            throw(ArgumentError("No projectKey found, initialize project with set_project(::DSSProject)"))
+        end
+        DSSProject(ENV["DKU_CURRENT_PROJECT_KEY"])
+    end
+
+    set_current_project(project::DSSProject) = ENV["DKU_CURRENT_PROJECT_KEY"] = project.key
+
+    start_query(data::AbstractString) = request("POST", "sql/queries/", data)
+
+    stream_data(queryId::AbstractString; params...) =
+        request("GET", "sql/queries/$(queryId)/stream/"; params=params, parse_json=haskey(params, "format"))
+
+    verify_query(queryId::AbstractString) = request("GET", "sql/queries/$(queryId)/finish-streaming"; parse_json=false)
 
     list_connections() = request("GET", "admin/connections")
 
@@ -103,28 +130,24 @@ module Dataiku
 
     list_code_envs() = request("GET", "admin/code-envs/")
 
-    get_code_env(envName::AbstractString, envLang::AbstractString) = request("GET", "admin/code-envs/$(envLang)/$(envName)")
+    get_code_env(envName::AbstractString, envLang::AbstractString) =
+        request("GET", "admin/code-envs/$(envLang)/$(envName)")
 
-    function update_code_env(codeEnv::AbstractDict, envName::AbstractString, envLang::AbstractString)
+    update_code_env(codeEnv::AbstractDict, envName::AbstractString, envLang::AbstractString) =
         request("PUT", "admin/code-envs/$(envLang)/$(envName)", codeEnv)
-    end
 
-    function create_code_env(envName::AbstractString, envLang::AbstractString, data::AbstractDict=Dict())
+    create_code_env(envName::AbstractString, envLang::AbstractString, data::AbstractDict=Dict()) =
         request("POST", "admin/code-envs/$(envLang)/$(envName)", data)
-    end
 
-    function delete_code_env(envName::AbstractString, envLang::AbstractString)
+    delete_code_env(envName::AbstractString, envLang::AbstractString) =
         request("DELETE", "admin/code-envs/$(envLang)/$(envName)")
-    end
 
 
-    function update_code_env_packaged(envName::AbstractString, envLang::AbstractString)
+    update_code_env_packaged(envName::AbstractString, envLang::AbstractString) =
         request("POST", "admin/code-envs/$(envLang)/$(envName)/packages")
-    end
 
-    function update_jupyter_integration(envName::AbstractString, envLang::AbstractString, active::Bool)
+    update_jupyter_integration(envName::AbstractString, envLang::AbstractString, active::Bool) =
         request("POST", "admin/code-envs/$(envLang)/$(envName)/jupyter?active=$(active)")
-    end
 
 
     get_general_settings() = request("GET", "admin/general-settings")
@@ -136,9 +159,11 @@ module Dataiku
     get_log_content(name::AbstractString) = request("GET", "admin/logs/$(name)")
 
 
-    list_variables() = request("GET", "admin/variables")
+    list_custom_variables() = request("GET", "admin/variables")
+    set_custom_variables(variables::AbstractDict) = request("PUT", "admin/variables", variables)
 
-    save_variables(variables::AbstractDict) = request("PUT", "admin/variables", variables)
+    list_flow_variables(project::DSSProject=get_current_project()) = request("GET", "projects/$(project.key)/variables")
+    set_flow_variables(variables::AbstractDict, project::DSSProject=get_current_project()) = request("PUT", "projects/$(project.key)/variables", variables)
 
     function list_internal_metrics(; name=nothing, metric_type=nothing)
         params = Dict()
@@ -146,5 +171,10 @@ module Dataiku
         if metric_type != nothing params["metric_type"] = metric_type end
         request("GET", "internal-metrics"; params=params)
     end
+    list_tasks_in_progress(;allUsers=true, withScenarios=true) = request("GET", "futures/?allUsers=$allUsers&withScenarios=$withScenarios")
+
+    get_running_task_status(jobId::AbstractString, peek::Bool=false) = request("GET", "futures/$jobId?peek=$peek")
+
+    abort_task(jobId::AbstractString) = request("GET", "futures/$jobId")
 
 end

@@ -1,7 +1,7 @@
 struct DSSScenario <: DSSObject
+    project::DSSProject
     id::AbstractString
-    projectKey::AbstractString
-    DSSScenario(id::AbstractString, projectKey=get_projectKey()) = new(id, projectKey)
+    DSSScenario(id::AbstractString, project::DSSProject=get_current_project()) = new(project, id)
 end
 
 macro scenario_str(str)
@@ -11,89 +11,76 @@ end
 export @scenario_str
 export DSSScenario
 
-list_scenarios(projectKey=get_projectKey()) = request("GET", "projects/$(projectKey)/scenarios/")
+list_scenarios(project::DSSProject=get_current_project()) = request("GET", "projects/$(project.key)/scenarios/")
 
-function get_settings(scenario::DSSScenario, with_status=true)
-    request("GET", "projects/$(scenario.projectKey)/scenarios/$(scenario.id)" * (with_status ? "" : "/light"))
-end
+get_settings(scenario::DSSScenario, with_status=true) =
+    request("GET", "projects/$(scenario.project.key)/scenarios/$(scenario.id)" * (with_status ? "" : "/light"))
 
-function set_settings(scenario::DSSScenario, settings::AbstractDict)
-    request("PUT", "projects/$(scenario.projectKey)/scenarios/$(scenario.id)", settings)
-end
+set_settings(scenario::DSSScenario, settings::AbstractDict) =
+    request("PUT", "projects/$(scenario.project.key)/scenarios/$(scenario.id)", settings)
 
 
-function get_status(scenario::DSSScenario)
-    request("GET", "projects/$(scenario.projectKey)/scenarios/$(scenario.id)/light")
-end
+get_status(scenario::DSSScenario) =
+    request("GET", "projects/$(scenario.project.key)/scenarios/$(scenario.id)/light")
 
-function set_status(scenario::DSSScenario, status::AbstractDict)
-    request("PUT", "projects/$(scenario.projectKey)/scenarios/$(scenario.id)/light", status)
-end
+set_status(scenario::DSSScenario, status::AbstractDict) =
+    request("PUT", "projects/$(scenario.project.key)/scenarios/$(scenario.id)/light", status)
 
 
-function get_payload(scenario::DSSScenario)
-    request("GET", "projects/$(scenario.projectKey)/scenarios/$(scenario.id)/payload")["script"] ## Error when no payload
-end
+get_payload(scenario::DSSScenario) =
+    request("GET", "projects/$(scenario.project.key)/scenarios/$(scenario.id)/payload")["script"] ## Error when no payload
 
-function set_payload(scenario::DSSScenario, script::AbstractString)
-    request("PUT", "projects/$(scenario.projectKey)/scenarios/$(scenario.id)/payload", Dict("script" => script))
-end
+set_payload(scenario::DSSScenario, script::AbstractString) =
+    request("PUT", "projects/$(scenario.project.key)/scenarios/$(scenario.id)/payload", Dict("script" => script))
 
 
-function list_last_runs(scenario::DSSScenario, limit::Integer=10)
-    request("GET", "projects/$(scenario.projectKey)/scenarios/$(scenario.id)/get-last-runs/?limit=$(limit)")
-end
+list_last_runs(scenario::DSSScenario, limit::Integer=10) =
+    request("GET", "projects/$(scenario.project.key)/scenarios/$(scenario.id)/get-last-runs/?limit=$(limit)")
 
 
 """
 `create_scenario(scenario_name::AbstractString, scenario_type::AbstractString, definition::AbstractDict`
 
 Create a new scenario in the project, and return a handle to interact with it
-* `scenario_name::AbstractString` The name for the new scenario. This does not need to be unique
-                        (although this is strongly recommended)
+* `scenario_name::AbstractString` The name for the new scenario. This does not need to be unique (although this is strongly recommended)
 * `scenario_type::AbstractString` The type of the scenario. MUst be one of `step_based` or `custom_python`
-* `definition::AbstractDict` the JSON definition of the scenario. Use `get_settings` on an 
-        existing DSSScenario` object in order to get a sample definition object
+* `definition::AbstractDict` the JSON definition of the scenario. Use `get_settings` on an existing `DSSScenario` object in order to get a sample definition object
 returns: a `DSSScenario` handle to interact with the newly-created scenario
 """
-function create_scenario(scenario_name::AbstractString, scenario_type::AbstractString, definition::AbstractDict, projectKey=get_projectKey())
+function create_scenario(scenario_name, scenario_type, definition::AbstractDict, project::DSSProject=get_current_project())
     definition["name"] = scenario_name
     definition["type"] = scenario_type # step_based or custom_python
-    scenario_id = request("POST", "projects/$(projectKey)/scenarios/", definition)["id"]
-    return DSSScenario(scenario_id, projectKey)
+    scenario_id = request("POST", "projects/$(project.key)/scenarios/", definition)["id"]
+    DSSScenario(scenario_id, project)
 end
 
 struct DSSRun
+    scenario::DSSScenario
     id::AbstractString
     triggerId::AbstractString
-    scenarioId::AbstractString
-    projectKey::AbstractString
 end
 
 export DSSRun
 
 function run_scenario(scenario::DSSScenario, body::AbstractDict=Dict()) # you can send trigger parameters, not required
-    runId = request("POST", "projects/$(scenario.projectKey)/scenarios/$(scenario.id)/run", body)["runId"]
-    return DSSRun(runId, "manual", scenario.id, scenario.projectKey)
+    res = request("POST", "projects/$(scenario.project.key)/scenarios/$(scenario.id)/run", body)
+    DSSRun(scenario, res["runId"], "manual")
 end
 
-function get_details(run::DSSRun)
-    request("GET", "projects/$(run.projectKey)/scenarios/$(run.scenarioId)/$(run.id)/")
-end
+get_details(run::DSSRun) = request("GET", "projects/$(run.scenario.project.key)/scenarios/$(run.scenario.id)/$(run.id)/")
 
-abort_a_scenario(scenario::DSSScenario) = request("POST", "projects/$(scenario.projectKey)/scenarios/$(scenario.id)/abort")
+abort_scenario(scenario::DSSScenario) = request("POST", "projects/$(run.scenario.project.key)/scenarios/$(run.scenario.id)/abort")
 
 function get_settings(run::DSSRun) 
     params = Dict("triggerRunId" => run.id,
                   "triggerId"    => run.triggerId)
-    request("GET", "projects/$(run.projectKey)/scenarios/$(run.scenarioId)/get-run-for-trigger/"; params=params)["scenarioRun"]
+    request("GET", "projects/$(run.scenario.project.key)/scenarios/$(run.scenario.id)/get-run-for-trigger/"; params=params)["scenarioRun"]
 end
-
 
 # same than the ["trigger"] field of get_settings, not really useful
 
 # function get_a_run_of_a_trigger(run::DSSRun)
-#     request("GET", "projects/$(run.projectKey)/scenarios/trigger/$(run.scenarioId)/$(run.triggerId)?triggerRunId=$(run.id)")
+#     request("GET", "projects/$(run.project.key)/scenarios/trigger/$(run.scenarioId)/$(run.triggerId)?triggerRunId=$(run.id)")
 # end
 
 export get_status
