@@ -3,7 +3,7 @@ using Pkg
 empty!(Base.LOAD_PATH)
 # Take LOAD_PATH from parent process
 append!(Base.LOAD_PATH, ["@", "@v#.#", "@stdlib"])
-Pkg.activate("/Users/chaydont/devenv/dss-home/code-envs/julia/dev/PackageCompiler/packages/Project.toml")
+Pkg.activate("/Users/chaydont/devenv/dss-home/code-envs/julia/dev/PackageCompiler/packages/Dataiku/Project.toml")
 Pkg.instantiate()
 
 
