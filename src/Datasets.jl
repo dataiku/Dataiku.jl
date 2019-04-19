@@ -48,7 +48,7 @@ function get_dataframe(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
 
 get the data of a dataset in a DataFrame
 
-### keywords parameters :
+### Keywords parameters
 - `partitions::AbstractArray` : specify the partitions wanted
 - `infer_types::Bool=true` : uses the types detected by TextParse.jl rather than the DSS schema
 - `limit::Integer` : Limits the number of rows returned
@@ -59,9 +59,8 @@ get the data of a dataset in a DataFrame
     * `random-column` returns a random sample of the dataset. Incompatible with limit parameter.
 - `sampling_column::AbstractString` : Select the column used for "columnwise-random" sampling
 
-### examples:
-
-```
+### examples
+```julia
 get_dataframe(dataset"myDataset")
 get_dataframe(dataset"myDataset", [:col1, :col2, :col5]; partitions=["2019-02", "2019-03"])
 get_dataframe(dataset"PROJECTKEY.myDataset"; infer_types=false, limit=200, sampling="random")
@@ -72,15 +71,13 @@ function get_dataframe(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
     load(CSVFiles.Stream(format"TSV", stream); header_exists=false, colnames=names, colparsers=types) |> DataFrame
 end
 
-function iter_data_chunks(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
-    stream, names, types = get_dataframe_params(ds, columns; kwargs...)
-    Channel(chnl->_iter_data_chunks(chnl, stream, names, types))
-end
+iter_data_chunks(ds::DSSDataset, columns::AbstractArray=[]; kwargs...) =
+    Channel(chnl->_iter_data_chunks(chnl, get_dataframe_params(ds, columns; kwargs...)...))
 
 function get_dataframe_params(ds::DSSDataset, columns::AbstractArray=[]; partitions::AbstractArray=[], infer_types=true, kwargs...)
     sampling = create_sampling_argument(; kwargs...) |> JSON.json
-    stream = get_data(ds; columns=columns, format="tsv-excel-noheader", sampling=sampling, partitions=partitions, stream=true)
     schema = get_schema(ds)["columns"]
+    stream = get_data_stream(ds; columns=columns, format="tsv-excel-noheader", sampling=sampling, partitions=partitions)
     names = get_column_names(schema, columns)
     types = infer_types ? [] : get_column_types(schema, columns)
     stream, names, types
@@ -98,10 +95,7 @@ function _iter_data_chunks(chnl::AbstractChannel, io::IO, names::AbstractArray, 
     end
 end
 
-function iter_rows(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
-    chunks = iter_data_chunks(ds, columns; kwargs...)
-    Channel(chnl->_iter_rows(chnl, chunks))
-end
+iter_rows(ds::DSSDataset, columns::AbstractArray=[]; kwargs...) = Channel(chnl->_iter_rows(chnl, iter_data_chunks(ds, columns; kwargs...)))
 
 function _iter_rows(chnl::AbstractChannel, chunks::AbstractChannel)
     for chunk in chunks
@@ -111,7 +105,8 @@ function _iter_rows(chnl::AbstractChannel, chunks::AbstractChannel)
     end
 end
 
-function iter_dataframes(ds::DSSDataset, nrows::Integer=10_000, columns::AbstractArray=[]; kwargs...) # dont work for smaller than chunk df
+ # TODO dont work for smaller than chunk df
+function iter_dataframes(ds::DSSDataset, nrows::Integer=10_000, columns::AbstractArray=[]; kwargs...)
     chunks = iter_data_chunks(ds, columns; kwargs...)
     Channel(chnl->_iter_dataframes(chnl, chunks, nrows))
 end
@@ -134,7 +129,7 @@ end
 
 iter_tuples(ds::DSSDataset, columns::AbstractArray=[]; kwargs...) = Channel(chnl->_iter_tuples(chnl, iter_data_chunks(ds, columns; kwargs...)))
 
-# TODO
+# TODO make this more efficient if possible
 function _iter_tuples(chnl::AbstractChannel, chunks::AbstractChannel)
     for chunk in chunks
         for row in 1:nrow(chunk)
@@ -142,6 +137,18 @@ function _iter_tuples(chnl::AbstractChannel, chunks::AbstractChannel)
         end
     end
 end
+
+function get_data_params(ds::DSSDataset; kwargs...)
+    params = Dict(kwargs)
+    if !(haskey(params,:partitions) && !isempty(params[:partitions])) && !runs_remotely()
+        params[:partitions] = get(get_flow_inputs(ds), "partitions", "")
+    end
+    params
+end
+
+get_data_json(ds::DSSDataset; kw...)    = request_json(     "GET", "projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=get_data_params(ds; kw...))
+get_data_stream(ds::DSSDataset; kw...)  = request_stream(   "GET", "projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=get_data_params(ds; kw...))
+get_data(ds::DSSDataset; kw...)         = request(          "GET", "projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=get_data_params(ds; kw...))
 
 ###################################################
 #
@@ -165,21 +172,13 @@ write_schema(ds::DSSDataset, schema::AbstractDict) = set_schema(ds, schema)
 write_schema_from_dataframe(ds::DSSDataset, df::AbstractDataFrame) = write_schema(ds, get_schema_from_df(df))
 
 function init_write_session(ds::DSSDataset, schema::AbstractDict; method="STREAM", partition="", writeMode="OVERWRITE")
-    if !runs_remotely()
-        if partition == ""
-            dataset = get_outputs(ds)
-            if haskey(dataset, "partition") && !isempty(dataset["partition"])
-                partition = dataset["partition"]
-            end
-        end
-    end
     req = Dict(
         "method"          => method,
-        "partitionSpec"   => partition,
+        "partitionSpec"   => (partition == "" && !runs_remotely()) ? get(get_flow_outputs(ds), "partition", "") : partition,
         "fullDatasetName" => full_name(ds),
         "writeMode"       => writeMode,
         "dataSchema"      => schema)
-    request("POST", "datasets/init-write-session/", Dict("request" => JSON.json(req)); intern_call=true)["id"]
+    request_json("POST", "datasets/init-write-session/", Dict("request" => JSON.json(req)); intern_call=true)["id"]
 end
 
 wait_write_session(id::AbstractString) = request("GET", "datasets/wait-write-session/?id=" * id; intern_call=true)
@@ -201,11 +200,11 @@ end
 #
 ###################################################
 
-get_outputs(ds::DSSDataset) = get_inputs_or_outputs(ds, "out")
+get_flow_outputs(ds::DSSDataset) = get_flow_inputs_or_outputs(ds, "out")
 
-get_inputs(ds::DSSDataset) = get_inputs_or_outputs(ds, "in")
+get_flow_inputs(ds::DSSDataset) = get_flow_inputs_or_outputs(ds, "in")
 
-function get_inputs_or_outputs(ds::DSSDataset, option)
+function get_flow_inputs_or_outputs(ds::DSSDataset, option)
     puts = find_field(get_flow()[option], "fullName", full_name(ds))
     if puts == nothing
         throw(ArgumentError("Dataset isn't an " * option * "put of the recipe"))
@@ -351,113 +350,78 @@ function create_dataset(name::AbstractString, project::DSSProject=get_current_pr
 end
 
 function create_dataset(body::AbstractDict, project::DSSProject=get_current_project())
-    request("POST", "projects/$(project.key)/datasets/", body)
+    request_json("POST", "projects/$(project.key)/datasets/", body)
     DSSDataset(body["name"], project)
 end
 
-delete(ds::DSSDataset; dropData::Bool=false) = request("DELETE", "projects/$(ds.project.key)/datasets/$(ds.name)"; params=Dict("dropData" => dropData))
+delete(ds::DSSDataset; dropData::Bool=false) = request_json("DELETE", "projects/$(ds.project.key)/datasets/$(ds.name)"; params=Dict("dropData" => dropData))
 
-# PYTHON API FUNCTIONS
-
-# function get_location_info(ds::DSSDataset; sensitive_info=false)
-#     data = Dict(
-#         "projectKey"    => ds.project.key,
-#         "datasetName"   => ds.name,
-#         "sensitiveInfo" => sensitive_info
-#     )
-#     post_json("$(intern_url)/datasets/get-location-info/", data)
-# end
-
-# function get_files_info(ds::DSSDataset; partitions=[])
-#     data = Dict(
-#         "projectKey"  => ds.project.key,
-#         "datasetName" => ds.name,
-#         "partitions"  => JSON.json(partitions)
-#     )
-#     post_json("$(intern_url)/datasets/get-files-info/", data)
-# end
-
-
-###################################################################################
 
 """
     function list_datasets(project::DSSProject=get_current_project(); foreign=false, tags::AbstractArray=[])
 """
-list_datasets(project::DSSProject=get_current_project(); kwargs...) = request("GET", "projects/$(project.key)/datasets/"; params=kwargs)
+list_datasets(project::DSSProject=get_current_project(); kwargs...) = request_json("GET", "projects/$(project.key)/datasets/"; params=kwargs)
 
-get_settings(ds::DSSDataset) = request("GET", "projects/$(ds.project.key)/datasets/$(ds.name)")
+get_settings(ds::DSSDataset) = request_json("GET", "projects/$(ds.project.key)/datasets/$(ds.name)")
 
-set_settings(ds::DSSDataset, body::AbstractDict) = request("PUT", "projects/$(ds.project.key)/datasets/$(ds.name)", body)
-
-
-get_metadata(ds::DSSDataset) = request("GET", "projects/$(ds.project.key)/datasets/$(ds.name)/metadata")
-
-set_metadata(ds::DSSDataset, body::AbstractDict) = request("PUT", "projects/$(ds.project.key)/datasets/$(ds.name)/metadata", body)
+set_settings(ds::DSSDataset, body::AbstractDict) = request_json("PUT", "projects/$(ds.project.key)/datasets/$(ds.name)", body)
 
 
-get_schema(ds::DSSDataset) = request("GET", "projects/$(ds.project.key)/datasets/$(ds.name)/schema")
+get_metadata(ds::DSSDataset) = request_json("GET", "projects/$(ds.project.key)/datasets/$(ds.name)/metadata")
 
-set_schema(ds::DSSDataset, body::AbstractDict) = request("PUT", "projects/$(ds.project.key)/datasets/$(ds.name)/schema", body)
+set_metadata(ds::DSSDataset, body::AbstractDict) = request_json("PUT", "projects/$(ds.project.key)/datasets/$(ds.name)/metadata", body)
 
 
-list_partitions(ds::DSSDataset) = request("GET", "projects/$(ds.project.key)/datasets/$(ds.name)/partitions")
+get_schema(ds::DSSDataset) = request_json("GET", "projects/$(ds.project.key)/datasets/$(ds.name)/schema")
 
-function get_data(ds::DSSDataset; stream::Bool=false, kw...)
-    params = Dict(kw)
-    if !runs_remotely()
-        if !(haskey(params,:partitions) && !isempty(params[:partitions]))
-            dataset = get_inputs(ds)
-            if haskey(dataset, "partitions") && !isempty(dataset["partitions"])
-                params[:partitions] = dataset["partitions"]
-            end
-        end
-    end
-    request("GET", "projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=params, parse_json=!haskey(params, :format), stream=stream)
-end
+set_schema(ds::DSSDataset, body::AbstractDict) = request_json("PUT", "projects/$(ds.project.key)/datasets/$(ds.name)/schema", body)
+
+
+list_partitions(ds::DSSDataset) = request_json("GET", "projects/$(ds.project.key)/datasets/$(ds.name)/partitions")
 
 clear_data(ds::DSSDataset, partitions::AbstractArray=[]) =
-    request("DELETE", "projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=Dict("partitions" => partitions))
+    request_json("DELETE", "projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=Dict("partitions" => partitions))
 
 
 get_last_metric_values(ds::DSSDataset, partition::AbstractString="NP") =
-    request("GET", "projects/$(ds.project.key)/datasets/$(ds.name)/metrics/last/$(partition)")
+    request_json("GET", "projects/$(ds.project.key)/datasets/$(ds.name)/metrics/last/$(partition)")
 
 
 get_single_metric_history(ds::DSSDataset, metricLookup::AbstractString, partition::AbstractString="NP") =
-    request("GET", "projects/$(ds.project.key)/datasets/$(ds.name)/metrics/history/$(partition)?metricLookup=$(metricLookup)")
+    request_json("GET", "projects/$(ds.project.key)/datasets/$(ds.name)/metrics/history/$(partition)?metricLookup=$(metricLookup)")
 
 
 
-list_meanings() = request("GET", "meanings/")
+list_meanings() = request_json("GET", "meanings/")
 
-get_meaning_definition(meaningId::AbstractString) = request("GET", "meanings/$(meaningId)")
+get_meaning_definition(meaningId::AbstractString) = request_json("GET", "meanings/$(meaningId)")
 
-update_meaning_definition(definition::AbstractDict, meaningId::AbstractString) = request("PUT", "meanings/$(meaningId)", definition)
+update_meaning_definition(definition::AbstractDict, meaningId::AbstractString) = request_json("PUT", "meanings/$(meaningId)", definition)
 
-create_meaning(data::AbstractDict) = request("POST", "meanings/", data)
+create_meaning(data::AbstractDict) = request_json("POST", "meanings/", data)
 
 
 
-list_api_services(project::DSSProject=get_current_project()) = request("GET", "projects/$(project.key)/apiservices/")
+list_api_services(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(project.key)/apiservices/")
 
 list_packages(serviceId::AbstractString, project::DSSProject=get_current_project()) =
-    request("GET", "projects/$(project.key)/apiservices/$(serviceId)/packages/")
+    request_json("GET", "projects/$(project.key)/apiservices/$(serviceId)/packages/")
 
 delete_package(serviceId::AbstractString, packageId::AbstractString, project::DSSProject=get_current_project()) =
-    request("DELETE", "projects/$(project.key)/apiservices/$(serviceId)/packages/$(packageId)")
+    request_json("DELETE", "projects/$(project.key)/apiservices/$(serviceId)/packages/$(packageId)")
 
 download_package_archive(serviceId::AbstractString, packageId::AbstractString, project::DSSProject=get_current_project()) =
-    request("GET", "projects/$(project.key)/apiservices/$(serviceId)/packages/$(packageId)/archive"; parse_json=false)
+    request_stream("GET", "projects/$(project.key)/apiservices/$(serviceId)/packages/$(packageId)/archive")
 
 
-get_wiki(project::DSSProject=get_current_project()) = request("GET", "projects/$(project.key)/wiki/")
+get_wiki(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(project.key)/wiki/")
 
-update_wiki(wiki::AbstractDict, project::DSSProject=get_current_project()) = request("PUT", "projects/$(project.key)/wiki/", wiki)
+update_wiki(wiki::AbstractDict, project::DSSProject=get_current_project()) = request_json("PUT", "projects/$(project.key)/wiki/", wiki)
 
-get_article(articleId::AbstractString, project::DSSProject=get_current_project()) = request("GET", "projects/$(project.key)/wiki/$(articleId)")
+get_article(articleId::AbstractString, project::DSSProject=get_current_project()) = request_json("GET", "projects/$(project.key)/wiki/$(articleId)")
 
 update_article(article::AbstractDict, articleId, project::DSSProject=get_current_project()) =
-    request("PUT", "projects/$(project.key)/wiki/$(articleId)", article)
+    request_json("PUT", "projects/$(project.key)/wiki/$(articleId)", article)
 
 function create_article(name::AbstractString, project::DSSProject=get_current_project(); parent=nothing)
     data = Dict(
@@ -465,82 +429,61 @@ function create_article(name::AbstractString, project::DSSProject=get_current_pr
         "id"         => name
     )
     if parent != nothing data["parent"] = parent end
-    request("POST", "projects/$(project.key)/wiki/", data)
+    request_json("POST", "projects/$(project.key)/wiki/", data)
 end
 
 
 get_discussions(objectId::AbstractString, objectType::AbstractString, project::DSSProject=get_current_project()) =
-    request("GET", "projects/$(project.key)/discussions/$(objectType)/$(objectId)/")
+    request_json("GET", "projects/$(project.key)/discussions/$(objectType)/$(objectId)/")
 
 get_discussion(objectId::AbstractString, objectType::AbstractString, discussionId::AbstractString, project::DSSProject=get_current_project()) =
-    request("GET", "projects/$(project.key)/discussions/$(objectType)/$(objectId)/$(discussionId)")
+    request_json("GET", "projects/$(project.key)/discussions/$(objectType)/$(objectId)/$(discussionId)")
 
 update_discussion(discussion::AbstractDict, objectId::AbstractString, objectType, discussionId, project::DSSProject=get_current_project()) =
-    request("PUT", "projects/$(project.key)/discussions/$(objectType)/$(objectId)/$(discussionId)", discussion)
+    request_json("PUT", "projects/$(project.key)/discussions/$(objectType)/$(objectId)/$(discussionId)", discussion)
 
 function create_discussion(objectId::AbstractString, objectType::AbstractString, topic, reply, project::DSSProject=get_current_project())
     data = Dict(
         "topic" => topic,
         "reply" => reply
     )
-    request("POST", "projects/$(project.key)/discussions/$(objectType)/$(objectId)/", data)
+    request_json("POST", "projects/$(project.key)/discussions/$(objectType)/$(objectId)/", data)
 end
 
 reply(objectId::AbstractString, objectType::AbstractString, discussionId::AbstractString, reply, project::DSSProject=get_current_project()) =
-    request("POST", "projects/$(project.key)/discussions/$(objectType)/$(objectId)/$(discussionId)/replies/", Dict("reply" => reply))
+    request_json("POST", "projects/$(project.key)/discussions/$(objectType)/$(objectId)/$(discussionId)/replies/", Dict("reply" => reply))
 
 
 compute_metrics(ds::DSSDataset, data::AbstractDict; partitions::AbstractArray=[]) =
-    request("POST", "projects/$(ds.project.key)/datasets/$(ds.name)/actions/computeMetrics/", data; params=Dict(:partitions => partitions))
+    request_json("POST", "projects/$(ds.project.key)/datasets/$(ds.name)/actions/computeMetrics/", data; params=Dict(:partitions => partitions))
 
 run_checks(ds::DSSDataset, data::AbstractDict; partitions::AbstractArray=[]) =
-    request("POST", "projects/$(ds.project.key)/datasets/$(ds.name)/actions/runChecks/"; params=Dict(:partitions => partitions))
+    request_json("POST", "projects/$(ds.project.key)/datasets/$(ds.name)/actions/runChecks/"; params=Dict(:partitions => partitions))
 
 ##################################################################################
 
 
 # function push_to_git_remote(remote::Union{Nothing, String}, project::DSSProject=get_current_project())
-# 	request("POST", "projects/$(project.key)/actions/push-to-git-remote", Dict())
+# 	request_json("POST", "projects/$(project.key)/actions/push-to-git-remote", Dict())
 # end
 
 # function get_data_alternative_version(ds::DSSDataset)
-# 	request("POST", "projects/$(project.key)/datasets/$(ds.name)/data", Dict())
+# 	request_json("POST", "projects/$(project.key)/datasets/$(ds.name)/data", Dict())
 # end
 
 
 # function synchronize_hive_metastore(ds::DSSDataset)
-# 	request("POST", "projects/$(project.key)/datasets/$(ds.name)/actions/synchronizeHiveMetastore", Dict())
+# 	request_json("POST", "projects/$(project.key)/datasets/$(ds.name)/actions/synchronizeHiveMetastore", Dict())
 # end
 
 # function update_from_hive_metastore(ds::DSSDataset)
-# 	request("POST", "projects/$(project.key)/datasets/$(ds.name)/actions/updateFromHive", Dict())
+# 	request_json("POST", "projects/$(project.key)/datasets/$(ds.name)/actions/updateFromHive", Dict())
 # end
 
 
 # function generate_package(serviceId::Union{Nothing, String}, packageId::Union{Nothing, String})
-# 	request("POST", "projects/$(project.key)/apiservices/$(serviceId)/packages/$(packageId)", Dict())
+# 	request_json("POST", "projects/$(project.key)/apiservices/$(serviceId)/packages/$(packageId)", Dict())
 # end
 
 
 ##################################################################################
-
-export full_name
-export write_schema_from_dataframe
-
-export iter_rows
-export iter_tuples
-export iter_dataframes
-
-export DSSDataset
-export get_dataframe
-export get_dataframe_by_row
-export get_dataframe_by_chunk
-
-export write_with_schema
-export create_dataset
-export remove_dataset
-
-export get_schema
-export set_schema
-
-export list_partitions

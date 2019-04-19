@@ -1,10 +1,10 @@
-list_installed_plugins() = request("GET", "plugins/")
+list_installed_plugins() = request_json("GET", "plugins/")
 
-download_a_plugin(pluginId::AbstractString) = request("GET", "plugins/$(pluginId)/download"; stream=true)
+download_a_plugin(pluginId::AbstractString) = request_stream("GET", "plugins/$(pluginId)/download")
 
-list_files_in_plugin(pluginId::AbstractString) = request("GET", "plugins/$(pluginId)/contents/")
+list_files_in_plugin(pluginId::AbstractString) = request_json("GET", "plugins/$(pluginId)/contents/")
 
-download_file(pluginId::AbstractString, path::AbstractString) = request("GET", "plugins/$(pluginId)/contents/$(path)"; stream=true)
+download_file(pluginId::AbstractString, path::AbstractString) = request_stream("GET", "plugins/$(pluginId)/contents/$(path)")
 
 function upload_file_to_plugin(pluginId::AbstractString, path::AbstractString, file)
     filename = String(split(path, "/")[end])

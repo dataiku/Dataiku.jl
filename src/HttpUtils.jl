@@ -47,67 +47,72 @@ If no argument given, will try to find url and authentication from (in this orde
 		context
 	end
 
-	_get_context() = context == nothing ? init_context() : context
+	get_context() = context == nothing ? init_context() : context
 
 	function get_auth_header()
 		if haskey(ENV, "DKU_API_TICKET")
 			Dict("X-DKU-APITicket" => ENV["DKU_API_TICKET"])
 		else
-			Dict("Authorization" => "Basic $(base64encode(_get_context().auth * ":"))")
+			Dict("Authorization" => "Basic $(base64encode(get_context().auth * ":"))")
 		end
 	end
 	
 	addparam(param, value::Any) = "$param=$value"
 	addparam(param, value::AbstractArray) = addparam(param, join(value, ','))
 	
-	"""
-	```julia
-	querystring(params::AbstractDict)
-	```
-	add all the parameters to the url
-	"""
 	function querystring(params::AbstractDict)
 		list_params = [addparam(param, value) for (param, value) in params if !isnothing(value) && !isempty(value)]
 		isempty(list_params) ? "" : "?" * join(list_params, '&')
 	end
 	querystring(params::Nothing) = ""
 	
-	get_url(url::AbstractString, params::Union{AbstractDict, Nothing}=nothing, intern_call=false) =
-	_get_context().url * (intern_call ? "dip/api/tintercom/" : "public/api/") * url * querystring(params)
-	
-	function request(request::AbstractString, url::AbstractString, body=nothing; intern_call=false,
-		params=nothing, parse_json=true, stream=false)
+	get_url(url::AbstractString, params=nothing, intern_call=false) =
+		get_context().url * (intern_call ? "dip/api/tintercom/" : "public/api/") * url * querystring(params)
+
+	function get_url_and_header(url, params=nothing, intern_call=false)
 		header = get_auth_header()
-		url = get_url(url, params, intern_call)
 		header["Content-Type"] = "application/" * (intern_call ? "x-www-form-urlencoded" : "json")
-		getbody(_body::Nothing) = UInt8[]
-		getbody(_body::AbstractDict) = intern_call ? HTTP.URIs.escapeuri(_body) : JSON.json(_body)
-		getbody(_body) = _body # nested methods to handle different body types
-		request_body = getbody(body)
-		if stream
-			io = Base.BufferStream()
-			@async HTTP.request(request, url, header, request_body; response_stream=io)
-			return io
-		else
-			response = HTTP.request(request, url, header, request_body)
-		end
-		data = String(response.body)
-		if isempty(data)
-			return nothing
-		end
-		parse_json ? JSON.parse(data) : data
+		get_url(url, params, intern_call), header
 	end
 
-	post_multipart(url::AbstractString, path::AbstractString, filename::AbstractString="file") = post_multipart(url, open(path, read=true), filename)
+	request(req::AbstractString, url::AbstractString, body::AbstractDict; intern_call=false, params=nothing)::String =
+		request(req, url, intern_call ? HTTP.URIs.escapeuri(body) : JSON.json(body); intern_call=intern_call, params=params)
 
-	function post_multipart(url::AbstractString, file::IO, filename::AbstractString="file")
+	request(req::AbstractString, url::AbstractString, body=""; intern_call=false, params=nothing)::String =
+		HTTP.request(req, get_url_and_header(url, params, intern_call)..., body).body |> String
+
+
+	request_json(req::AbstractString, url::AbstractString, body::AbstractDict; intern_call=false, params=nothing) =
+		request_json(req, url, intern_call ? HTTP.URIs.escapeuri(body) : JSON.json(body); intern_call=intern_call, params=params)
+
+	function request_json(req::AbstractString, url::AbstractString, body=""; intern_call=false, params=nothing)
+		res = HTTP.request(req, get_url_and_header(url, params, intern_call)..., body).body |> String
+		isempty(res) && return Dict()
+		JSON.parse(res)
+	end
+
+	request_stream(req::AbstractString, url::AbstractString, body::AbstractDict; intern_call=false, params=nothing)::Base.BufferStream =
+		request_stream(req, url, intern_call ? HTTP.URIs.escapeuri(body) : JSON.json(body); intern_call=intern_call, params=params)
+
+	function request_stream(req::AbstractString, url::AbstractString, body=""; intern_call=false, params=nothing)::Base.BufferStream
+		io = Base.BufferStream()
+		@async HTTP.request(req, get_url_and_header(url, params, intern_call)..., body; response_stream=io)
+		io
+	end
+
+	post_multipart(url::AbstractString, path::AbstractString, filename::AbstractString=basename(path)) =
+		post_multipart(url, open(path, read=true), filename)
+
+	function post_multipart(url::AbstractString, file::IO, filename::AbstractString="file")::String
 		body = HTTP.Form(Dict("file" => HTTP.Multipart(filename, file)))
-		header = get_auth_header()
+		url_request, header = get_url_and_header(url)
 		header["Content-Type"] = "multipart/form-data; boundary=$(body.boundary)"
-		response = HTTP.request("POST", get_url(url), header, body)
-		String(response.body)
+		HTTP.request("POST", url_request, header, body).body |> String
 	end
 
+	export init_context
 	export post_multipart
+	export request_json
+	export request_stream
 	export request
 end

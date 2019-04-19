@@ -15,7 +15,7 @@ end
 export @folder_str
 export DSSFolder
 
-list_managed_folders(project::DSSProject=get_current_project()) = request("GET", "projects/$(projectKey)/managedfolders/")
+list_managed_folders(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(projectKey)/managedfolders/")
 
 function create_managed_folder(name::AbstractString, project::DSSProject=get_current_project();
     connection::AbstractString="filesystem_folders", path="$(project.key)/$(name)")
@@ -26,26 +26,26 @@ function create_managed_folder(name::AbstractString, project::DSSProject=get_cur
             "path"       => path
         )
     )
-    response = request("POST", "projects/$(project.key)/managedfolders/", body)
+    response = request_json("POST", "projects/$(project.key)/managedfolders/", body)
     DSSFolder(response["id"])
 end
 
-delete(folder::DSSFolder) = request("DELETE", "projects/$(folder.project.key)/managedfolders/$(folder.id)")
+delete(folder::DSSFolder) = request_json("DELETE", "projects/$(folder.project.key)/managedfolders/$(folder.id)")
 
 # get_definition might be better 
-get_settings(folder::DSSFolder)= request("GET", "projects/$(folder.project.key)/managedfolders/$(folder.id)")
+get_settings(folder::DSSFolder)= request_json("GET", "projects/$(folder.project.key)/managedfolders/$(folder.id)")
 
 
 set_settings(folder::DSSFolder, settings::AbstractDict) =
-    request("PUT", "projects/$(folder.project.key)/managedfolders/$(folder.id)", settings)
+    request_json("PUT", "projects/$(folder.project.key)/managedfolders/$(folder.id)", settings)
 
 ## Files
 
-list_contents(folder::DSSFolder) = request("GET", "projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/")
+list_contents(folder::DSSFolder) = request_json("GET", "projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/")
 
 
 download_file(folder::DSSFolder, path::AbstractString) =
-    request("GET", "projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/$(path)"; stream=true)
+    request_stream("GET", "projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/$(path)")
 
 upload_file(folder::DSSFolder, path::AbstractString, filename::AbstractString=path) =
     upload_file(folder, open(path; read=true), filename)
@@ -54,10 +54,4 @@ upload_file(folder::DSSFolder, file::IO, filename::AbstractString) =
     post_multipart("$(public_url)/projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/", file, filename)
 
 delete_file(folder::DSSFolder, path::AbstractString) =
-    request("DELETE", "projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/$(path)")
-
-
-export list_contents
-export download_file
-export upload_file
-export delete_file
+    request_json("DELETE", "projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/$(path)")

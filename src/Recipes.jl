@@ -11,16 +11,16 @@ end
 export @recipe_str
 export DSSRecipe
 
-list_recipes(project::DSSProject=get_current_project()) = request("GET", "projects/$(project.key)/recipes/")
+list_recipes(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(project.key)/recipes/")
 
-get_definition(recipe::DSSRecipe) = request("GET", "projects/$(recipe.project.key)/recipes/$(recipe.name)")
+get_definition(recipe::DSSRecipe) = request_json("GET", "projects/$(recipe.project.key)/recipes/$(recipe.name)")
 
 # Doesnt work with empty payloads?
-set_definition(recipe::DSSRecipe, settings::AbstractDict) = request("PUT", "projects/$(recipe.project.key)/recipes/$(recipe.name)")
+set_definition(recipe::DSSRecipe, settings::AbstractDict) = request_json("PUT", "projects/$(recipe.project.key)/recipes/$(recipe.name)")
 
-get_metadata(recipe::DSSRecipe) = request("GET", "projects/$(recipe.project.key)/recipes/$(recipe.name)/metadata")
+get_metadata(recipe::DSSRecipe) = request_json("GET", "projects/$(recipe.project.key)/recipes/$(recipe.name)/metadata")
 
-set_metadata(recipe::DSSRecipe, metadata::AbstractDict) = request("PUT", "projects/$(recipe.project.key)/recipes/$(recipe.name)/metadata", metadata)
+set_metadata(recipe::DSSRecipe, metadata::AbstractDict) = request_json("PUT", "projects/$(recipe.project.key)/recipes/$(recipe.name)/metadata", metadata)
 
 
 # should we add DSSRecipeCreator ?
@@ -30,10 +30,8 @@ function create_recipe(recipe::AbstractDict, project::DSSProject=get_current_pro
         "recipePrototype"  => recipe,
         "creationSettings" => creationSettings
     )
-    request("POST", "projects/$(project.key)/recipes/", body)
+    request_json("POST", "projects/$(project.key)/recipes/", body)
     DSSRecipe(recipe["name"], project)
 end
 
-delete(recipe::DSSRecipe) = request("DELETE", "projects/$(recipe.project.key)/recipes/$(recipe.name)")
-
-export create_recipe
+delete(recipe::DSSRecipe) = request_json("DELETE", "projects/$(recipe.project.key)/recipes/$(recipe.name)")

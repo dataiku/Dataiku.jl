@@ -6,13 +6,13 @@ end
 export DSSAnalysis
 
 function create_analysis(dataset::DSSDataset)
-    res = request("POST", "projects/$(dataset.project.key)/lab/", Dict("inputDataset" => dataset.name))
+    res = request_json("POST", "projects/$(dataset.project.key)/lab/", Dict("inputDataset" => dataset.name))
     DSSAnalysis(res["id"], dataset.project)
 end
 
-list_analysis(project::DSSProject=get_current_project()) = request("GET", "projects/$(project.key)/lab/")
+list_analysis(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(project.key)/lab/")
 
-delete(analysis::DSSAnalysis) = request("DELETE", "projects/$(analysis.project.key)/lab/$(analysis.id)/")
+delete(analysis::DSSAnalysis) = request_json("DELETE", "projects/$(analysis.project.key)/lab/$(analysis.id)/")
 
 struct DSSMLTask <: DSSObject
     analysis::DSSAnalysis
@@ -23,8 +23,8 @@ struct DSSMLTask <: DSSObject
 end
 export DSSMLTask
 
-list_ml_tasks(project::DSSProject=get_current_project()) = request("GET", "projects/$(project.key)/models/lab/")["mlTasks"]
-list_ml_tasks(analysis::DSSAnalysis) = request("GET", "projects/$(analysis.project.key)/lab/$(analysis.id)/models/")["mlTasks"]
+list_ml_tasks(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(project.key)/models/lab/")["mlTasks"]
+list_ml_tasks(analysis::DSSAnalysis) = request_json("GET", "projects/$(analysis.project.key)/lab/$(analysis.id)/models/")["mlTasks"]
 
 """
 ```julia
@@ -73,7 +73,7 @@ function create_clustering_ml_task(dataset::DSSDataset; backendType="PY_MEMORY",
 end
 
 function create_ml_task(dataset::DSSDataset, body::AbstractDict; wait_guess=true)
-    res = request("POST", "projects/$(dataset.project.key)/models/lab/", body)
+    res = request_json("POST", "projects/$(dataset.project.key)/models/lab/", body)
     mltask = DSSMLTask(res, dataset.project)
     wait_guess && wait_guess_complete(mltask)
     mltask
@@ -125,17 +125,17 @@ function create_clustering_ml_task(analysis::DSSAnalysis; backendType="PY_MEMORY
 end
 
 function create_ml_task(analysis::DSSAnalysis, body::AbstractDict; wait_guess=true)
-    res = request("POST", "projects/$(analysis.project.key)/lab/$(analysis.id)/models/", body)
+    res = request_json("POST", "projects/$(analysis.project.key)/lab/$(analysis.id)/models/", body)
     mltask = DSSMLTask(res, analysis.project)
     wait_guess && wait_guess_complete(mltask)
     mltask
 end
 
 
-get_settings(mltask::DSSMLTask) = request("GET", "projects/$(mltask.analysis.project.key)/models/lab/$(mltask.analysis.id)/$(mltask.id)/settings")
-set_settings(mltask::DSSMLTask, body) = request("POST", "projects/$(mltask.analysis.project.key)/models/lab/$(mltask.analysis.id)/$(mltask.id)/settings", body)
+get_settings(mltask::DSSMLTask) = request_json("GET", "projects/$(mltask.analysis.project.key)/models/lab/$(mltask.analysis.id)/$(mltask.id)/settings")
+set_settings(mltask::DSSMLTask, body) = request_json("POST", "projects/$(mltask.analysis.project.key)/models/lab/$(mltask.analysis.id)/$(mltask.id)/settings", body)
 
-get_status(mltask::DSSMLTask) = request("GET", "projects/$(mltask.analysis.project.key)/models/lab/$(mltask.analysis.id)/$(mltask.id)/status")
+get_status(mltask::DSSMLTask) = request_json("GET", "projects/$(mltask.analysis.project.key)/models/lab/$(mltask.analysis.id)/$(mltask.id)/status")
 
 """
 ```julia
@@ -154,7 +154,7 @@ These identifiers can be used for `get_trained_model_snippet`, `get_trained_mode
 """
 function train(mltask::DSSMLTask; body...)
     res = start_train(mltask; body...)
-    wait_train_complete(mltask; body...)
+    wait_train_complete(mltask)
     get_trained_models_ids(mltask, res["sessionId"])
 end
 
@@ -167,26 +167,26 @@ Create an ensemble model of a set of models
 * `model_ids` A list of model identifiers
 * `method` the ensembling method. One of: `AVERAGE`, `PROBA_AVERAGE`, `MEDIAN`, `VOTE`, `LINEAR_MODEL`, `LOGISTIC_MODEL`
 This method waits for the ensemble train to complete. If you want to train asynchronously, use `start_ensembling` and `wait_train_complete`
-This method returns the trained ensemble (DSSTrainedModel).
+
 To get all identifiers for all models trained across all training sessions, use `get_trained_models_ids`
 This identifier can be used for `get_trained_model_snippet`, `get_trained_model_details` and `deploy_to_flow`
-return a DSSTrainedModel
+returns a DSSTrainedModel
 """
-function ensemble(mltask::DSSMLTask, model_ids, method)
+function ensemble(mltask::DSSMLTask, model_ids::AbstractArray=[], method::AbstractString="")
     res = start_ensembling(mltask, model_ids, method)
     wait_train_complete(mltask)
     DSSTrainedModel(res["id"])
 end
 
 start_train(mltask::DSSMLTask; body...) =
-    request("POST", "projects/$(mltask.analysis.project.key)/models/lab/$(mltask.analysis.id)/$(mltask.id)/train", body)
+    request_json("POST", "projects/$(mltask.analysis.project.key)/models/lab/$(mltask.analysis.id)/$(mltask.id)/train", body)
 
-function start_ensembling(mltask::DSSMLTask, model_ids, method)
+function start_ensembling(mltask::DSSMLTask, model_ids::AbstractArray=[], method::AbstractString="")
     body = Dict(
         "method" => method,
         "modelsIds" => model_ids
     )
-    request("POST", "projects/$(mltask.analysis.project.key)/models/lab/$(mltask.analysis.id)/$(mltask.id)/ensemble", body)
+    request_json("POST", "projects/$(mltask.analysis.project.key)/models/lab/$(mltask.analysis.id)/$(mltask.id)/ensemble", body)
 end
 
 function wait_train_complete(mltask::DSSMLTask)
@@ -204,7 +204,7 @@ In case of a prediction problem the prediction type can be specify.
 Valid values are "BINARY_CLASSIFICATION", "REGRESSION", "MULTICLASS".
 """
 guess(mltask::DSSMLTask, prediction_type=nothing) =
-    request("PUT", "projects/$(mltask.analysis.project.key)/models/lab/$(mltask.analysis.id)/$(mltask.id)/guess", Dict("predictionType" => prediction_type))
+    request_json("PUT", "projects/$(mltask.analysis.project.key)/models/lab/$(mltask.analysis.id)/$(mltask.id)/guess", Dict("predictionType" => prediction_type))
 
 function wait_guess_complete(mltask::DSSMLTask)
     while get_status(mltask)["guessing"]
@@ -212,7 +212,7 @@ function wait_guess_complete(mltask::DSSMLTask)
     end
 end
 
-delete(mltask::DSSMLTask) = request("DELETE", "projects/$(mltask.analysis.project.key)/models/lab/$(mltask.analysis.id)/$(mltask.id)/")
+delete(mltask::DSSMLTask) = request_json("DELETE", "projects/$(mltask.analysis.project.key)/models/lab/$(mltask.analysis.id)/$(mltask.id)/")
 
 """
 ```julia
@@ -278,12 +278,12 @@ get_trained_models_ids(mltask::DSSMLTask[, sessionId, algorithm])
 ```
 Gets the list of trained model identifiers for this ML task.
 """
+get_trained_models_ids(mltask::DSSMLTask, session::Integer, algorithm=nothing) = get_trained_models_ids(mtask, "s$_session", algorihtm)
+
 function get_trained_models_ids(mltask::DSSMLTask, session=nothing, algorithm=nothing)
     full_model_ids = get_status(mltask)["fullModelIds"]
     if session != nothing
-        get_sessionId(_session::Integer) = "s$_session" # inner functions
-        get_sessionId(_session) = _session
-        full_model_ids = [fmi for fmi in full_model_ids if fmi["fullModelId"]["sessionId"] == get_sessionId(session)]
+        full_model_ids = [fmi for fmi in full_model_ids if fmi["fullModelId"]["sessionId"] == session]
     end
     model_ids = [x["id"] for x in full_model_ids]
     if algorithm != nothing
@@ -309,11 +309,11 @@ Gets a quick summary of one or many trained model, as a dict.
 """
 get_trained_model_snippet(mltask::DSSMLTask, id::AbstractString) = get_trained_model_snippet(mltask, [id])[id]
 get_trained_model_snippet(mltask::DSSMLTask, ids::AbstractArray) =
-    request("GET", "projects/$(mltask.analysis.project.key)/models/lab/$(mltask.analysis.id)/$(mltask.id)/models-snippets", Dict("modelsIds" => ids))
+    request_json("GET", "projects/$(mltask.analysis.project.key)/models/lab/$(mltask.analysis.id)/$(mltask.id)/models-snippets", Dict("modelsIds" => ids))
 
 
 get_details(model::DSSTrainedModel) =
-    request("GET", "projects/$(model.mltask.analysis.project.key)/models/lab/$(model.mltask.analysis.id)/$(model.mltask.id)/models/$(model.fullId)/details")
+    request_json("GET", "projects/$(model.mltask.analysis.project.key)/models/lab/$(model.mltask.analysis.id)/$(model.mltask.id)/models/$(model.fullId)/details")
 
 """
 Updates the user metadata of a model. Update the “userMeta” field of a previously-retrieved model-details object.
@@ -322,18 +322,18 @@ set_user_meta(model::DSSTrainedModel, userMeta::AbstractDict)
 ```
 """
 set_user_meta(model::DSSTrainedModel, userMeta::AbstractDict) =
-    request("PUT", "projects/$(model.mltask.analysis.project.key)/models/lab/$(model.mltask.analysis.id)/$(model.mltask.id)/models/$(model.fullId)/user-meta", userMeta)
+    request_json("PUT", "projects/$(model.mltask.analysis.project.key)/models/lab/$(model.mltask.analysis.id)/$(model.mltask.id)/models/$(model.fullId)/user-meta", userMeta)
 
 struct DSSSavedModel <: DSSObject
     project::DSSProject
     id::AbstractString
     DSSSavedModel(id::AbstractString, project::DSSProject=get_current_project()) = new(project, id)
 end
-macro savedmodel_str(str)
+macro model_str(str)
     createobject(DSSSavedModel, str)
 end
 
-export @savedmodel_str
+export @model_str
 export DSSSavedModel
 
 """
@@ -360,7 +360,7 @@ function deploy_to_flow(model::DSSTrainedModel; params...)
             body["trainDatasetRef"] = mltask["inputDataset"]
         end
     end
-    res = request("POST", "projects/$(model.mltask.analysis.project.key)/models/lab/$(model.mltask.analysis.id)/$(model.mltask.id)/models/$(model.fullId)/actions/deployToFlow", body)
+    res = request_json("POST", "projects/$(model.mltask.analysis.project.key)/models/lab/$(model.mltask.analysis.id)/$(model.mltask.id)/models/$(model.fullId)/actions/deployToFlow", body)
     DSSSavedModel(res["savedModelId"], model.mltask.analysis.project)
 end
 
@@ -376,12 +376,12 @@ function redeploy_to_flow(model::DSSTrainedModel, saved_model::DSSSavedModel, ac
         "savedModelId" => saved_model.id,
         "activate" => activate
     )
-    request("POST", "projects/$(model.mltask.analysis.project.key)/models/lab/$(model.mltask.analysis.id)/$(model.mltask.id)/models/$(model.fullId)/actions/redeployToFlow", body)
+    request_json("POST", "projects/$(model.mltask.analysis.project.key)/models/lab/$(model.mltask.analysis.id)/$(model.mltask.id)/models/$(model.fullId)/actions/redeployToFlow", body)
 end
 
-list_saved_models(project::DSSProject=get_current_project()) = request("GET", "projects/$(project.key)/savedmodels/")
+list_saved_models(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(project.key)/savedmodels/")
 
-delete(model::DSSSavedModel) = request("DELETE", "projects/$(model.project.key)/savedmodels/$(model.id)")
+delete(model::DSSSavedModel) = request_json("DELETE", "projects/$(model.project.key)/savedmodels/$(model.id)")
 
 struct DSSModelVersion <: DSSObject
     model::DSSSavedModel
@@ -392,18 +392,18 @@ end
 export DSSModelVersion
 
 
-list_versions(model::DSSSavedModel) = request("GET", "projects/$(model.project.key)//savedmodels/$(model.id)/versions")
+list_versions(model::DSSSavedModel) = request_json("GET", "projects/$(model.project.key)//savedmodels/$(model.id)/versions")
 
 get_snippet(version::DSSModelVersion) =
-    request("GET", "projects/$(version.model.project.key)/savedmodels/$(version.model.id)/versions/$(version.id)/snippet")
+    request_json("GET", "projects/$(version.model.project.key)/savedmodels/$(version.model.id)/versions/$(version.id)/snippet")
 
 get_details(version::DSSModelVersion) =
-    request("GET", "projects/$(version.model.project.key)/savedmodels/$(version.model.id)/versions/$(version.id)/details")
+    request_json("GET", "projects/$(version.model.project.key)/savedmodels/$(version.model.id)/versions/$(version.id)/details")
 
 set_active(version::DSSModelVersion) =
-    request("POST", "projects/$(version.model.project.key)/savedmodels/$(version.model.id)/versions/$(version.id)/actions/setActive")
+    request_json("POST", "projects/$(version.model.project.key)/savedmodels/$(version.model.id)/versions/$(version.id)/actions/setActive")
 
 get_user_meta(model::Union{DSSTrainedModel, DSSModelVersion}) = get_snippet(model)["userMeta"]
 
 set_user_meta(version::DSSModelVersion, usermeta) =
-    request("PUT", "projects/$(version.model.project.key)/savedmodels/$(version.model.id)/versions/$(version.id)/user-meta", usermeta)
+    request_json("PUT", "projects/$(version.model.project.key)/savedmodels/$(version.model.id)/versions/$(version.id)/user-meta", usermeta)

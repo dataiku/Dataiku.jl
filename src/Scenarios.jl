@@ -1,7 +1,10 @@
+using Statistics
+
 struct DSSScenario <: DSSObject
     project::DSSProject
     id::AbstractString
     DSSScenario(id::AbstractString, project::DSSProject=get_current_project()) = new(project, id)
+    DSSScenario(def::AbstractDict) = DSSScenario(def["id"], DSSProject(def["projectKey"]))
 end
 
 macro scenario_str(str)
@@ -11,80 +14,161 @@ end
 export @scenario_str
 export DSSScenario
 
-list_scenarios(project::DSSProject=get_current_project()) = request("GET", "projects/$(project.key)/scenarios/")
+list_scenarios(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(project.key)/scenarios/")
 
-get_settings(scenario::DSSScenario, with_status=true) =
-    request("GET", "projects/$(scenario.project.key)/scenarios/$(scenario.id)" * (with_status ? "" : "/light"))
+get_definition(scenario::DSSScenario) =
+    request_json("GET", "projects/$(scenario.project.key)/scenarios/$(scenario.id)")
 
-set_settings(scenario::DSSScenario, settings::AbstractDict) =
-    request("PUT", "projects/$(scenario.project.key)/scenarios/$(scenario.id)", settings)
+set_definition(scenario::DSSScenario, settings::AbstractDict) =
+    request_json("PUT", "projects/$(scenario.project.key)/scenarios/$(scenario.id)", settings)
 
 
 get_status(scenario::DSSScenario) =
-    request("GET", "projects/$(scenario.project.key)/scenarios/$(scenario.id)/light")
+    request_json("GET", "projects/$(scenario.project.key)/scenarios/$(scenario.id)/light")
 
 set_status(scenario::DSSScenario, status::AbstractDict) =
-    request("PUT", "projects/$(scenario.project.key)/scenarios/$(scenario.id)/light", status)
+    request_json("PUT", "projects/$(scenario.project.key)/scenarios/$(scenario.id)/light", status)
 
 
 get_payload(scenario::DSSScenario) =
-    request("GET", "projects/$(scenario.project.key)/scenarios/$(scenario.id)/payload")["script"] ## Error when no payload
+    get(request_json("GET", "projects/$(scenario.project.key)/scenarios/$(scenario.id)/payload"), "script", "")
 
 set_payload(scenario::DSSScenario, script::AbstractString) =
-    request("PUT", "projects/$(scenario.project.key)/scenarios/$(scenario.id)/payload", Dict("script" => script))
+    request_json("PUT", "projects/$(scenario.project.key)/scenarios/$(scenario.id)/payload", Dict("script" => script))
+
+function get_trigger_fire(run::DSSScenario, triggerId, triggerRunId)
+    res = request_json("GET", "projects/$(scenario.project.key)/scenarios/trigger/$(scenario.id)/$(triggerId)?triggerRunId=$(triggerRunId)")
+    DSSTriggerFire(res)
+end
+
+function run(scenario::DSSScenario, trigger_params::AbstractDict=Dict())
+    res = request_json("POST", "projects/$(scenario.project.key)/scenarios/$(scenario.id)/run", trigger_params)
+    DSSTriggerFire(res)
+end
+
+function run_and_wait(scenario::DSSScenario, trigger_params::AbstractDict=Dict(); no_fail=false)
+    trigger_fire = run(scenario, trigger_params)
+    scenario_run = wait_for_scenario_run(trigger_fire; no_fail=no_fail)
+    wait(scenario_run; no_fail=no_fail)
+end
+
+abort(scenario::DSSScenario) = request_json("POST", "projects/$(scenario.project.key)/scenarios/$(scenario.id)/abort")
+
+function get_current_run(scenario::DSSScenario)
+    last_run = get_last_runs(scenario, 1)
+    if !isempty(last_run) && !haskey(last_run[1], "result")
+        last_run[1]
+    end
+end
+
+function get_last_runs(scenario::DSSScenario, limit::Integer=10, only_finished_runs=false)
+    params = Dict(
+        "limit" => limit,
+        "onlyFinishedRuns" => only_finished_runs
+    )
+    request_json("GET", "projects/$(scenario.project.key)/scenarios/$(scenario.id)/get-last-runs/"; params=params)
+end
+
+get_average_duration(scenario::DSSScenario, limit=3) = mean([get_duration(run).value for run in get_last_runs(scenario, limit, true)])
 
 
-list_last_runs(scenario::DSSScenario, limit::Integer=10) =
-    request("GET", "projects/$(scenario.project.key)/scenarios/$(scenario.id)/get-last-runs/?limit=$(limit)")
 
 
 """
-`create_scenario(scenario_name::AbstractString, scenario_type::AbstractString, definition::AbstractDict`
+```julia
+create_scenario(id::AbstractString, type::AbstractString[, project::DSSProject]; kwargs...)
+create_scenario(definition::AbstractDict[, project::DSSProject])
+```
 
-Create a new scenario in the project, and return a handle to interact with it
-* `scenario_name::AbstractString` The name for the new scenario. This does not need to be unique (although this is strongly recommended)
-* `scenario_type::AbstractString` The type of the scenario. MUst be one of `step_based` or `custom_python`
-* `definition::AbstractDict` the JSON definition of the scenario. Use `get_settings` on an existing `DSSScenario` object in order to get a sample definition object
-returns: a `DSSScenario` handle to interact with the newly-created scenario
+Create a new scenario in the project, and return a `DSSScenario` to interact with it
+
+Use `Dataiku.get_definition` on an already existing `DSSScenario` to get a sample definition object.
+Or give only `id`, `type` and give all others optionnal parameters as keywords arguments
+
+#### Required parameters
+* `id::AbstractString` The id for the new scenario. This needs to be unique.
+* `type::AbstractString` The type of the scenario. Must be one of `step_based` or `custom_python`
+
 """
-function create_scenario(scenario_name, scenario_type, definition::AbstractDict, project::DSSProject=get_current_project())
-    definition["name"] = scenario_name
-    definition["type"] = scenario_type # step_based or custom_python
-    scenario_id = request("POST", "projects/$(project.key)/scenarios/", definition)["id"]
+function create_scenario(id, type, project::DSSProject=get_current_project(); params=Dict(), name=id, kwargs...)
+    definition = Dict(
+        "id" => id,
+        "type" => type,
+        "name" => name,
+        "params" => params
+    )
+    create_scenario(merge(definition, kwargs...), project)
+end
+
+function create_scenario(definition::AbstractDict, project::DSSProject=get_current_project())
+    scenario_id = request_json("POST", "projects/$(project.key)/scenarios/", definition)["id"]
     DSSScenario(scenario_id, project)
 end
 
-struct DSSRun
+struct DSSScenarioRun <: DSSObject
     scenario::DSSScenario
     id::AbstractString
-    triggerId::AbstractString
+    DSSScenarioRun(scenario::DSSScenario, id::AbstractString) = new(scenario, id)
+    DSSScenarioRun(def::AbstractDict) = new(DSSScenario(def["scenario"]["id"], DSSProject(def["scenario"]["projectKey"])), def["runId"])
 end
 
-export DSSRun
+export DSSScenarioRun
 
-function run_scenario(scenario::DSSScenario, body::AbstractDict=Dict()) # you can send trigger parameters, not required
-    res = request("POST", "projects/$(scenario.project.key)/scenarios/$(scenario.id)/run", body)
-    DSSRun(scenario, res["runId"], "manual")
+get_start_time(run::DSSScenarioRun) = get_start_time(get_details(run))
+get_start_time(run::AbstractDict) = unix2datetime(run["start"]/1000)
+
+get_duration(run::DSSScenarioRun) = get_duration(get_details(run))
+get_duration(run::AbstractDict) = (run["end"] > 0 ? unix2datetime(run["end"]/1000) : now(UTC)) - get_start_time(run)
+
+get_details(run::DSSScenarioRun) = request_json("GET", "projects/$(run.scenario.project.key)/scenarios/$(run.scenario.id)/$(run.id)/")
+
+function wait(run::DSSScenarioRun; no_fail=false)
+    scenario_run = get_details(run)["scenarioRun"]
+    while !haskey(scenario_run, "result")
+        sleep(5)
+        scenario_run = get_details(run)
+    end
+    outcome = get(scenario_run["result"], "outcome", "UNKNOWN")
+    if no_fail || outcome == "SUCCESS"
+        scenario_run
+    else
+        throw(ErrorException("Scenario run returned status $outcome"))
+    end
 end
 
-get_details(run::DSSRun) = request("GET", "projects/$(run.scenario.project.key)/scenarios/$(run.scenario.id)/$(run.id)/")
-
-abort_scenario(scenario::DSSScenario) = request("POST", "projects/$(run.scenario.project.key)/scenarios/$(run.scenario.id)/abort")
-
-function get_settings(run::DSSRun) 
-    params = Dict("triggerRunId" => run.id,
-                  "triggerId"    => run.triggerId)
-    request("GET", "projects/$(run.scenario.project.key)/scenarios/$(run.scenario.id)/get-run-for-trigger/"; params=params)["scenarioRun"]
+struct DSSTriggerFire <: DSSObject
+    scenario::DSSScenario
+    id::AbstractString
+    runId::AbstractString
+    DSSTriggerFire(scenario::DSSScenario, id::AbstractString, triggerId::AbstractString) = new(scenario, id, triggerId)
+    DSSTriggerFire(def::AbstractDict) = new(DSSScenario(def["scenarioId"], DSSProject(def["projectKey"])), def["trigger"]["id"], def["runId"])
 end
 
-# same than the ["trigger"] field of get_settings, not really useful
+export DSSTriggerFire
 
-# function get_a_run_of_a_trigger(run::DSSRun)
-#     request("GET", "projects/$(run.project.key)/scenarios/trigger/$(run.scenarioId)/$(run.triggerId)?triggerRunId=$(run.id)")
-# end
+function get_scenario_run(trigger::DSSTriggerFire) 
+    params = Dict("triggerRunId" => trigger.runId,
+                  "triggerId"    => trigger.id)
+    res = request_json("GET", "projects/$(trigger.scenario.project.key)/scenarios/$(trigger.scenario.id)/get-run-for-trigger/"; params=params)
+    DSSScenarioRun(res["scenarioRun"])
+end
 
-export get_status
-export set_status
-export get_payload
-export set_payload
-export create_scenario
+is_cancelled(trigger::DSSTriggerFire) =
+    request_json("GET", "projects/$(trigger.scenario.project.key)/scenarios/trigger/$(trigger.scenario.id)/$(trigger.id)"; params=Dict(
+        "triggerRunId" => trigger.runId))["cancelled"]
+
+function wait_for_scenario_run(trigger::DSSTriggerFire; no_fail=false)
+    scenario_run = nothing
+    while scenario_run == nothing
+        if is_cancelled(trigger)
+            if no_fail
+                return nothing
+            else
+                throw(ErrorException("Scenario run has been cancelled"))
+            end
+        end
+        scenario_run = get_scenario_run(trigger)
+        sleep(5)
+    end
+    scenario_run
+end

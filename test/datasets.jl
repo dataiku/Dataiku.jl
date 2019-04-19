@@ -1,12 +1,12 @@
 
 
 @testset "Datasets" begin
-    df = get_dataframe(dataset; infer_types=false)
+    df = Dataiku.get_dataframe(dataset; infer_types=false)
 
     @testset "API" begin
 
         @testset "Schema" begin
-            schema = get_schema(dataset)
+            schema = Dataiku.get_schema(dataset)
             columns = schema["columns"]
             @test length(Dataiku.get_column_names(columns)) == 18
 
@@ -25,23 +25,23 @@
             @test length(settings) == 19
             @test dataset.project.key == projectKey
             @test settings["formatType"] == "csv"
-            @test settings["schema"] == get_schema(dataset)
+            @test settings["schema"] == Dataiku.get_schema(dataset)
 
-            @test set_settings(dataset, settings)["msg"] == "Updated dataset $projectKey.$datasetName"
+            @test Dataiku.set_settings(dataset, settings)["msg"] == "Updated dataset $projectKey.$datasetName"
         end
 
         @testset "Metadata" begin
-            metadata = get_metadata(dataset)
+            metadata = Dataiku.get_metadata(dataset)
 
             @test length(metadata) == 3
             @test haskey(metadata, "checklists")
             @test haskey(metadata, "tags")
             @test haskey(metadata, "custom")
 
-            @test set_metadata(dataset, metadata)["msg"] == "updated metadata for $projectKey.$datasetName" 
+            @test Dataiku.set_metadata(dataset, metadata)["msg"] == "updated metadata for $projectKey.$datasetName" 
         end
 
-        @test list_partitions(dataset)[1] == "NP"
+        @test Dataiku.list_partitions(dataset)[1] == "NP"
     end
 
     @testset "DataFrame" begin

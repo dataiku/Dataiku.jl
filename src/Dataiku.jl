@@ -1,6 +1,7 @@
 module Dataiku
 
     abstract type DSSObject end
+    export DSSObject
 
     using JSON
 
@@ -18,29 +19,16 @@ module Dataiku
 
     using .HttpUtils
 
-    export get_dataframe
-    export write_with_schema
-
-    export full_name
-    export get_definition
-    export set_definition
-    export get_settings
-    export set_settings
-    export get_metadata
-    export set_metadata
-    export create
-    export delete
-
     createobject(::Type{T}, id) where {T <: DSSObject} = '.' in id ? T(split(id, '.')[end], DSSProject(split(id, '.')[1])) : T(id)
 
     full_name(object::DSSObject) = object.project.key * "." * (:id in fieldnames(typeof(object)) ? object.id : object.name)
+    export full_name
 
     """
 get the global variable FLOW that would be defined if running inside DSS
     """
     function get_flow()
         if isdefined(Main, :FLOW)
-            show(Main.FLOW)
             Main.FLOW
         end
     end
@@ -63,36 +51,36 @@ look for a dict that has this `value` at this `field` in an array of dict
 
     function get_current_project()
         if !haskey(ENV, "DKU_CURRENT_PROJECT_KEY")
-            throw(ArgumentError("No projectKey found, initialize project with set_project(::DSSProject)"))
+            throw(ArgumentError("No projectKey found, initialize project with Dataiku.set_current_project(::DSSProject)"))
         end
         DSSProject(ENV["DKU_CURRENT_PROJECT_KEY"])
     end
 
     set_current_project(project::DSSProject) = ENV["DKU_CURRENT_PROJECT_KEY"] = project.key
 
-    start_query(data::AbstractString) = request("POST", "sql/queries/", data)
+    start_query(data::AbstractString) = request_json("POST", "sql/queries/", data)
 
     stream_data(queryId::AbstractString; params...) =
-        request("GET", "sql/queries/$(queryId)/stream/"; params=params, parse_json=haskey(params, "format"))
+        request("GET", "sql/queries/$(queryId)/stream/"; params=params) #TODO understand the way this function streams
 
-    verify_query(queryId::AbstractString) = request("GET", "sql/queries/$(queryId)/finish-streaming"; parse_json=false)
+    verify_query(queryId::AbstractString) = request("GET", "sql/queries/$(queryId)/finish-streaming")
 
-    list_connections() = request("GET", "admin/connections")
+    list_connections() = request_json("GET", "admin/connections")
 
-    get_connection(connectionName::AbstractString) = request("GET", "admin/connections/$(connectionName)")
+    get_connection(connectionName::AbstractString) = request_json("GET", "admin/connections/$(connectionName)")
 
-    update_connection(connection::AbstractDict, connectionName::AbstractString) = request("PUT", "admin/connections/$(connectionName)", connection)
+    update_connection(connection::AbstractDict, connectionName::AbstractString) = request_json("PUT", "admin/connections/$(connectionName)", connection)
 
-    create_connection(body::AbstractDict) = request("POST", "admin/connections", body)
+    create_connection(body::AbstractDict) = request_json("POST", "admin/connections", body)
 
-    delete_connection(connectionName::AbstractString) = request("DELETE", "admin/connections/$(connectionName)")
+    delete_connection(connectionName::AbstractString) = request_json("DELETE", "admin/connections/$(connectionName)")
 
 
-    list_users(connected::Bool=false) = request("GET", "admin/users/?connected=$(connected)")
+    list_users(connected::Bool=false) = request_json("GET", "admin/users/?connected=$(connected)")
 
-    get_user(login::AbstractString) = request("GET", "admin/users/$(login)")
+    get_user(login::AbstractString) = request_json("GET", "admin/users/$(login)")
 
-    update_user(user::AbstractDict, login::AbstractString) = request("PUT", "admin/users/$(login)", user)
+    update_user(user::AbstractDict, login::AbstractString) = request_json("PUT", "admin/users/$(login)", user)
 
 
     # function create_user(login::AbstractString, displayName::AbstractString, password::AbstractString, groups::Array{String, 1})
@@ -102,17 +90,17 @@ look for a dict that has this `value` at this `field` in an array of dict
     #         "password" => password,
     #         "groups" => groups
     #     )
-    # 	request("POST", "admin/users", data)
+    # 	request_json("POST", "admin/users", data)
     # end
 
-    delete_user(login::AbstractString) = request("DELETE", "admin/users/$(login)")
+    delete_user(login::AbstractString) = request_json("DELETE", "admin/users/$(login)")
 
 
-    list_groups() = request("GET", "admin/groups")
+    list_groups() = request_json("GET", "admin/groups")
 
-    get_group(groupName::AbstractString) = request("GET", "admin/groups/$(groupName)")
+    get_group(groupName::AbstractString) = request_json("GET", "admin/groups/$(groupName)")
 
-    update_group(group::AbstractDict, groupName::AbstractString) = request("PUT", "admin/groups/$(groupName)", group)
+    update_group(group::AbstractDict, groupName::AbstractString) = request_json("PUT", "admin/groups/$(groupName)", group)
 
     function create_group(name::AbstractString, description::AbstractString="", admin::Bool=false)
         data = Dict(
@@ -120,61 +108,64 @@ look for a dict that has this `value` at this `field` in an array of dict
             "description" => description,
             "admin"       => admin
         )
-        request("POST", "admin/groups", data)
+        request_json("POST", "admin/groups", data)
     end
 
-    create_group(data::AbstractDict) = request("POST", "admin/groups", data)
+    create_group(data::AbstractDict) = request_json("POST", "admin/groups", data)
 
-    delete_group(groupName::AbstractString) = request("DELETE", "admin/groups/$(groupName)")
+    delete_group(groupName::AbstractString) = request_json("DELETE", "admin/groups/$(groupName)")
 
 
-    list_code_envs() = request("GET", "admin/code-envs/")
+    list_code_envs() = request_json("GET", "admin/code-envs/")
 
     get_code_env(envName::AbstractString, envLang::AbstractString) =
-        request("GET", "admin/code-envs/$(envLang)/$(envName)")
+        request_json("GET", "admin/code-envs/$(envLang)/$(envName)")
 
     update_code_env(codeEnv::AbstractDict, envName::AbstractString, envLang::AbstractString) =
-        request("PUT", "admin/code-envs/$(envLang)/$(envName)", codeEnv)
+        request_json("PUT", "admin/code-envs/$(envLang)/$(envName)", codeEnv)
 
     create_code_env(envName::AbstractString, envLang::AbstractString, data::AbstractDict=Dict()) =
-        request("POST", "admin/code-envs/$(envLang)/$(envName)", data)
+        request_json("POST", "admin/code-envs/$(envLang)/$(envName)", data)
 
     delete_code_env(envName::AbstractString, envLang::AbstractString) =
-        request("DELETE", "admin/code-envs/$(envLang)/$(envName)")
+        request_json("DELETE", "admin/code-envs/$(envLang)/$(envName)")
 
 
     update_code_env_packaged(envName::AbstractString, envLang::AbstractString) =
-        request("POST", "admin/code-envs/$(envLang)/$(envName)/packages")
+        request_json("POST", "admin/code-envs/$(envLang)/$(envName)/packages")
 
     update_jupyter_integration(envName::AbstractString, envLang::AbstractString, active::Bool) =
-        request("POST", "admin/code-envs/$(envLang)/$(envName)/jupyter?active=$(active)")
+        request_json("POST", "admin/code-envs/$(envLang)/$(envName)/jupyter?active=$(active)")
 
 
-    get_general_settings() = request("GET", "admin/general-settings")
+    get_general_settings() = request_json("GET", "admin/general-settings")
 
-    update_general_settings(settings::AbstractDict) = request("PUT", "admin/general-settings", settings)
+    update_general_settings(settings::AbstractDict) = request_json("PUT", "admin/general-settings", settings)
 
-    list_logs() = request("GET", "admin/logs")
+    list_logs() = request_json("GET", "admin/logs")
 
-    get_log_content(name::AbstractString) = request("GET", "admin/logs/$(name)")
+    get_log_content(name::AbstractString) = request_json("GET", "admin/logs/$(name)")
 
 
-    list_custom_variables() = request("GET", "admin/variables")
-    set_custom_variables(variables::AbstractDict) = request("PUT", "admin/variables", variables)
+    list_custom_variables() = request_json("GET", "admin/variables")
+    set_custom_variables(variables::AbstractDict) = request_json("PUT", "admin/variables", variables)
 
-    list_flow_variables(project::DSSProject=get_current_project()) = request("GET", "projects/$(project.key)/variables")
-    set_flow_variables(variables::AbstractDict, project::DSSProject=get_current_project()) = request("PUT", "projects/$(project.key)/variables", variables)
+
+    get_flow_variable(name::AbstractString) = JSON.parse(ENV["DKUFLOW_VARIABLES"])[name]
+
+    list_flow_variables(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(project.key)/variables")
+    set_flow_variables(variables::AbstractDict, project::DSSProject=get_current_project()) = request_json("PUT", "projects/$(project.key)/variables", variables)
 
     function list_internal_metrics(; name=nothing, metric_type=nothing)
         params = Dict()
         if name != nothing params["name"] = name end
         if metric_type != nothing params["metric_type"] = metric_type end
-        request("GET", "internal-metrics"; params=params)
+        request_json("GET", "internal-metrics"; params=params)
     end
-    list_tasks_in_progress(;allUsers=true, withScenarios=true) = request("GET", "futures/?allUsers=$allUsers&withScenarios=$withScenarios")
+    list_tasks_in_progress(;allUsers=true, withScenarios=true) = request_json("GET", "futures/?allUsers=$allUsers&withScenarios=$withScenarios")
 
-    get_running_task_status(jobId::AbstractString, peek::Bool=false) = request("GET", "futures/$jobId?peek=$peek")
+    get_running_task_status(jobId::AbstractString, peek::Bool=false) = request_json("GET", "futures/$jobId?peek=$peek")
 
-    abort_task(jobId::AbstractString) = request("GET", "futures/$jobId")
+    abort_task(jobId::AbstractString) = request_json("GET", "futures/$jobId")
 
 end

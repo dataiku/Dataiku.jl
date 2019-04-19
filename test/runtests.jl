@@ -20,15 +20,16 @@ end
 
 Dataiku.set_current_project(project)
 
-try Dataiku.delete(DSSDataset("test_dataset")) catch end
+try Dataiku.delete(DSSDataset(datasetName)) catch end
 dataset = Dataiku.create_dataset(datasetName, project)
-write_with_schema(dataset, df)
+Dataiku.write_with_schema(dataset, df)
 include("datasets.jl")
+include("ml.jl")
 
 include("projects.jl")
 include("recipes.jl")
 
 @test Dataiku.clear_data(dataset) == []
-@test delete(dataset)["msg"] == "Deleted dataset $projectKey.$datasetName"
+@test Dataiku.delete(dataset)["msg"] == "Deleted dataset $projectKey.$datasetName"
 
-delete(project)
+Dataiku.delete(project)
