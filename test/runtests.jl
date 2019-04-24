@@ -23,10 +23,10 @@ Dataiku.set_current_project(project)
 try Dataiku.delete(DSSDataset(datasetName)) catch end
 dataset = Dataiku.create_dataset(datasetName, project)
 Dataiku.write_with_schema(dataset, df)
+include("projects.jl")
 include("datasets.jl")
 include("ml.jl")
-
-include("projects.jl")
+include("scenarios.jl")
 include("recipes.jl")
 
 @test Dataiku.clear_data(dataset) == []

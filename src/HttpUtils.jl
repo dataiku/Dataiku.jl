@@ -78,8 +78,11 @@ If no argument given, will try to find url and authentication from (in this orde
 	request(req::AbstractString, url::AbstractString, body::AbstractDict; intern_call=false, params=nothing)::String =
 		request(req, url, intern_call ? HTTP.URIs.escapeuri(body) : JSON.json(body); intern_call=intern_call, params=params)
 
-	request(req::AbstractString, url::AbstractString, body=""; intern_call=false, params=nothing)::String =
-		HTTP.request(req, get_url_and_header(url, params, intern_call)..., body).body |> String
+	function request(req::AbstractString, url::AbstractString, body=""; intern_call=false, params=nothing)
+		res = HTTP.request(req, get_url_and_header(url, params, intern_call)..., body).body
+		isempty(res) && return nothing
+		String(res)
+	end
 
 
 	request_json(req::AbstractString, url::AbstractString, body::AbstractDict; intern_call=false, params=nothing) =
@@ -87,7 +90,7 @@ If no argument given, will try to find url and authentication from (in this orde
 
 	function request_json(req::AbstractString, url::AbstractString, body=""; intern_call=false, params=nothing)
 		res = HTTP.request(req, get_url_and_header(url, params, intern_call)..., body).body |> String
-		isempty(res) && return Dict()
+		isempty(res) && return nothing
 		JSON.parse(res)
 	end
 

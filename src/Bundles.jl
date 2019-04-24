@@ -21,11 +21,11 @@ list_imported_bundles(project::DSSProject=get_current_project()) = request_json(
 import_bundle_from_archive_file(path::AbstractString, project::DSSProject=get_current_project()) =
     request_json("POST", "projects/$(project.key)/bundles/imported/actions/importFromArchive"; params=Dict("archivePath" => path))
 
-preload_a_bundle(bundle::DSSBundle) = uest("POST", "projects/$(bundle.project.key)/bundles/imported/$(bundle.id)/actions/preload")
+preload_a_bundle(bundle::DSSBundle) = request("POST", "projects/$(bundle.project.key)/bundles/imported/$(bundle.id)/actions/preload")
 
-activate_a_bundle(bundle::DSSBundle) = uest("POST", "projects/$(bundle.project.key)/bundles/imported/$(bundle.id)/actions/activate")
+activate_a_bundle(bundle::DSSBundle) = request("POST", "projects/$(bundle.project.key)/bundles/imported/$(bundle.id)/actions/activate")
 
-create_project_from_a_bundle(file::IO) = t_multipart("projectsFromBundle/", file)
+create_project_from_a_bundle(file::IO) = post_multipart("projectsFromBundle/", file)
 
 create_project_from_a_bundle(archivePath::AbstractString) =
     request_json("POST", "projectsFromBundle/fromArchive"; params=Dict("archivePath" => archivePath))

@@ -24,6 +24,8 @@ module Dataiku
     full_name(object::DSSObject) = object.project.key * "." * (:id in fieldnames(typeof(object)) ? object.id : object.name)
     export full_name
 
+    # TODO : non-exported functions can't be found with `methodswith(::Types)`
+
     """
 get the global variable FLOW that would be defined if running inside DSS
     """

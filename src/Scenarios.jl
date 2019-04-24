@@ -16,16 +16,21 @@ export DSSScenario
 
 list_scenarios(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(project.key)/scenarios/")
 
-get_definition(scenario::DSSScenario) =
+get_settings(scenario::DSSScenario) =
     request_json("GET", "projects/$(scenario.project.key)/scenarios/$(scenario.id)")
 
-set_definition(scenario::DSSScenario, settings::AbstractDict) =
+set_settings(scenario::DSSScenario, settings::AbstractDict) =
     request_json("PUT", "projects/$(scenario.project.key)/scenarios/$(scenario.id)", settings)
 
 
 get_status(scenario::DSSScenario) =
     request_json("GET", "projects/$(scenario.project.key)/scenarios/$(scenario.id)/light")
-
+"""
+```julia
+set_status(scenario::DSSScenario, status::AbstractDict)
+```
+This is only useful to change the “active” status of a scenario
+"""
 set_status(scenario::DSSScenario, status::AbstractDict) =
     request_json("PUT", "projects/$(scenario.project.key)/scenarios/$(scenario.id)/light", status)
 
@@ -50,6 +55,7 @@ function run_and_wait(scenario::DSSScenario, trigger_params::AbstractDict=Dict()
     trigger_fire = run(scenario, trigger_params)
     scenario_run = wait_for_scenario_run(trigger_fire; no_fail=no_fail)
     wait(scenario_run; no_fail=no_fail)
+    trigger_fire
 end
 
 abort(scenario::DSSScenario) = request_json("POST", "projects/$(scenario.project.key)/scenarios/$(scenario.id)/abort")
@@ -70,8 +76,6 @@ function get_last_runs(scenario::DSSScenario, limit::Integer=10, only_finished_r
 end
 
 get_average_duration(scenario::DSSScenario, limit=3) = mean([get_duration(run).value for run in get_last_runs(scenario, limit, true)])
-
-
 
 
 """
@@ -114,10 +118,10 @@ end
 
 export DSSScenarioRun
 
-get_start_time(run::DSSScenarioRun) = get_start_time(get_details(run))
+get_start_time(run::DSSScenarioRun) = get_start_time(get_details(run)["scenarioRun"])
 get_start_time(run::AbstractDict) = unix2datetime(run["start"]/1000)
 
-get_duration(run::DSSScenarioRun) = get_duration(get_details(run))
+get_duration(run::DSSScenarioRun) = get_duration(get_details(run)["scenarioRun"])
 get_duration(run::AbstractDict) = (run["end"] > 0 ? unix2datetime(run["end"]/1000) : now(UTC)) - get_start_time(run)
 
 get_details(run::DSSScenarioRun) = request_json("GET", "projects/$(run.scenario.project.key)/scenarios/$(run.scenario.id)/$(run.id)/")

@@ -157,19 +157,22 @@ get_data(ds::DSSDataset; kw...)         = request(          "GET", "projects/$(d
 ###################################################
 
 function write_with_schema(ds::DSSDataset, df::AbstractDataFrame; kwargs...)
-    write_schema_from_dataframe(ds, df)
-    write_from_dataframe(ds, df; kwargs...)
+    schema = write_schema_from_dataframe(ds, df)
+    write_from_dataframe(ds, df, schema; kwargs...)
 end
 
-function write_from_dataframe(ds::DSSDataset, df::AbstractDataFrame; kwargs...)
-    id = init_write_session(ds, get_schema_from_df(df); kwargs...) ## TODO : don't get the schema from df
-    @async wait_write_session(id)
+function write_from_dataframe(ds::DSSDataset, df::AbstractDataFrame, schema=get_schema_from_df(df); kwargs...)
+    id = init_write_session(ds, schema; kwargs...)
+    task = @async wait_write_session(id)
     push_data(id, df, ds)
+    Base.wait(task) # Making sure wait_write_session thread is done
 end
 
-write_schema(ds::DSSDataset, schema::AbstractDict) = set_schema(ds, schema)
-
-write_schema_from_dataframe(ds::DSSDataset, df::AbstractDataFrame) = write_schema(ds, get_schema_from_df(df))
+function write_schema_from_dataframe(ds::DSSDataset, df::AbstractDataFrame)
+    schema = get_schema_from_df(df)
+    set_schema(ds, schema)
+    schema
+end
 
 function init_write_session(ds::DSSDataset, schema::AbstractDict; method="STREAM", partition="", writeMode="OVERWRITE")
     req = Dict(
@@ -181,7 +184,14 @@ function init_write_session(ds::DSSDataset, schema::AbstractDict; method="STREAM
     request_json("POST", "datasets/init-write-session/", Dict("request" => JSON.json(req)); intern_call=true)["id"]
 end
 
-wait_write_session(id::AbstractString) = request("GET", "datasets/wait-write-session/?id=" * id; intern_call=true)
+function wait_write_session(id::AbstractString)
+    res = request_json("GET", "datasets/wait-write-session/?id=" * id; intern_call=true)
+    if res["ok"]
+        println("$(res["writtenRows"]) rows successfully written ($id)")
+    else
+        throw(ErrorException("An error occurred during dataset write ($id): $(res["message"])"))
+    end
+end
 
 push_data(id::AbstractString, df::AbstractDataFrame, ds::DSSDataset) =
     request("POST", "datasets/push-data/?id=$(id)", get_stream_write(df); intern_call=true)
