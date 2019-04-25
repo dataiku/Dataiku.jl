@@ -1,5 +1,5 @@
 # Overview
-This package provides an interface to use and create recipes in [DSS](https://www.dataiku.com/dss/)
+This package provides an interface to use DSS remotely and to create recipes/notebooks in [DSS](https://www.dataiku.com/dss/)
 
 # Usage
 ## Reading functions
