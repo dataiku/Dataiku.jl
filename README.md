@@ -104,7 +104,8 @@ You can have details about what you can do with these types in notebooks or juli
 
 For more accessibility, str_macros exist to create most of these types :
 * `dataset"mydataset"` is equivalent to `DSSDataset("mydataset")`
-* `dataset"PROJECTKEY.mydataset"` => `DSSDataset("mydataset", "PROJECTKEY")`
+* `dataset"PROJECTKEY.mydataset"` => `DSSDataset("mydataset", DSSProject("PROJECTKEY"))`
+* `project"PROJECTKEY"` => DSSProject("PROJECTKEY")
 * `recipes"myrecipe"` => `DSSRecipes("myrecipe")`
 * `recipes"myscenario"` => `DSSScenario("myscenario")`
 
