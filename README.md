@@ -47,7 +47,7 @@ Iteration row by row with DataFrameRows or tuples is also possible
 iter_rows(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
 iter_tuples(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
 ```
-## Writting Data
+## Writing Data
 ```julia
 Dataiku.write_with_schema(dataset"myOutputDataset", df)
 Dataiku.write_from_dataframe(dataset"myOutputDataset", df) # will not update the schema
