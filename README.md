@@ -2,7 +2,7 @@
 This package provides an interface to use DSS remotely and to create recipes/notebooks in [DSS](https://www.dataiku.com/dss/)
 
 # Usage
-## Reading functions
+## Reading Data
 ### Load a full Dataset
 To read a dataset into a `DataFrame` :
 ```julia
@@ -47,10 +47,10 @@ Iteration row by row with DataFrameRows or tuples is also possible
 iter_rows(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
 iter_tuples(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
 ```
-## Writting functions
+## Writting Data
 ```julia
 Dataiku.write_with_schema(dataset"myOutputDataset", df)
-Dataiku.write_from_dataframe(dataset"myOutputDataset", df) # will not upgrade the schema
+Dataiku.write_from_dataframe(dataset"myOutputDataset", df) # will not update the schema
 ```
 The output dataset must already exist in the project.
 #### Keywords parameters
