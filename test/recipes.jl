@@ -4,7 +4,7 @@ const recipeName = "test_recipe"
     recipe = Dataiku.create_recipe(recipeName, "python", project)
     @test recipe == DSSRecipe(recipeName, project)
 
-    definition = Dataiku.get_definition(recipe)
+    definition = Dataiku.get_definition_and_payload(recipe)
     @test definition["recipe"]["type"] == "python"
     @test definition["recipe"]["name"] == recipeName
     @test definition["recipe"]["projectKey"] == projectKey

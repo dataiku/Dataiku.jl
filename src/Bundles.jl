@@ -13,7 +13,7 @@ export DSSBundle
 
 get_details(bundle::DSSBundle) = request_json("GET", "projects/$(bundle.project.key)/bundles/exported/$(bundle.id)")
 
-download_file(bundle::DSSBundle) = request_stream("GET", "projects/$(bundle.project.key)/bundles/exported/$(bundle.id)/archive")
+download_file(bundle::DSSBundle) = get_stream("projects/$(bundle.project.key)/bundles/exported/$(bundle.id)/archive")
 
 list_exported_bundles(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(projectKey)/bundles/exported")["bundles"]
 list_imported_bundles(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(projectKey)/bundles/imported")["bundles"]

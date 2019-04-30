@@ -136,7 +136,7 @@ function wait(run::DSSScenarioRun; no_fail=false)
     if no_fail || outcome == "SUCCESS"
         scenario_run
     else
-        throw(ErrorException("Scenario run returned status $outcome"))
+        error("Scenario run returned status $outcome")
     end
 end
 
@@ -168,7 +168,7 @@ function wait_for_scenario_run(trigger::DSSTriggerFire; no_fail=false)
             if no_fail
                 return nothing
             else
-                throw(ErrorException("Scenario run has been cancelled"))
+                error("Scenario run has been cancelled")
             end
         end
         scenario_run = get_scenario_run(trigger)

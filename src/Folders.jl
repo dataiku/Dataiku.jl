@@ -44,7 +44,7 @@ set_settings(folder::DSSFolder, settings::AbstractDict) =
 list_contents(folder::DSSFolder) = request_json("GET", "projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/")
 
 download_file(folder::DSSFolder, path::AbstractString) =
-    request_stream("GET", "projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/$(path)")
+    get_stream("projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/$(path)")
 
 upload_file(folder::DSSFolder, file) =
     post_multipart("$(public_url)/projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/", file)

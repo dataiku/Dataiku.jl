@@ -1,7 +1,5 @@
 
-
 @testset "Datasets" begin
-    df = Dataiku.get_dataframe(dataset; infer_types=false)
 
     @testset "API" begin
 
@@ -45,6 +43,7 @@
     end
 
     @testset "DataFrame" begin
+        df = Dataiku.get_dataframe(dataset; infer_types=false)
 
         @testset "Dimensions" begin
             @test nrow(df) == 800
@@ -80,6 +79,28 @@
             @test df[5][10] == """["Noël"]"""
             @test df[7][4] == """["Vacances de printemps - Zone B","Vacances de printemps - Zone C"]"""
             @test df[6][4] == true
+        end
+    end
+
+    @testset "Iteration" begin
+        chnl = Dataiku.iter_rows(dataset; infer_types=false)
+        row = take!(chnl)
+        @testset "Row Values" begin
+            @test row[1] == 1
+            @test row[2] == "2014-06-18"
+            @test row[3] == DateTime("2014-06-18T00:00:00.000Z", "yyyy-mm-ddTHH:MM:SS.sssZ")
+            @test row[4] == false
+            @test row[end] == 0.
+        end
+
+        chnl = Dataiku.iter_tuples(dataset; infer_types=false)
+        tuple = take!(chnl)
+        @testset "Tuples Values" begin
+            @test tuple[1] == 1
+            @test tuple[2] == "2014-06-18"
+            @test tuple[3] == DateTime("2014-06-18T00:00:00.000Z", "yyyy-mm-ddTHH:MM:SS.sssZ")
+            @test tuple[4] == false
+            @test tuple[end] == 0.
         end
     end
 end

@@ -20,7 +20,6 @@ end
 
 Dataiku.set_current_project(project)
 
-try Dataiku.delete(DSSDataset(datasetName)) catch end
 dataset = Dataiku.create_dataset(datasetName, project)
 Dataiku.write_with_schema(dataset, df)
 include("projects.jl")

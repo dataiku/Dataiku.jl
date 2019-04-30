@@ -20,14 +20,14 @@ init_context(url::AbstractString, authentication::AbstractString)
 If no argument given, will try to find url and authentication from (in this order)
 1 - tickets environment variables (`DKU_BACKEND_HOST`, `DKU_NGINX_PORT` and `DKU_API_TICKET`)
 2 - api key and url environment variable (`DKU_DSS_URL` and `DKU_API_KEY`)
-3 - `HOME/.dataiku/config.json`
+3 - `\$HOME/.dataiku/config.json`
 """
 	init_context(url::AbstractString, auth::AbstractString) = global context = DSSContext(url, auth)
 
 	function init_context()
 		if haskey(ENV, "DKU_API_TICKET")
 			global context = DSSContext(
-				"http://$(get(ENV, "DKU_BACKEND_HOST", "127.0.0.1")):$(ENV["DKU_NGINX_PORT"])/", # using nginx port instead of backend_port
+				"http://$(get(ENV, "DKU_BACKEND_HOST", "127.0.0.1")):$(ENV["DKU_NGINX_PORT"])/",
 				ENV["DKU_API_TICKET"]
 			)
 		elseif haskey(ENV, "DKU_DSS_URL") && haskey(ENV, "DKU_API_KEY")
@@ -94,13 +94,20 @@ If no argument given, will try to find url and authentication from (in this orde
 		JSON.parse(res)
 	end
 
-	request_stream(req::AbstractString, url::AbstractString, body::AbstractDict; intern_call=false, params=nothing)::Base.BufferStream =
-		request_stream(req, url, intern_call ? HTTP.URIs.escapeuri(body) : JSON.json(body); intern_call=intern_call, params=params)
-
-	function request_stream(req::AbstractString, url::AbstractString, body=""; intern_call=false, params=nothing)::Base.BufferStream
+	function get_stream(url::AbstractString; intern_call=false, params=nothing)
 		io = Base.BufferStream()
-		@async HTTP.request(req, get_url_and_header(url, params, intern_call)..., body; response_stream=io)
+		HTTP.request("GET", get_url_and_header(url, params, intern_call)...; response_stream=io)
 		io
+	end
+
+	get_chnl(url::AbstractString; kwargs...) = Channel(chnl->_get_chnl(chnl, url; kwargs...))
+
+	function _get_chnl(chnl::AbstractChannel, url::AbstractString; intern_call=false, params=nothing)
+		HTTP.open("GET", get_url_and_header(url, params, intern_call)...) do stream
+			while !eof(stream)
+				put!(chnl, readavailable(stream))
+			end
+		end
 	end
 
 	post_multipart(url::AbstractString, path::AbstractString, filename::AbstractString=basename(path)) =
@@ -116,6 +123,7 @@ If no argument given, will try to find url and authentication from (in this orde
 	export init_context
 	export post_multipart
 	export request_json
-	export request_stream
+	export get_stream
+	export get_chnl
 	export request
 end
