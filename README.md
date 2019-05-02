@@ -9,7 +9,7 @@ To read a dataset into a `DataFrame` :
 using Dataiku, DataFrames
 import Dataiku: get_dataframe
 
-df = get_dataframe(dataset"PROJECTKEY, myDataset")
+df = get_dataframe(dataset"PROJECTKEY.myDataset")
 ```
 #### Keywords parameters
 - `partitions::AbstractArray` : specify the partitions wanted
@@ -95,7 +95,7 @@ Dataiku.init_context(url::AbstractString, auth::AbstractString)
 ### Types
 The Package implements DSSTypes to interact with different DSS objects
 
-`DSSAnalysis` `DSSBundle` `DSSDataset` `DSSDiscussion` `DSSFolder` `DSSJob` `DSSMLTask` `DSSMacro` `DSSModelVersion` `DSSProject` `DSSRecipe` `DSSSavedModel` `DSSScenario` `DSSScenarioRun` `DSSTrainedModel` `DSSTriggerFire`
+`DSSAnalysis` `DSSBundle` `DSSDataset` `DSSDiscussion` `DSSManagedFolder` `DSSJob` `DSSMLTask` `DSSMacro` `DSSModelVersion` `DSSProject` `DSSRecipe` `DSSSavedModel` `DSSScenario` `DSSScenarioRun` `DSSTrainedModel` `DSSTriggerFire`
 
  
 *These types are only indicators and don't store any data or metadata.*
