@@ -109,10 +109,18 @@ For more accessibility, str_macros exist to create most of these types :
 * `recipes"myrecipe"` => `DSSRecipes("myrecipe")`
 * `recipes"myscenario"` => `DSSScenario("myscenario")`
 
+## Tests
 
-
-
-
-
-
-
+A running DSS instance and a config file (`$HOME/.dataiku/config.json`) are required to run the tests.
+config.json :
+```json
+{
+  "dss_instances": {
+    "default": {
+      "url": INSTANCE_URL,
+      "api_key": API_KEY_SECRET
+    }
+  },
+  "default_instance": "default"
+}
+```

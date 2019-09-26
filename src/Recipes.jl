@@ -16,7 +16,7 @@ list_recipes(project::DSSProject=get_current_project()) = request_json("GET", "p
 get_definition_and_payload(recipe::DSSRecipe) = request_json("GET", "projects/$(recipe.project.key)/recipes/$(recipe.name)")
 
 # Doesnt work with empty or without payloads?
-set_definition_and_payload(recipe::DSSRecipe, settings::AbstractDict) = request_json("PUT", "projects/$(recipe.project.key)/recipes/$(recipe.name)")
+set_definition_and_payload(recipe::DSSRecipe, settings::AbstractDict) = request_json("PUT", "projects/$(recipe.project.key)/recipes/$(recipe.name)", settings)
 
 get_metadata(recipe::DSSRecipe) = request_json("GET", "projects/$(recipe.project.key)/recipes/$(recipe.name)/metadata")
 set_metadata(recipe::DSSRecipe, metadata::AbstractDict) = request_json("PUT", "projects/$(recipe.project.key)/recipes/$(recipe.name)/metadata", metadata)
