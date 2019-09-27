@@ -153,66 +153,67 @@ end
 #
 ###################################################
 
-"""
-Write a function to an already existing (but maybe empty) Dataset, update the schema of the dataset
-```julia
-write_with_schema(f::Function, ds::DSSDataset; kwargs...)
-```
-### Keywords parameters
-- `partition::AbstractString` : specify the partition to write.
-- `overwrite::Bool=true` : if `false`, appends the data to the already existing dataset.
-example :
-```julia
-Dataiku.write_with_schema(dataset"input_dataset") do chnl
-    for chunk in Dataiku.iter_data_chunks(dataset"output_dataset")
-        put!(chnl, chunk)
-    end
-end
-```
-"""
-write_with_schema(f::Function, ds::DSSDataset; kwargs...) =
-    write_with_schema(ds, dataframe_chnl_to_csv(Channel(f; ctype=AbstractDataFrame))...)
+# """
+# Write a function to an already existing (but maybe empty) Dataset, update the schema of the dataset
+# ```julia
+# write_with_schema(f::Function, ds::DSSDataset; kwargs...)
+# ```
+# ### Keywords parameters
+# - `partition::AbstractString` : specify the partition to write.
+# - `overwrite::Bool=true` : if `false`, appends the data to the already existing dataset.
+# example :
+# ```julia
+# Dataiku.write_with_schema(dataset"input_dataset") do chnl
+#     for chunk in Dataiku.iter_data_chunks(dataset"output_dataset")
+#         put!(chnl, chunk)
+#     end
+# end
+# ```
+# """
+# write_with_schema(f::Function, ds::DSSDataset; kwargs...) =
+#     write_with_schema(ds, dataframe_chnl_to_csv(Channel(f; ctype=AbstractDataFrame))...)
 
 """
-Write a DataFrame to an already existing (but maybe empty) Dataset, update the schema of the dataset
+Writes this dataset (or its target partition) from a single DataFrame.
 ```julia
 write_with_schema(ds::DSSDataset, df::AbstractDataFrame; kwargs...)
 ```
+This variant replaces the schema of the output dataset with the schema
+of the dataframe.
+
 ### Keywords parameters
 - `partition::AbstractString` : specify the partition to write.
 - `overwrite::Bool=true` : if `false`, appends the data to the already existing dataset.
 """
+write_with_schema(ds::DSSDataset, df::AbstractDataFrame; kwargs...) =
+    write_dataframe(ds, df; infer_schema=true, kwargs...)
 
-function write_with_schema(ds::DSSDataset, data, schema=get_schema_from_df(data); kwargs...) ## if channel is sent 
-    set_schema(ds, schema)
-    write_from_dataframe(ds, data, schema; kwargs...)
+
+"""
+```julia
+write_dataframe(ds::DSSDataset, df::AbstractDataFrame; infer_schema=false, kwargs...)
+```
+Writes this dataset (or its target partition) from a single DataFrame.
+
+This variant only edit the schema if infer_schema is True, otherwise you must
+take care to only write dataframes that have a compatible schema.
+
+Also see "write_with_schema".
+
+### Keywords parameters
+- `partition::AbstractString` : specify the partition to write.
+- `overwrite::Bool=true` : if `false`, appends the data to the already existing dataset.
+"""
+function write_dataframe(ds::DSSDataset, df::AbstractDataFrame; infer_schema=false, kwargs...)
+    schema = infer_schema ? get_schema_from_df(df) : get_schema(ds)
+    write_dataframe(ds, _get_stream_write(df), schema)
 end
 
-"""
-Write a DataFrame to an already existing (but maybe empty) Dataset, don't update the schema.
-```julia
-write_from_dataframe(ds::DSSDataset, df::AbstractDataFrame; kwargs...)
-```
-### Keywords parameters
-- `partition::AbstractString` : specify the partition to write.
-- `overwrite::Bool=true` : if `false`, appends the data to the already existing dataset.
-"""
-write_from_dataframe(f::Function, ds::DSSDataset, schema=get_schema_from_df(ds); kwargs...) =
-    write_from_dataframe(ds, dataframe_chnl_to_csv(Channel(f; ctype=AbstractDataFrame)), schema; kwargs...)
-
-write_from_dataframe(ds::DSSDataset, df::AbstractDataFrame, schema=get_schema_from_df(ds); kwargs...) =
-    write_from_dataframe(ds, _get_stream_write(df), schema; kwargs...)
-
-function write_from_dataframe(ds::DSSDataset, data, schema=get_schema_from_df(ds); kwargs...)
+function write_dataframe(ds, data, schema; kwargs...)
+    set_schema(ds, schema)
     id = _init_write_session(ds, schema; kwargs...)
     task = @async _wait_write_session(id)
     _push_data(id, data)
-end
-
-function write_schema_from_dataframe(ds::DSSDataset, df::AbstractDataFrame)
-    schema = get_schema_from_df(df)
-    set_schema(ds, schema)
-    schema
 end
 
 function _init_write_session(ds::DSSDataset, schema::AbstractDict; method="STREAM", partition="", overwrite=true)
