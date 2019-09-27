@@ -178,25 +178,6 @@ end
 #
 ###################################################
 
-# """
-# Write a function to an already existing (but maybe empty) Dataset, update the schema of the dataset
-# ```julia
-# write_with_schema(f::Function, ds::DSSDataset; kwargs...)
-# ```
-# ### Keywords parameters
-# - `partition::AbstractString` : specify the partition to write.
-# - `overwrite::Bool=true` : if `false`, appends the data to the already existing dataset.
-# example :
-# ```julia
-# Dataiku.write_with_schema(dataset"input_dataset") do chnl
-#     for chunk in Dataiku.iter_data_chunks(dataset"output_dataset")
-#         put!(chnl, chunk)
-#     end
-# end
-# ```
-# """
-# write_with_schema(f::Function, ds::DSSDataset; kwargs...) =
-#     write_with_schema(ds, dataframe_chnl_to_csv(Channel(f; ctype=AbstractDataFrame))...)
 
 """
 Writes this dataset (or its target partition) from a single DataFrame.
@@ -212,7 +193,34 @@ of the dataframe.
 """
 write_with_schema(ds::DSSDataset, df::AbstractDataFrame; kwargs...) =
     write_dataframe(ds, df; infer_schema=true, kwargs...)
-    
+
+"""
+```julia
+write__with_schema(f::Function, ds::DSSDataset; kwargs...)
+```
+Writes this dataset (or its target partition) from a single DataFrame.
+
+This variant replaces the schema of the output dataset with the schema
+of the dataframe.
+
+Provides ability to write data by chunks without having to load full datasets in memory.
+
+Also see "get_writting_chnl".
+
+example:
+```julia
+input = Dataiku.write__with_schema(dataset"input_dataset", 500)
+Dataiku.write_dataframe(dataset"output") do chnl
+    for chunk in input
+        put!(chnl, chunk)
+    end
+end
+```
+"""
+write__with_schema(f::Function, ds::DSSDataset; kwargs...) =
+    write_dataframe(f, ds; infer_schema=true, kwargs...)
+
+
 """
 ```julia
 write_dataframe(ds::DSSDataset, df::AbstractDataFrame; infer_schema=false, kwargs...)
@@ -236,29 +244,78 @@ function write_dataframe(ds::DSSDataset, df::AbstractDataFrame; infer_schema=fal
     write_data(ds, _get_stream_write(df), schema; kwargs...)
 end
 
-function write_dataframe(f::Function, ds::DSSDataset; kwargs...)
+"""
+```julia
+write_dataframe(f::Function, ds::DSSDataset; infer_schema=false, kwargs...)
+```
+Writes this dataset (or its target partition) from a single DataFrame.
+
+This variant only edit the schema if infer_schema is True, otherwise you must
+take care to only write dataframes that have a compatible schema.
+
+Provides ability to write data by chunks without having to load full datasets in memory.
+
+Also see "get_writting_chnl".
+
+example:
+```julia
+input = Dataiku.iter_dataframes(dataset"input_dataset", 500)
+Dataiku.write_dataframe(dataset"output") do chnl
+    for chunk in input
+        put!(chnl, chunk)
+    end
+end
+```
+"""
+function write_dataframe(f::Function, ds::DSSDataset; infer_schema=false, kwargs...)
     chnl = Channel(f; ctype=AbstractDataFrame)
-    write_data(ds, _dataframe_chnl_to_csv(chnl), _get_schema_from_chnl(chnl))
+    write_data(ds, chnl; kwargs...)
 end
 
-function _dataframe_chnl_to_csv(chnl::Channel{AbstractDataFrame})
+function _dataframe_chnl_to_csv(chnl::Channel{AbstractDataFrame}, first_chunk)
     df = DataFrame()
     Channel() do output
+        put!(output, _get_stream_write(first_chunk))
         for df in chnl
             put!(output, _get_stream_write(df))
         end
     end
 end
 
-function _get_schema_from_chnl(chnl::Channel) # take the first chunk of the dataframe, get the schema out of it then put it back
-    first_chunk = take!(chnl)
-    @async put!(chnl, first_chunk)
-    get_schema_from_df(first_chunk)
+"""
+```julia
+get_writting_chnl(ds::DSSDataset; kwargs...)
+```
+Provides a Channel to write data to a dataset.
+Open the connection to dss and stream the data until the channel is closed.
+
+example:
+```julia
+chnl = Dataiku.get_writting_chnl(dataset"output")
+for chunk in Dataiku.iter_dataframes(dataset"input")
+    put!(chnl, chunk)
+end
+close(chnl) # closing the channel is required
+```
+"""
+function get_writting_chnl(ds::DSSDataset; kwargs...)
+    chnl = Channel{AbstractDataFrame}(0)
+    @async write_data(ds, chnl; kwargs...)
+    chnl
+end
+
+function write_data(ds, chnl::AbstractChannel; infer_schema=false, kwargs...)
+    first_chunk = take!(chnl) # first chunk is read to define schema
+    schema = get_schema_from_df(first_chunk) 
+    if infer_schema
+        set_schema(ds, schema)
+    end
+    write_data(ds, _dataframe_chnl_to_csv(chnl, first_chunk), schema)
 end
 
 function write_data(ds, data, schema; kwargs...)
     id = _init_write_session(ds, schema; kwargs...)
-    task = @async _wait_write_session(id)
+    @async _wait_write_session(id)
     _push_data(id, data)
 end
 
@@ -269,63 +326,61 @@ function _init_write_session(ds::DSSDataset, schema::AbstractDict; method="STREA
         "fullDatasetName" => full_name(ds),
         "writeMode"       => overwrite ? "OVERWRITE" : "APPEND",
         "dataSchema"      => schema
-        )
-        request_json("POST", "datasets/init-write-session/", Dict("request" => JSON.json(req)); intern_call=true)["id"]
-    end
-    
-    function _wait_write_session(id::AbstractString)
-        res = request_json("GET", "datasets/wait-write-session/?id=" * id; intern_call=true)
-        if res["ok"]
-            @info "$(res["writtenRows"]) rows successfully written ($id)"
-        else
-            error("An error occurred during dataset write ($id): $(res["message"])")
-        end
-    end
-    
-    _push_data(id::AbstractString, data) = request("POST", "datasets/push-data/?id=$(id)", data; intern_call=true)
-    
-    function _get_stream_write(df::AbstractDataFrame)
-        io = Base.BufferStream()
-        @async begin save(CSVFiles.Stream(format"CSV", io), df; nastring="", header=false, escapechar='"')
-            close(io)
-        end
-        io
-    end
-    
+    )
+    request_json("POST", "datasets/init-write-session/", Dict("request" => JSON.json(req)); intern_call=true)["id"]
+end
 
-    
-    
-    ###################################################
-    #
-    #   UTILITY FUNCTIONS
-    #
-    ###################################################
-    
-    get_flow_outputs(ds::DSSDataset) = _get_flow_inputs_or_outputs(ds, "out")
-    
-    get_flow_inputs(ds::DSSDataset) = _get_flow_inputs_or_outputs(ds, "in")
-    
-    function _get_flow_inputs_or_outputs(ds::DSSDataset, option)
-        puts = find_field(get_flow()[option], "fullName", full_name(ds))
-        if puts == nothing
-            throw(ArgumentError("Dataset isn't an " * option * "put of the recipe"))
-        end
-        puts
+function _wait_write_session(id::AbstractString)
+    res = request_json("GET", "datasets/wait-write-session/?id=" * id; intern_call=true)
+    if res["ok"]
+        @info "$(res["writtenRows"]) rows successfully written ($id)"
+    else
+        error("An error occurred during dataset write ($id): $(res["message"])")
     end
+end
+
+_push_data(id::AbstractString, data) = request("POST", "datasets/push-data/?id=$(id)", data; intern_call=true)
+
+function _get_stream_write(df::AbstractDataFrame)
+    io = Base.BufferStream()
+    @async begin save(CSVFiles.Stream(format"CSV", io), df; nastring="", header=false, escapechar='"')
+        close(io)
+    end
+    io
+end
+
+
+###################################################
+#
+#   UTILITY FUNCTIONS
+#
+###################################################
     
-    get_column_types(ds::DSSDataset, columns::AbstractArray=[]) = get_column_types(get_schema(ds)["columns"], columns)
-    get_column_types(schema::AbstractArray, cols::AbstractArray=[]) =
-    [col["name"] => _string_to_type(col["type"]) for col in schema if isempty(cols) || Symbol(col["name"]) in cols] |> Dict
-    
-    get_column_names(ds::DSSDataset, columns::AbstractArray=[]) = get_column_names(get_schema(ds)["columns"], columns)
-    get_column_names(schema::AbstractArray, columns::Nothing=nothing) = [Symbol(col["name"]) for col in schema]
-    get_column_names(schema::AbstractArray, columns::AbstractArray) = isempty(columns) ? get_column_names(schema) : columns
-    
-    const DKU_DF_TYPE_MAP = Dict(
-        "string"   => String,
-        "tinyint"  => Int8,
-        "smallint" => Int16,
-        "int"      => Int32,
+get_flow_outputs(ds::DSSDataset) = _get_flow_inputs_or_outputs(ds, "out")
+
+get_flow_inputs(ds::DSSDataset) = _get_flow_inputs_or_outputs(ds, "in")
+
+function _get_flow_inputs_or_outputs(ds::DSSDataset, option)
+    puts = find_field(get_flow()[option], "fullName", full_name(ds))
+    if puts == nothing
+        throw(ArgumentError("Dataset isn't an " * option * "put of the recipe"))
+    end
+    puts
+end
+
+get_column_types(ds::DSSDataset, columns::AbstractArray=[]) = get_column_types(get_schema(ds)["columns"], columns)
+get_column_types(schema::AbstractArray, cols::AbstractArray=[]) =
+[col["name"] => _string_to_type(col["type"]) for col in schema if isempty(cols) || Symbol(col["name"]) in cols] |> Dict
+
+get_column_names(ds::DSSDataset, columns::AbstractArray=[]) = get_column_names(get_schema(ds)["columns"], columns)
+get_column_names(schema::AbstractArray, columns::Nothing=nothing) = [Symbol(col["name"]) for col in schema]
+get_column_names(schema::AbstractArray, columns::AbstractArray) = isempty(columns) ? get_column_names(schema) : columns
+
+const DKU_DF_TYPE_MAP = Dict(
+    "string"   => String,
+    "tinyint"  => Int8,
+    "smallint" => Int16,
+    "int"      => Int32,
     "bigint"   => Int64,
     "float"    => Float32,
     "double"   => Float64,
