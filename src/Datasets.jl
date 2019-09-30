@@ -196,7 +196,7 @@ write_with_schema(ds::DSSDataset, df::AbstractDataFrame; kwargs...) =
 
 """
 ```julia
-write__with_schema(f::Function, ds::DSSDataset; kwargs...)
+write_with_schema(f::Function, ds::DSSDataset; kwargs...)
 ```
 Writes this dataset (or its target partition) from a single DataFrame.
 
@@ -205,7 +205,7 @@ of the dataframe.
 
 Provides ability to write data by chunks without having to load full datasets in memory.
 
-Also see "get_writting_chnl".
+Also see `get_writting_chnl`.
 
 example:
 ```julia
@@ -236,11 +236,8 @@ Also see "write_with_schema".
 - `partition::AbstractString` : specify the partition to write.
 - `overwrite::Bool=true` : if `false`, appends the data to the already existing dataset.
 """
-function write_dataframe(ds::DSSDataset, df::AbstractDataFrame; infer_schema=false, kwargs...)
+function write_dataframe(ds::DSSDataset, df::AbstractDataFrame; kwargs...)
     schema = get_schema_from_df(df)
-    if infer_schema
-        set_schema(ds, schema)
-    end
     write_data(ds, _get_stream_write(df), schema; kwargs...)
 end
 
@@ -267,9 +264,9 @@ Dataiku.write_dataframe(dataset"output") do chnl
 end
 ```
 """
-function write_dataframe(f::Function, ds::DSSDataset; infer_schema=false, kwargs...)
+function write_dataframe(f::Function, ds::DSSDataset; kwargs...)
     chnl = Channel(f; ctype=AbstractDataFrame)
-    write_data(ds, chnl; kwargs...)
+    write_chnl(ds, chnl; kwargs...)
 end
 
 function _dataframe_chnl_to_csv(chnl::Channel{AbstractDataFrame}, first_chunk)
@@ -300,20 +297,20 @@ close(chnl) # closing the channel is required
 """
 function get_writting_chnl(ds::DSSDataset; kwargs...)
     chnl = Channel{AbstractDataFrame}(0)
-    @async write_data(ds, chnl; kwargs...)
+    @async write_chnl(ds, chnl; kwargs...)
     chnl
 end
 
-function write_data(ds, chnl::AbstractChannel; infer_schema=false, kwargs...)
+function write_chnl(ds, chnl::AbstractChannel; kwargs...)
     first_chunk = take!(chnl) # first chunk is read to define schema
     schema = get_schema_from_df(first_chunk) 
-    if infer_schema
-        set_schema(ds, schema)
-    end
     write_data(ds, _dataframe_chnl_to_csv(chnl, first_chunk), schema)
 end
 
-function write_data(ds, data, schema; kwargs...)
+function write_data(ds, data, schema; infer_schema=false, kwargs...)
+    if infer_schema
+        set_schema(ds, schema)
+    end
     id = _init_write_session(ds, schema; kwargs...)
     @async _wait_write_session(id)
     _push_data(id, data)
