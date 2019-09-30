@@ -196,33 +196,6 @@ write_with_schema(ds::DSSDataset, df::AbstractDataFrame; kwargs...) =
 
 """
 ```julia
-write_with_schema(f::Function, ds::DSSDataset; kwargs...)
-```
-Writes this dataset (or its target partition) from a single DataFrame.
-
-This variant replaces the schema of the output dataset with the schema
-of the dataframe.
-
-Provides ability to write data by chunks without having to load full datasets in memory.
-
-Also see `get_writting_chnl`.
-
-example:
-```julia
-input = Dataiku.write_with_schema(dataset"input_dataset", 500)
-Dataiku.write_dataframe(dataset"output") do chnl
-    for chunk in input
-        put!(chnl, chunk)
-    end
-end
-```
-"""
-write_with_schema(f::Function, ds::DSSDataset; kwargs...) =
-    write_dataframe(f, ds; infer_schema=true, kwargs...)
-
-
-"""
-```julia
 write_dataframe(ds::DSSDataset, df::AbstractDataFrame; infer_schema=false, kwargs...)
 ```
 Writes this dataset (or its target partition) from a single DataFrame.
@@ -243,24 +216,50 @@ end
 
 """
 ```julia
+write_with_schema(f::Function, ds::DSSDataset; kwargs...)
+```
+Writes this dataset (or its target partition) from a single DataFrame.
+
+This variant replaces the schema of the output dataset with the schema
+of the dataframe.
+
+Provides ability to write data by chunks without having to load full datasets in memory.
+
+Also see `get_writing_chnl`.
+
+example:
+```julia
+input = Dataiku.write_with_schema(dataset"input_dataset", 500)
+Dataiku.write_dataframe(dataset"output") do chnl
+    for chunk in input
+        put!(chnl, chunk)
+    end
+end
+```
+"""
+write_with_schema(f::Function, ds::DSSDataset; kwargs...) =
+    write_dataframe(f, ds; infer_schema=true, kwargs...)
+
+"""
+```julia
 write_dataframe(f::Function, ds::DSSDataset; infer_schema=false, kwargs...)
 ```
 Writes this dataset (or its target partition) from a single DataFrame.
 
 This variant only edit the schema if infer_schema is True, otherwise you must
-take care to only write dataframes that have a compatible schema.
-
-Provides ability to write data by chunks without having to load full datasets in memory.
-
-Also see "get_writting_chnl".
-
-example:
-```julia
-input = Dataiku.iter_dataframes(dataset"input_dataset", 500)
-Dataiku.write_dataframe(dataset"output") do chnl
-    for chunk in input
-        put!(chnl, chunk)
-    end
+    take care to only write dataframes that have a compatible schema.
+    
+    Provides ability to write data by chunks without having to load full datasets in memory.
+    
+    Also see `get_writing_chnl`.
+    
+    example:
+    ```julia
+    input = Dataiku.iter_dataframes(dataset"input_dataset", 500)
+    Dataiku.write_dataframe(dataset"output") do chnl
+        for chunk in input
+            put!(chnl, chunk)
+        end
 end
 ```
 """
@@ -281,21 +280,21 @@ end
 
 """
 ```julia
-get_writting_chnl(ds::DSSDataset; kwargs...)
+get_writing_chnl(ds::DSSDataset; kwargs...)
 ```
 Provides a Channel to write data to a dataset.
 Open the connection to dss and stream the data until the channel is closed.
 
 example:
 ```julia
-chnl = Dataiku.get_writting_chnl(dataset"output")
+chnl = Dataiku.get_writing_chnl(dataset"output")
 for chunk in Dataiku.iter_dataframes(dataset"input")
     put!(chnl, chunk)
 end
 close(chnl) # closing the channel is required
 ```
 """
-function get_writting_chnl(ds::DSSDataset; kwargs...)
+function get_writing_chnl(ds::DSSDataset; kwargs...)
     chnl = Channel{AbstractDataFrame}(0)
     @async write_chnl(ds, chnl; kwargs...)
     chnl
@@ -304,7 +303,7 @@ end
 function write_chnl(ds, chnl::AbstractChannel; kwargs...)
     first_chunk = take!(chnl) # first chunk is read to define schema
     schema = get_schema_from_df(first_chunk) 
-    write_data(ds, _dataframe_chnl_to_csv(chnl, first_chunk), schema)
+    write_data(ds, _dataframe_chnl_to_csv(chnl, first_chunk), schema; kwargs...)
 end
 
 function write_data(ds, data, schema; infer_schema=false, kwargs...)

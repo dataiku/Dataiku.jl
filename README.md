@@ -68,7 +68,7 @@ Dataiku.write_with_schema(dataset"myOutputDataset") do chnl
 end
 ```
 ```julia
-chnl = Dataiku.get_writting_chnl(dataset"myOutputDataset")
+chnl = Dataiku.get_writing_chnl(dataset"myOutputDataset")
 for chunk in data
     new_chunk = modify_chunk(chunk)
     put!(chnl, new_chunk)
