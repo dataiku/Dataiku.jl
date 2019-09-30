@@ -209,7 +209,7 @@ Also see "get_writting_chnl".
 
 example:
 ```julia
-input = Dataiku.write__with_schema(dataset"input_dataset", 500)
+input = Dataiku.write_with_schema(dataset"input_dataset", 500)
 Dataiku.write_dataframe(dataset"output") do chnl
     for chunk in input
         put!(chnl, chunk)
@@ -217,7 +217,7 @@ Dataiku.write_dataframe(dataset"output") do chnl
 end
 ```
 """
-write__with_schema(f::Function, ds::DSSDataset; kwargs...) =
+write_with_schema(f::Function, ds::DSSDataset; kwargs...) =
     write_dataframe(f, ds; infer_schema=true, kwargs...)
 
 
