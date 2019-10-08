@@ -44,16 +44,39 @@ end
 ```
 Iteration row by row with DataFrameRows or tuples is also possible
 ```julia
-iter_rows(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
-iter_tuples(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
+Dataiku.iter_rows(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
+Dataiku.iter_tuples(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
 ```
 ## Writing Data
 ```julia
 Dataiku.write_with_schema(dataset"myOutputDataset", df)
-Dataiku.write_from_dataframe(dataset"myOutputDataset", df) # will not update the schema
+Dataiku.write_dataframe(dataset"myOutputDataset", df) # Will break if output dataset doesn't have the right schema
 ```
 The output dataset must already exist in the project.
-#### Keywords parameters
+
+### Write dataset as a Channel
+It is also possible to write datasets chunk by chunk. They are 2 ways to do that :
+
+#### By providing a function
+```julia
+input = Dataiku.iter_dataframes(dataset"myInputDataset", 500)
+Dataiku.write_dataframe(dataset"myOutputDataset") do chnl
+    for chunk in input
+        put!(chnl, chunk)
+    end
+end
+```
+#### By using a Channel
+```julia
+input = Dataiku.iter_dataframes(dataset"myInputDataset", 500)
+chnl = Dataiku.get_writing_chnl(dataset"myOutputDataset")
+for chunk in input
+    put!(chnl, chunk)
+end
+close(chnl) # closing the channel is required
+```
+
+### Keywords parameters
 - `partition::AbstractString` : specify the partition to write.
 - `overwrite::Bool=true` : if `false`, appends the data to the already existing dataset.
 
@@ -65,12 +88,12 @@ When using the package inside DSS (recipe or notebook) the projectKey doesn't ne
 If no project key is initialized, or to use objects for other projects, it's needed to indicate the project during the object creation :
 ```julia
 dataset"PROJECTKEY.datasetname"
-DSSDataset(project"PROJECTKEY", "datasetname") # this is exactly equivalent to the last line
+DSSDataset(project"PROJECTKEY", "datasetname") # equivalent
 ...
 ```
 
 ### Context initialization
-To use the package outside of DSS, a url to the instance and an API key or a DKU Ticket is needed. 
+To use the package outside DSS, a url to the instance and an API key or a DKU Ticket is needed. 
 API key can be retrieved in DSS, Administration -> Security
 
 There are 2 ways to initialize it
@@ -105,7 +128,7 @@ You can have details about what you can do with these types in notebooks or juli
 For more accessibility, str_macros exist to create most of these types :
 * `dataset"mydataset"` is equivalent to `DSSDataset("mydataset")`
 * `dataset"PROJECTKEY.mydataset"` => `DSSDataset("mydataset", DSSProject("PROJECTKEY"))`
-* `project"PROJECTKEY"` => DSSProject("PROJECTKEY")
+* `project"PROJECTKEY"` => `DSSProject("PROJECTKEY")`
 * `recipes"myrecipe"` => `DSSRecipes("myrecipe")`
 * `recipes"myscenario"` => `DSSScenario("myscenario")`
 
