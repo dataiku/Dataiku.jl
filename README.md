@@ -32,7 +32,7 @@ get_dataframe(dataset"PROJECTKEY.myDataset"; infer_types=false, limit=200, sampl
 ```
 
 ### Load a Dataset as a Channel
-To be able to read data by chunk, without loading all the data. The same keyword parameters can be given.
+To be able to read data by chunk, without loading all the data in memory. The same keyword parameters can be given.
 ```julia
 chnl = Dataiku.iter_dataframes(dataset"myDataset", 1000)
 first_thousand_row = take!(chnk)
@@ -60,7 +60,7 @@ Dataiku.write_dataframe(dataset"myOutputDataset", df) # Will break if output dat
 The output dataset must already exist in the project.
 
 ### Write dataset as a Channel
-It is also possible to write datasets chunk by chunk. They are 2 ways to do that :
+It is also possible to write datasets chunk by chunk to avoid loading full datasets in memory. They are 2 ways to do that :
 
 #### By providing a function
 ```julia
