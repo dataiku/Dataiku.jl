@@ -1,5 +1,7 @@
 # Overview
-This package provides an interface to use DSS remotely and to create recipes/notebooks in [DSS](https://www.dataiku.com/dss/)
+This package provides an interface to use DSS remotely and to create recipes/notebooks in [Dataiku DSS](https://www.dataiku.com/dss/)
+
+Note: This documentation is only for remote use. If you want to use the Julia language from within DSS, install the plugin from DSS UI or ask your administrator. More info on the plugin integration here: https://www.dataiku.com/dss/plugins/info/julia.html
 
 # Usage
 ## Reading Data
@@ -44,8 +46,8 @@ end
 ```
 Iteration row by row with DataFrameRows or tuples is also possible
 ```julia
-iter_rows(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
-iter_tuples(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
+Dataiku.iter_rows(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
+Dataiku.iter_tuples(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
 ```
 ## Writing Data
 The output datasets must already exist in the project.
@@ -53,36 +55,31 @@ The output datasets must already exist in the project.
 ### Full dataframes
 ```julia
 Dataiku.write_with_schema(dataset"myOutputDataset", df)
-Dataiku.write_from_dataframe(dataset"myOutputDataset", df) # will not update the schema
+Dataiku.write_dataframe(dataset"myOutputDataset", df) # Will break if output dataset doesn't have the right schema
 ```
+The output dataset must already exist in the project.
 
-### Stream the data
-It is also possible to write datasets chunk by chunk with julia [Channels](https://docs.julialang.org/en/v1/manual/parallel-computing/#Channels)
-All the dataframes put into the channel will be written
+### Write dataset as a Channel
+It is also possible to write datasets chunk by chunk. They are 2 ways to do that :
+
+#### By providing a function
 ```julia
-Dataiku.write_with_schema(dataset"myOutputDataset") do chnl
-    for chunk in data
-        new_chunk = modify_chunk(chunk)
-        put!(chnl, new_chunk)
+input = Dataiku.iter_dataframes(dataset"myInputDataset", 500)
+Dataiku.write_dataframe(dataset"myOutputDataset") do chnl
+    for chunk in input
+        put!(chnl, chunk)
     end
 end
 ```
+
+#### By using a Channel
 ```julia
+input = Dataiku.iter_dataframes(dataset"myInputDataset", 500)
 chnl = Dataiku.get_writing_chnl(dataset"myOutputDataset")
-for chunk in data
-    new_chunk = modify_chunk(chunk)
-    put!(chnl, new_chunk)
+for chunk in input
+    put!(chnl, chunk)
 end
-close(chnl) # Closing this channel is required
-```
-It gives to possibility to modify big datasets without loading the entire dataset in memory.
-```julia
-input = Dataiku.iter_dataframes(dataset"input_dataset", 500)
-  Dataiku.write_dataframe(dataset"output") do chnl
-      for chunk in input
-          put!(chnl, chunk)
-      end
-  end
+close(chnl) # closing the channel is required
 ```
 
 ### Keywords parameters
@@ -97,12 +94,12 @@ When using the package inside DSS (recipe or notebook) the projectKey doesn't ne
 If no project key is initialized, or to use objects for other projects, it's needed to indicate the project during the object creation :
 ```julia
 dataset"PROJECTKEY.datasetname"
-DSSDataset(project"PROJECTKEY", "datasetname") # this is exactly equivalent to the last line
+DSSDataset(project"PROJECTKEY", "datasetname") # equivalent
 ...
 ```
 
 ### Context initialization
-To use the package outside of DSS, a url to the instance and an API key or a DKU Ticket is needed. 
+To use the package outside DSS, a url to the instance and an API key or a DKU Ticket is needed. 
 API key can be retrieved in DSS, Administration -> Security
 
 There are 2 ways to initialize it
