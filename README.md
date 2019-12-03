@@ -32,7 +32,7 @@ get_dataframe(dataset"PROJECTKEY.myDataset"; infer_types=false, limit=200, sampl
 ```
 
 ### Load a Dataset as a Channel
-To be able to read data by chunk, without loading all the data. The same keyword parameters can be given.
+To be able to read data by chunk, without loading all the data in memory. The same keyword parameters can be given.
 ```julia
 chnl = Dataiku.iter_dataframes(dataset"myDataset", 1000)
 first_thousand_row = take!(chnk)
@@ -50,6 +50,9 @@ Dataiku.iter_rows(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
 Dataiku.iter_tuples(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
 ```
 ## Writing Data
+The output datasets must already exist in the project.
+
+### Full dataframes
 ```julia
 Dataiku.write_with_schema(dataset"myOutputDataset", df)
 Dataiku.write_dataframe(dataset"myOutputDataset", df) # Will break if output dataset doesn't have the right schema
@@ -57,7 +60,7 @@ Dataiku.write_dataframe(dataset"myOutputDataset", df) # Will break if output dat
 The output dataset must already exist in the project.
 
 ### Write dataset as a Channel
-It is also possible to write datasets chunk by chunk. They are 2 ways to do that :
+It is also possible to write datasets chunk by chunk to avoid loading full datasets in memory. They are 2 ways to do that :
 
 #### By providing a function
 ```julia
@@ -68,6 +71,7 @@ Dataiku.write_dataframe(dataset"myOutputDataset") do chnl
     end
 end
 ```
+
 #### By using a Channel
 ```julia
 input = Dataiku.iter_dataframes(dataset"myInputDataset", 500)
@@ -134,10 +138,18 @@ For more accessibility, str_macros exist to create most of these types :
 * `recipes"myrecipe"` => `DSSRecipes("myrecipe")`
 * `recipes"myscenario"` => `DSSScenario("myscenario")`
 
+## Tests
 
-
-
-
-
-
-
+A running DSS instance and a config file (`$HOME/.dataiku/config.json`) are required to run the tests.
+config.json :
+```json
+{
+  "dss_instances": {
+    "default": {
+      "url": INSTANCE_URL,
+      "api_key": API_KEY_SECRET
+    }
+  },
+  "default_instance": "default"
+}
+```

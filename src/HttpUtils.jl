@@ -47,7 +47,7 @@ If no argument given, will try to find url and authentication from (in this orde
 		context
 	end
 
-	get_context() = context == nothing ? init_context() : context
+	get_context() = isnothing(context) ? init_context() : context
 
 	function get_auth_header()
 		if haskey(ENV, "DKU_API_TICKET")

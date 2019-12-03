@@ -32,10 +32,5 @@ const scenarioName = "test_scenario"
 
         Dataiku.run(scenario)
         @test Dataiku.abort(scenario)["msg"] == "abort requested"
-
-        Dataiku.run_and_wait(scenario)
-        duration = Dataiku.get_average_duration(scenario)
-        @test duration > 1000
-        @test duration < 2000
     end
 end

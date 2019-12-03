@@ -67,7 +67,7 @@ function duplicate(project::DSSProject, new_name::AbstractString=get_metadata(pr
         "targetProjectKey" => new_key,
         "duplicationMode" => duplication_mode
     )
-    new_project_key = Dataiku.HttpUtils.request_json("POST", "projects/$(project.key)/duplicate/", body)["targetProjectKey"]
+    new_project_key = request_json("POST", "projects/$(project.key)/duplicate/", body)["targetProjectKey"]
     DSSProject(new_project_key)
 end
 

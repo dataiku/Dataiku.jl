@@ -14,7 +14,7 @@ try Dataiku.delete(project) catch end
 project = Dataiku.create_project(projectName)
 
 df = load(joinpath(dirname(pathof(Dataiku)), "..", "test/data/colis_80.csv")) |> DataFrame
-df[:Date] = map(df[:Date]) do date
+df.Date = map(df.Date) do date
     Dates.format(date, "yyyy-mm-dd")
 end
 
@@ -28,7 +28,6 @@ include("ml.jl")
 include("scenarios.jl")
 include("recipes.jl")
 
-@test Dataiku.clear_data(dataset) == []
 @test Dataiku.delete(dataset)["msg"] == "Deleted dataset $projectKey.$datasetName"
 
 Dataiku.delete(project)

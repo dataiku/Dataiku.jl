@@ -45,9 +45,7 @@ CSVFiles._writevalue(io::IO, value::DateTime, delim, quotechar, escapechar, nast
 ```julia
 function get_dataframe(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
 ```
-
 get the data of a dataset in a DataFrame
-
 ### Keywords parameters
 - `partitions::AbstractArray` : specify the partitions wanted
 - `infer_types::Bool=true` : uses the types detected by TextParse.jl rather than the DSS schema
@@ -58,24 +56,20 @@ get the data of a dataset in a DataFrame
     * `random` returns a random sample of the dataset
     * `random-column` returns a random sample of the dataset. Incompatible with limit parameter.
 - `sampling_column::AbstractString` : Select the column used for "columnwise-random" sampling
-
 ### examples
 ```julia
 get_dataframe(dataset"myDataset")
 get_dataframe(dataset"myDataset", [:col1, :col2, :col5]; partitions=["2019-02", "2019-03"])
 get_dataframe(dataset"PROJECTKEY.myDataset"; infer_types=false, limit=200, sampling="random")
 ```
+
+also see `iter_dataframes`
+
 """
 function get_dataframe(ds::DSSDataset, columns::AbstractArray=[]; infer_types=true, kwargs...)
     names, types = _get_reading_schema(ds, columns; infer_types=infer_types)
     stream = get_stream("projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=_get_reading_params(ds; kwargs...))
     load(CSVFiles.Stream(format"TSV", stream); header_exists=false, colnames=names, colparsers=types) |> DataFrame
-end
-
-function iter_data_chunks(ds::DSSDataset, columns::AbstractArray=[]; infer_types=true, kwargs...)
-    names, types = _get_reading_schema(ds, columns; infer_types=infer_types)
-    stream = get_chnl("projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=_get_reading_params(ds; kwargs...))
-    Channel(chnl->_iter_data_chunks(chnl, stream, names, types))
 end
 
 function _get_reading_schema(ds::DSSDataset, columns::AbstractArray=[]; infer_types=true)
@@ -94,69 +88,86 @@ function _get_reading_params(ds::DSSDataset; partitions=nothing, kwargs...)
     )
 end
 
-function _iter_data_chunks(chnl::AbstractChannel, stream::AbstractChannel, names::AbstractArray, types)
-    first_line = ""
-    last_is_quote = false
-    for data in stream
-        chunk, last_line, last_is_quote = _split_last_line(String(data), last_is_quote)
-        df = load(CSVFiles.Stream(format"TSV", IOBuffer(first_line * chunk)); header_exists=false, colnames=names, colparsers=types) |> DataFrame
-        first_line = last_line
-        put!(chnl, df)
+function iter_data_chunks(ds::DSSDataset, columns::AbstractArray=[]; infer_types=true, kwargs...)
+    names, types = _get_reading_schema(ds, columns; infer_types=infer_types)
+    Channel(;ctype=DataFrame) do chnl
+        first_line = ""
+        open_quotes = false
+        for data in get_chnl("projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=_get_reading_params(ds; kwargs...))
+            chunk, last_line, open_quotes = _split_last_line(String(data), open_quotes)
+            df = load(CSVFiles.Stream(format"TSV", IOBuffer(first_line * chunk)); header_exists=false, colnames=names, colparsers=types) |> DataFrame
+            first_line = last_line
+            put!(chnl, df)
+        end
     end
 end
 
-# remove the last incomplete line of the chunk
-function _split_last_line(str::AbstractString, last_is_quote::Bool=false, quotechar='\"')
-    inquote = last_is_quote = count(i -> (i == quotechar), str) % 2 == 1 ⊻ last_is_quote # Check if the end of the string is inquote
+# remove the last incomplete line of the chunk, keep the last line in memory to add it to the next chunk
+function _split_last_line(str::AbstractString, open_quotes::Bool=false, quotechar='\"')
+    inquote = open_quotes = count(i -> (i == quotechar), str) % 2 == 1 ⊻ open_quotes # Check if the end of the string is inquote
     for i in Iterators.reverse(eachindex(str))
         if !inquote && str[i] == '\n'
-            return str[1:i], str[nextind(str, i):end], last_is_quote
+            return str[1:i], str[nextind(str, i):end], open_quotes
         elseif str[i] == quotechar
             inquote = !inquote
         end
     end
-    str, "", last_is_quote
+    str, "", open_quotes
 end
 
-iter_rows(ds::DSSDataset, columns::AbstractArray=[]; kwargs...) =
-    Channel(chnl->_iter_rows(chnl, iter_data_chunks(ds, columns; kwargs...)))
-
-function _iter_rows(chnl::AbstractChannel, chunks::AbstractChannel)
-    for chunk in chunks
-        for row in eachrow(chunk)
-            put!(chnl, row)
+function iter_rows(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
+    Channel(;ctype=DataFrameRow) do chnl
+        for chunk in iter_data_chunks(ds, columns; kwargs...)
+            for row in eachrow(chunk)
+                put!(chnl, row)
+            end
         end
     end
 end
 
+"""
+```julia
 function iter_dataframes(ds::DSSDataset, nrows::Integer=10_000, columns::AbstractArray=[]; kwargs...)
-    chunks = iter_data_chunks(ds, columns; kwargs...)
-    Channel(chnl->_iter_dataframes(chnl, chunks, nrows))
+```
+Returns  an iterator over the data of a dataframe. Can be used to access data without loading the full dataset in memory.
+### Keywords parameters
+- `partitions::AbstractArray` : specify the partitions wanted
+- `infer_types::Bool=true` : uses the types detected by TextParse.jl rather than the DSS schema
+- `limit::Integer` : Limits the number of rows returned
+- `ratio::AbstractFloat` : Limits the ratio to at n% of the dataset
+- `sampling::AbstractString="head"` : Sampling method, if
+    * `head` returns the first rows of the dataset. Incompatible with ratio parameter.
+    * `random` returns a random sample of the dataset
+    * `random-column` returns a random sample of the dataset. Incompatible with limit parameter.
+- `sampling_column::AbstractString` : Select the column used for "columnwise-random" sampling
+### example
+```julia
+for chunk in Dataiku.iter_dataframes(dataset"example", 500)
+    # iterate through chunks of 500 rows.
 end
-
-function _iter_dataframes(chnl::AbstractChannel, chunks::AbstractChannel, n::Integer)
-    df = take!(chunks)
-    for chunk in chunks
-        for i in n:n:nrow(df)
-            put!(chnl, df[1:n, :])
-            df = df[n+1:end, :]
+```
+"""
+function iter_dataframes(ds::DSSDataset, n::Integer=10_000, columns::AbstractArray=[]; kwargs...)
+    Channel(;ctype=DataFrame) do chnl
+        chunks = iter_data_chunks(ds, columns; kwargs...)
+        df = DataFrame()
+        for chunk in chunks
+            df = vcat(df, chunk)
+            for i in n:n:nrow(df)
+                put!(chnl, df[1:n, :])
+                df = df[n+1:end, :]
+            end
         end
-        append!(df, chunk)
+        put!(chnl, df)
     end
-    for i in n:n:nrow(df)
-        put!(chnl, df[1:n, :])
-        df = df[n+1:end, :]
-    end
-    put!(chnl, df)
 end
 
-iter_tuples(ds::DSSDataset, columns::AbstractArray=[]; kwargs...) =
-    Channel(chnl->_iter_tuples(chnl, iter_data_chunks(ds, columns; kwargs...)))
-
-function _iter_tuples(chnl::AbstractChannel, chunks::AbstractChannel)
-    for chunk in chunks
-        for row in 1:nrow(chunk)
-            put!(chnl, Tuple(chunk[row,col] for col in 1:ncol(chunk)))
+function iter_tuples(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
+    Channel(;ctype=Tuple) do chnl
+        for chunk in iter_data_chunks(ds, columns; kwargs...)
+            for row in 1:nrow(chunk)
+                put!(chnl, Tuple(chunk[row,col] for col in 1:ncol(chunk)))
+            end
         end
     end
 end
@@ -169,39 +180,139 @@ end
 
 
 """
-Write a DataFrame to an already existing (but maybe empty) Dataset, update the schema of the dataset
+Writes this dataset (or its target partition) from a single DataFrame.
 ```julia
 write_with_schema(ds::DSSDataset, df::AbstractDataFrame; kwargs...)
 ```
+This variant replaces the schema of the output dataset with the schema
+of the dataframe.
+
 ### Keywords parameters
 - `partition::AbstractString` : specify the partition to write.
 - `overwrite::Bool=true` : if `false`, appends the data to the already existing dataset.
 """
-function write_with_schema(ds::DSSDataset, df::AbstractDataFrame; kwargs...)
-    schema = write_schema_from_dataframe(ds, df)
-    write_from_dataframe(ds, df, schema; kwargs...)
-end
+write_with_schema(ds::DSSDataset, df::AbstractDataFrame; kwargs...) =
+    write_dataframe(ds, df; infer_schema=true, kwargs...)
 
 """
-Write a DataFrame to an already existing (but maybe empty) Dataset, don't update the schema.
 ```julia
-write_from_dataframe(ds::DSSDataset, df::AbstractDataFrame; kwargs...)
+write_dataframe(ds::DSSDataset, df::AbstractDataFrame; infer_schema=false, kwargs...)
 ```
+Writes this dataset (or its target partition) from a single DataFrame.
+
+This variant only edit the schema if infer_schema is True, otherwise you must
+take care to only write dataframes that have a compatible schema.
+
+Also see "write_with_schema".
+
 ### Keywords parameters
 - `partition::AbstractString` : specify the partition to write.
 - `overwrite::Bool=true` : if `false`, appends the data to the already existing dataset.
 """
-function write_from_dataframe(ds::DSSDataset, df::AbstractDataFrame, schema=get_schema_from_df(df); kwargs...)
-    id = _init_write_session(ds, schema; kwargs...)
-    task = @async _wait_write_session(id)
-    _push_data(id, df, ds)
-    Base.wait(task) # Making sure _wait_write_session thread is done
+function write_dataframe(ds::DSSDataset, df::AbstractDataFrame; kwargs...)
+    schema = get_schema_from_df(df)
+    write_data(ds, _get_stream_write(df), schema; kwargs...)
 end
 
-function write_schema_from_dataframe(ds::DSSDataset, df::AbstractDataFrame)
-    schema = get_schema_from_df(df)
-    set_schema(ds, schema)
-    schema
+"""
+```julia
+write_with_schema(f::Function, ds::DSSDataset; kwargs...)
+```
+Writes this dataset (or its target partition) from a single DataFrame.
+
+This variant replaces the schema of the output dataset with the schema
+of the dataframe.
+
+Provides ability to write data by chunks without having to load full datasets in memory.
+
+Also see `get_writing_chnl`.
+
+example:
+```julia
+input = Dataiku.write_with_schema(dataset"input_dataset", 500)
+Dataiku.write_dataframe(dataset"output") do chnl
+    for chunk in input
+        put!(chnl, chunk)
+    end
+end
+```
+"""
+write_with_schema(f::Function, ds::DSSDataset; kwargs...) =
+    write_dataframe(f, ds; infer_schema=true, kwargs...)
+
+"""
+```julia
+write_dataframe(f::Function, ds::DSSDataset; infer_schema=false, kwargs...)
+```
+Writes this dataset (or its target partition) from a single DataFrame.
+
+This variant only edit the schema if infer_schema is True, otherwise you must
+    take care to only write dataframes that have a compatible schema.
+    
+    Provides ability to write data by chunks without having to load full datasets in memory.
+    
+    Also see `get_writing_chnl`.
+    
+    example:
+    ```julia
+    input = Dataiku.iter_dataframes(dataset"input_dataset", 500)
+    Dataiku.write_dataframe(dataset"output") do chnl
+        for chunk in input
+            put!(chnl, chunk)
+        end
+end
+```
+"""
+function write_dataframe(f::Function, ds::DSSDataset; kwargs...)
+    chnl = Channel(f; ctype=AbstractDataFrame)
+    write_chnl(ds, chnl; kwargs...)
+end
+
+function _dataframe_chnl_to_csv(chnl::Channel{AbstractDataFrame}, first_chunk)
+    df = DataFrame()
+    Channel() do output
+        put!(output, _get_stream_write(first_chunk))
+        for df in chnl
+            put!(output, _get_stream_write(df))
+        end
+    end
+end
+
+"""
+```julia
+get_writing_chnl(ds::DSSDataset; kwargs...)
+```
+Provides a Channel to write data to a dataset.
+Open the connection to dss and stream the data until the channel is closed.
+
+example:
+```julia
+chnl = Dataiku.get_writing_chnl(dataset"output")
+for chunk in Dataiku.iter_dataframes(dataset"input")
+    put!(chnl, chunk)
+end
+close(chnl) # closing the channel is required
+```
+"""
+function get_writing_chnl(ds::DSSDataset; kwargs...)
+    chnl = Channel{AbstractDataFrame}(0)
+    @async write_chnl(ds, chnl; kwargs...)
+    chnl
+end
+
+function write_chnl(ds, chnl::AbstractChannel; kwargs...)
+    first_chunk = take!(chnl) # first chunk is read to define schema
+    schema = get_schema_from_df(first_chunk) 
+    write_data(ds, _dataframe_chnl_to_csv(chnl, first_chunk), schema; kwargs...)
+end
+
+function write_data(ds, data, schema; infer_schema=false, kwargs...)
+    if infer_schema
+        set_schema(ds, schema)
+    end
+    id = _init_write_session(ds, schema; kwargs...)
+    @async _wait_write_session(id)
+    _push_data(id, data)
 end
 
 function _init_write_session(ds::DSSDataset, schema::AbstractDict; method="STREAM", partition="", overwrite=true)
@@ -210,7 +321,8 @@ function _init_write_session(ds::DSSDataset, schema::AbstractDict; method="STREA
         "partitionSpec"   => (partition == "" && !runs_remotely()) ? get(get_flow_outputs(ds), "partition", "") : partition,
         "fullDatasetName" => full_name(ds),
         "writeMode"       => overwrite ? "OVERWRITE" : "APPEND",
-        "dataSchema"      => schema)
+        "dataSchema"      => schema
+    )
     request_json("POST", "datasets/init-write-session/", Dict("request" => JSON.json(req)); intern_call=true)["id"]
 end
 
@@ -223,8 +335,7 @@ function _wait_write_session(id::AbstractString)
     end
 end
 
-_push_data(id::AbstractString, df::AbstractDataFrame, ds::DSSDataset) =
-    request("POST", "datasets/push-data/?id=$(id)", _get_stream_write(df); intern_call=true)
+_push_data(id::AbstractString, data) = request("POST", "datasets/push-data/?id=$(id)", data; intern_call=true)
 
 function _get_stream_write(df::AbstractDataFrame)
     io = Base.BufferStream()
@@ -234,12 +345,13 @@ function _get_stream_write(df::AbstractDataFrame)
     io
 end
 
+
 ###################################################
 #
 #   UTILITY FUNCTIONS
 #
 ###################################################
-
+    
 get_flow_outputs(ds::DSSDataset) = _get_flow_inputs_or_outputs(ds, "out")
 
 get_flow_inputs(ds::DSSDataset) = _get_flow_inputs_or_outputs(ds, "in")
@@ -254,7 +366,7 @@ end
 
 get_column_types(ds::DSSDataset, columns::AbstractArray=[]) = get_column_types(get_schema(ds)["columns"], columns)
 get_column_types(schema::AbstractArray, cols::AbstractArray=[]) =
-    [col["name"] => _string_to_type(col["type"]) for col in schema if isempty(cols) || Symbol(col["name"]) in cols] |> Dict
+[col["name"] => _string_to_type(col["type"]) for col in schema if isempty(cols) || Symbol(col["name"]) in cols] |> Dict
 
 get_column_names(ds::DSSDataset, columns::AbstractArray=[]) = get_column_names(get_schema(ds)["columns"], columns)
 get_column_names(schema::AbstractArray, columns::Nothing=nothing) = [Symbol(col["name"]) for col in schema]
@@ -290,17 +402,12 @@ function get_schema_from_df(df::AbstractDataFrame)
     new_columns = Any[]
     for name in names(df)
         new_column = Dict("name" => String(name),
-                          "type" => _type_to_string(eltype(df[Symbol(name)])))
+                          "type" => _type_to_string(eltype(df[!, name])))
         push!(new_columns, new_column)
     end
     Dict("columns" => new_columns, "userModified" => false)
 end
 
-"""
-    sampling_column::Symbol
-    limit::Integer
-    ratio::AbstractFloat
-"""
 function _create_sampling_argument(; sampling::String="head", sampling_column=nothing, limit=nothing, ratio=nothing)
     if sampling_column != nothing && sampling != "random-column"
         throw(ArgumentError("sampling_column argument does not make sense with $(sampling) sampling method"))
@@ -360,6 +467,7 @@ function create_dataset(name::AbstractString, project::DSSProject=get_current_pr
         "name"         => name,
         "type"         => dataset_type,
         "formatType"   => formatType,
+        "managed"      => true,
         "params"       => Dict(
             "connection" => connection,
             "path"       => project.key * "/" * name
@@ -367,10 +475,9 @@ function create_dataset(name::AbstractString, project::DSSProject=get_current_pr
         "formatParams" => Dict(
             "style"      => style,
             "separator"  => "\t"
+        ),
         )
-    )
     create_dataset(body, project)
-    DSSDataset(name, project)
 end
 
 function create_dataset(body::AbstractDict, project::DSSProject=get_current_project())
@@ -381,7 +488,7 @@ end
 delete(ds::DSSDataset; dropData::Bool=false) = request_json("DELETE", "projects/$(ds.project.key)/datasets/$(ds.name)"; params=Dict("dropData" => dropData))
 
 # RECURSIVE_BUILD, NON_RECURSIVE_FORCED_BUILD, RECURSIVE_FORCED_BUILD, RECURSIVE_MISSING_ONLY_BUILD
-function build(ds::DSSDataset; partition=nothing, job_type::AbstractString="RECURSIVE_FORCED_BUILD")
+function build(ds::DSSDataset; partitions=nothing, job_type::AbstractString="RECURSIVE_FORCED_BUILD")
     body = Dict(
         "outputs" => [Dict(
             "projectKey" => ds.project.key,

@@ -2,14 +2,7 @@
     
     @testset "Settings" begin
         settings = Dataiku.get_settings(project)
-
-        @test length(settings) == 4
-        @test haskey(settings, "metrics")
         @test haskey(settings, "settings")
-        @test haskey(settings, "metricsChecks")
-        @test haskey(settings, "exposedObjects")
-
-        @test length(settings["settings"]) == 17
         @test Dataiku.set_settings(project, settings) == nothing
     end
 
@@ -27,10 +20,6 @@
         variables = Dataiku.get_variables(project)
         @test length(variables) == 2
         @test Dataiku.set_variables(project, variables) == nothing
-
-        permissions = Dataiku.get_permissions(project)
-        @test length(permissions) == 4
-        @test Dataiku.set_permissions(project, permissions) == nothing
     end
 
     io = Dataiku.export_project(project)
