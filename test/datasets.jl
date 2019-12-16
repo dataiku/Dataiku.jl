@@ -36,7 +36,7 @@
             @test haskey(metadata, "tags")
             @test haskey(metadata, "custom")
 
-            @test Dataiku.set_metadata(dataset, metadata)["msg"] == "updated metadata for $projectKey.$datasetName" 
+            @test Dataiku.set_metadata(dataset, metadata)["msg"] == "updated metadata for $projectKey.$datasetName"
         end
 
         @test Dataiku.list_partitions(dataset)[1] == "NP"
@@ -64,21 +64,21 @@
         end
 
         @testset "Values" begin
-            @test df[!, 1][1] == 1
-            @test df[!, 2][1] == "2014-06-18"
-            @test df[!, 3][1] == DateTime("2014-06-18T00:00:00.000Z", "yyyy-mm-ddTHH:MM:SS.sssZ")
-            @test df[!, 4][1] == false
-            @test df[!, end][1] == 0.
+            @test df[1][1] == 1
+            @test df[2][1] == "2014-06-18"
+            @test df[3][1] == DateTime("2014-06-18T00:00:00.000Z", "yyyy-mm-ddTHH:MM:SS.sssZ")
+            @test df[4][1] == false
+            @test df[end][1] == 0.
 
-            @test df[!, 1][end] == 999
-            @test df[!, 2][end] == "2014-07-29"
-            @test df[!, 3][end] == DateTime("2014-07-29T00:00:00.000Z", "yyyy-mm-ddTHH:MM:SS.sssZ")
-            @test df[!, 4][end] == false
-            @test df[!, end][end] == 88.
+            @test df[1][end] == 999
+            @test df[2][end] == "2014-07-29"
+            @test df[3][end] == DateTime("2014-07-29T00:00:00.000Z", "yyyy-mm-ddTHH:MM:SS.sssZ")
+            @test df[4][end] == false
+            @test df[end][end] == 88.
 
-            @test df[!, 5][10] == """["Noël"]"""
-            @test df[!, 7][4] == """["Vacances de printemps - Zone B","Vacances de printemps - Zone C"]"""
-            @test df[!, 6][4] == true
+            @test df[5][10] == """["Noël"]"""
+            @test df[7][4] == """["Vacances de printemps - Zone B","Vacances de printemps - Zone C"]"""
+            @test df[6][4] == true
         end
     end
 
@@ -102,7 +102,7 @@
             @test tuple[4] == false
             @test tuple[end] == 0.
         end
-    
+
         @testset "Streaming data" begin
             Dataiku.write_dataframe(dataset) do chnl
                 for chunk in Dataiku.iter_dataframes(dataset, 100)
@@ -111,21 +111,21 @@
             end
             df = Dataiku.get_dataframe(dataset; infer_types=false)
 
-            @test df[!, 1][1] == 1
-            @test df[!, 2][1] == "2014-06-18"
-            @test df[!, 3][1] == DateTime("2014-06-18T00:00:00.000Z", "yyyy-mm-ddTHH:MM:SS.sssZ")
-            @test df[!, 4][1] == false
-            @test df[!, end][1] == 0.
+            @test df[1][1] == 1
+            @test df[2][1] == "2014-06-18"
+            @test df[3][1] == DateTime("2014-06-18T00:00:00.000Z", "yyyy-mm-ddTHH:MM:SS.sssZ")
+            @test df[4][1] == false
+            @test df[end][1] == 0.
 
-            @test df[!, 1][end] == 999
-            @test df[!, 2][end] == "2014-07-29"
-            @test df[!, 3][end] == DateTime("2014-07-29T00:00:00.000Z", "yyyy-mm-ddTHH:MM:SS.sssZ")
-            @test df[!, 4][end] == false
-            @test df[!, end][end] == 88.
+            @test df[1][end] == 999
+            @test df[2][end] == "2014-07-29"
+            @test df[3][end] == DateTime("2014-07-29T00:00:00.000Z", "yyyy-mm-ddTHH:MM:SS.sssZ")
+            @test df[4][end] == false
+            @test df[end][end] == 88.
 
-            @test df[!, 5][10] == """["Noël"]"""
-            @test df[!, 7][4] == """["Vacances de printemps - Zone B","Vacances de printemps - Zone C"]"""
-            @test df[!, 6][4] == true
+            @test df[5][10] == """["Noël"]"""
+            @test df[7][4] == """["Vacances de printemps - Zone B","Vacances de printemps - Zone C"]"""
+            @test df[6][4] == true
         end
     end
 end
