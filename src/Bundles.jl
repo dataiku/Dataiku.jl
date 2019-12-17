@@ -15,8 +15,8 @@ get_details(bundle::DSSBundle) = request_json("GET", "projects/$(bundle.project.
 
 download_file(bundle::DSSBundle) = get_stream("projects/$(bundle.project.key)/bundles/exported/$(bundle.id)/archive")
 
-list_exported_bundles(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(projectKey)/bundles/exported")["bundles"]
-list_imported_bundles(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(projectKey)/bundles/imported")["bundles"]
+list_exported_bundles(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(project.key)/bundles/exported")["bundles"]
+list_imported_bundles(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(project.key)/bundles/imported")["bundles"]
 
 import_bundle_from_archive_file(path::AbstractString, project::DSSProject=get_current_project()) =
     request_json("POST", "projects/$(project.key)/bundles/imported/actions/importFromArchive"; params=Dict("archivePath" => path))

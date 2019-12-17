@@ -1,8 +1,7 @@
-module HttpUtils
-
 	using JSON
 	using HTTP
 	using Base64
+	using BufferedStreams
 
 	struct DSSContext
 		url::AbstractString
@@ -10,7 +9,6 @@ module HttpUtils
 	end
 
 	context = nothing
-
 
 """
 ```julia
@@ -56,7 +54,7 @@ If no argument given, will try to find url and authentication from (in this orde
 			Dict("Authorization" => "Basic $(base64encode(get_context().auth * ":"))")
 		end
 	end
-	
+
 	addparam(param, value::Any) = "$param=$value"
 	addparam(param, value::AbstractArray) = addparam(param, join(value, ','))
 	
@@ -66,49 +64,29 @@ If no argument given, will try to find url and authentication from (in this orde
 	end
 	querystring(params::Nothing) = ""
 	
-	get_url(url::AbstractString, params=nothing, intern_call=false) =
-		get_context().url * (intern_call ? "dip/api/tintercom/" : "public/api/") * url * querystring(params)
 
-	function get_url_and_header(url, params=nothing, intern_call=false)
+	function get_url_and_header(url; intern_call=false, params=nothing, verbose=false)
 		header = get_auth_header()
 		header["Content-Type"] = "application/" * (intern_call ? "x-www-form-urlencoded" : "json")
-		get_url(url, params, intern_call), header
+		url = get_context().url * (intern_call ? "dip/api/tintercom/" : "public/api/") * url * querystring(params)
+		verbose && @info url, JSON.json(header)
+		url, header
 	end
 
-	request(req::AbstractString, url::AbstractString, body::AbstractDict; intern_call=false, params=nothing)::String =
-		request(req, url, intern_call ? HTTP.URIs.escapeuri(body) : JSON.json(body); intern_call=intern_call, params=params)
-
-	function request(req::AbstractString, url::AbstractString, body=""; intern_call=false, params=nothing)
-		res = HTTP.request(req, get_url_and_header(url, params, intern_call)..., body).body
-		isempty(res) && return nothing
-		String(res)
-	end
-
-
-	request_json(req::AbstractString, url::AbstractString, body::AbstractDict; intern_call=false, params=nothing) =
-		request_json(req, url, intern_call ? HTTP.URIs.escapeuri(body) : JSON.json(body); intern_call=intern_call, params=params)
-
-	function request_json(req::AbstractString, url::AbstractString, body=""; intern_call=false, params=nothing)
-		res = HTTP.request(req, get_url_and_header(url, params, intern_call)..., body).body |> String
-		isempty(res) && return nothing
-		JSON.parse(res)
-	end
-
-	function get_stream(url::AbstractString; intern_call=false, params=nothing)
-		io = Base.BufferStream()
-		HTTP.request("GET", get_url_and_header(url, params, intern_call)...; response_stream=io)
-		io
-	end
-
-	get_chnl(url::AbstractString; kwargs...) = Channel(chnl->_get_chnl(chnl, url; kwargs...))
-
-	function _get_chnl(chnl::AbstractChannel, url::AbstractString; intern_call=false, params=nothing)
-		HTTP.open("GET", get_url_and_header(url, params, intern_call)...) do stream
-			while !eof(stream)
-				put!(chnl, readavailable(stream))
-			end
+	function request(req, url, body=""; intern_call=false, kwargs...)
+		if (typeof(body) <: AbstractDict)
+			body = intern_call ? HTTP.URIs.escapeuri(body) : JSON.json(body)
 		end
+		res = HTTP.request(req, get_url_and_header(url; intern_call=intern_call, kwargs...)..., body).body |> String
+		return isempty(res) ? nothing : res
 	end
+
+	function request_json(req::AbstractString, url::AbstractString, body=""; kwargs...)
+		res = request(req, url, body; kwargs...)
+		return isnothing(res) ? res : JSON.parse(res)
+	end
+
+	get_stream(f::Function, url; kwargs...) = HTTP.open(f, "GET", get_url_and_header(url; kwargs...)...)
 
 	post_multipart(url::AbstractString, path::AbstractString, filename::AbstractString=basename(path)) =
 		post_multipart(url, open(path, read=true), filename)
@@ -119,11 +97,3 @@ If no argument given, will try to find url and authentication from (in this orde
 		header["Content-Type"] = "multipart/form-data; boundary=$(body.boundary)"
 		HTTP.request("POST", url_request, header, body).body |> String
 	end
-
-	export init_context
-	export post_multipart
-	export request_json
-	export get_stream
-	export get_chnl
-	export request
-end

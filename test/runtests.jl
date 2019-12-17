@@ -14,9 +14,6 @@ try Dataiku.delete(project) catch end
 project = Dataiku.create_project(projectName)
 
 df = load(joinpath(dirname(pathof(Dataiku)), "..", "test/data/colis_80.csv")) |> DataFrame
-df.Date = map(df.Date) do date
-    Dates.format(date, "yyyy-mm-dd")
-end
 
 Dataiku.set_current_project(project)
 

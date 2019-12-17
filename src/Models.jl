@@ -392,7 +392,7 @@ end
 export DSSModelVersion
 
 
-list_versions(model::DSSSavedModel) = request_json("GET", "projects/$(model.project.key)//savedmodels/$(model.id)/versions")
+list_versions(model::DSSSavedModel) = request_json("GET", "projects/$(model.project.key)/savedmodels/$(model.id)/versions")
 
 get_snippet(version::DSSModelVersion) =
     request_json("GET", "projects/$(version.model.project.key)/savedmodels/$(version.model.id)/versions/$(version.id)/snippet")

@@ -18,8 +18,6 @@ module Dataiku
     include("Plugins.jl")
     include("Discussions.jl")
 
-    using .HttpUtils
-
     createobject(::Type{T}, id) where {T <: DSSObject} = '.' in id ? T(split(id, '.')[end], DSSProject(split(id, '.')[1])) : T(id)
 
     get_project(object) = nothing
@@ -43,6 +41,9 @@ module Dataiku
     """
 get the global variable FLOW that would be defined if running inside DSS
     """
+
+    # TODO : find a way to give flow variable from the backend here
+
     function get_flow()
         if isdefined(Main, :FLOW)
             Main.FLOW
@@ -125,14 +126,14 @@ look for a dict that has this `value` at this `field` in an array of dict
     get_meaning_definition(meaningId::AbstractString) = request_json("GET", "meanings/$(meaningId)")
     update_meaning_definition(definition::AbstractDict, meaningId::AbstractString) = request_json("PUT", "meanings/$(meaningId)", definition)
     create_meaning(data::AbstractDict) = request_json("POST", "meanings/", data)
-    
+
     get_wiki(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(project.key)/wiki/")
     update_wiki(wiki::AbstractDict, project::DSSProject=get_current_project()) = request_json("PUT", "projects/$(project.key)/wiki/", wiki)
-    
+
     get_article(articleId::AbstractString, project::DSSProject=get_current_project()) = request_json("GET", "projects/$(project.key)/wiki/$(articleId)")
     update_article(article::AbstractDict, articleId, project::DSSProject=get_current_project()) =
         request_json("PUT", "projects/$(project.key)/wiki/$(articleId)", article)
-    
+
     function create_article(name::AbstractString, project::DSSProject=get_current_project(); parent=nothing)
         data = Dict(
             "projectKey" => project.key,

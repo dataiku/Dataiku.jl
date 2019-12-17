@@ -1,6 +1,6 @@
 using DataFrames
 using Dates
-using CSVFiles
+using CSV
 
 """
 ```julia
@@ -28,12 +28,6 @@ export @dataset_str
 export DSSDataset
 
 const DKU_DATE_FORMAT = dateformat"yyyy-mm-ddTHH:MM:SS.sssZ"
-
-## make CSVFiles.jl parser recognize this dateformat during type inference
-__init__() = push!(CSVFiles.TextParse.common_datetime_formats, DKU_DATE_FORMAT)
-
-## make CSVFiles writer write dates in the right format
-CSVFiles._writevalue(io::IO, value::DateTime, delim, quotechar, escapechar, nastring) = print(io, Dates.format(value, DKU_DATE_FORMAT))
 
 ###################################################
 #
@@ -68,13 +62,17 @@ also see `iter_dataframes`
 """
 function get_dataframe(ds::DSSDataset, columns::AbstractArray=[]; infer_types=true, kwargs...)
     names, types = _get_reading_schema(ds, columns; infer_types=infer_types)
-    stream = get_stream("projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=_get_reading_params(ds; kwargs...))
-    load(CSVFiles.Stream(format"TSV", stream); header_exists=false, colnames=names, colparsers=types) |> DataFrame
+    df = DataFrame()
+    get_stream("projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=_get_reading_params(ds; kwargs...)) do stream
+        io = BufferedInputStream(stream)
+        df = CSV.read(io; delim='\t', types=types, header=names, dateformat=DKU_DATE_FORMAT)
+    end
+    df
 end
 
 function _get_reading_schema(ds::DSSDataset, columns::AbstractArray=[]; infer_types=true)
     schema = get_schema(ds)["columns"]
-    get_column_names(schema, columns), infer_types ? [] : get_column_types(schema, columns)
+    get_column_names(schema, columns), infer_types ? nothing : get_column_types(schema, columns)
 end
 
 function _get_reading_params(ds::DSSDataset; partitions=nothing, kwargs...)
@@ -90,21 +88,26 @@ end
 
 function iter_data_chunks(ds::DSSDataset, columns::AbstractArray=[]; infer_types=true, kwargs...)
     names, types = _get_reading_schema(ds, columns; infer_types=infer_types)
-    Channel(;ctype=DataFrame) do chnl
-        first_line = ""
-        open_quotes = false
-        for data in get_chnl("projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=_get_reading_params(ds; kwargs...))
-            chunk, last_line, open_quotes = _split_last_line(String(data), open_quotes)
-            df = load(CSVFiles.Stream(format"TSV", IOBuffer(first_line * chunk)); header_exists=false, colnames=names, colparsers=types) |> DataFrame
-            first_line = last_line
-            put!(chnl, df)
+    Channel() do chnl
+        get_stream("projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=_get_reading_params(ds; kwargs...)) do stream
+            io = BufferedInputStream(stream)
+            first_line = ""
+            open_quotes = false
+            while !eof(io)
+                chunk, last_line, open_quotes = _split_last_line(String(readavailable(io)), open_quotes)
+                c = first_line * chunk
+                df = CSV.read(IOBuffer(c); delim='\t', types=types, header=names, dateformat=DKU_DATE_FORMAT) |>  DataFrame!
+                first_line = last_line
+                put!(chnl, df)
+            end
         end
     end
 end
 
 # remove the last incomplete line of the chunk, keep the last line in memory to add it to the next chunk
-function _split_last_line(str::AbstractString, open_quotes::Bool=false, quotechar='\"')
-    inquote = open_quotes = count(i -> (i == quotechar), str) % 2 == 1 ⊻ open_quotes # Check if the end of the string is inquote
+# only consider newlines that aren't in quotes
+function _split_last_line(str::AbstractString, open_quotes::Bool=false, quotechar='"')
+    inquote = open_quotes = count(i -> (i == quotechar), str) % 2 == 1 ⊻ open_quotes
     for i in Iterators.reverse(eachindex(str))
         if !inquote && str[i] == '\n'
             return str[1:i], str[nextind(str, i):end], open_quotes
@@ -248,11 +251,11 @@ Writes this dataset (or its target partition) from a single DataFrame.
 
 This variant only edit the schema if infer_schema is True, otherwise you must
     take care to only write dataframes that have a compatible schema.
-    
+
     Provides ability to write data by chunks without having to load full datasets in memory.
-    
+
     Also see `get_writing_chnl`.
-    
+
     example:
     ```julia
     input = Dataiku.iter_dataframes(dataset"input_dataset", 500)
@@ -301,8 +304,8 @@ function get_writing_chnl(ds::DSSDataset; kwargs...)
 end
 
 function write_chnl(ds, chnl::AbstractChannel; kwargs...)
-    first_chunk = take!(chnl) # first chunk is read to define schema
-    schema = get_schema_from_df(first_chunk) 
+    first_chunk = take!(chnl)
+    schema = get_schema_from_df(first_chunk)
     write_data(ds, _dataframe_chnl_to_csv(chnl, first_chunk), schema; kwargs...)
 end
 
@@ -339,19 +342,17 @@ _push_data(id::AbstractString, data) = request("POST", "datasets/push-data/?id=$
 
 function _get_stream_write(df::AbstractDataFrame)
     io = Base.BufferStream()
-    @async begin save(CSVFiles.Stream(format"CSV", io), df; nastring="", header=false, escapechar='"')
-        close(io)
-    end
+    CSV.write(io, df; writeheader=false )
+    close(io)
     io
 end
-
 
 ###################################################
 #
 #   UTILITY FUNCTIONS
 #
 ###################################################
-    
+
 get_flow_outputs(ds::DSSDataset) = _get_flow_inputs_or_outputs(ds, "out")
 
 get_flow_inputs(ds::DSSDataset) = _get_flow_inputs_or_outputs(ds, "in")
@@ -366,7 +367,7 @@ end
 
 get_column_types(ds::DSSDataset, columns::AbstractArray=[]) = get_column_types(get_schema(ds)["columns"], columns)
 get_column_types(schema::AbstractArray, cols::AbstractArray=[]) =
-[col["name"] => _string_to_type(col["type"]) for col in schema if isempty(cols) || Symbol(col["name"]) in cols] |> Dict
+    [col["name"] => _string_to_type(col["type"]) for col in schema if isempty(cols) || Symbol(col["name"]) in cols] |> Dict
 
 get_column_names(ds::DSSDataset, columns::AbstractArray=[]) = get_column_names(get_schema(ds)["columns"], columns)
 get_column_names(schema::AbstractArray, columns::Nothing=nothing) = [Symbol(col["name"]) for col in schema]
@@ -402,7 +403,7 @@ function get_schema_from_df(df::AbstractDataFrame)
     new_columns = Any[]
     for name in names(df)
         new_column = Dict("name" => String(name),
-                          "type" => _type_to_string(eltype(df[!, name])))
+                          "type" => _type_to_string(eltype(df[name])))
         push!(new_columns, new_column)
     end
     Dict("columns" => new_columns, "userModified" => false)
@@ -526,7 +527,6 @@ get_last_metric_values(ds::DSSDataset, partition::AbstractString="NP") =
 get_single_metric_history(ds::DSSDataset, metricLookup::AbstractString, partition::AbstractString="NP") =
     request_json("GET", "projects/$(ds.project.key)/datasets/$(ds.name)/metrics/history/$(partition)?metricLookup=$(metricLookup)")
 
-        
 function compute_metrics(ds::DSSDataset; partition::AbstractString="", metrics_ids=nothing, probes=[])
     body = metrics_ids != nothing ? Dict("metricIds" => metrics_ids) : probes
     request_json("POST", "projects/$(ds.project.key)/datasets/$(ds.name)/actions/computeMetrics/", body; params=Dict(:partition => partitions))

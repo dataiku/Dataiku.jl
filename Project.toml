@@ -5,7 +5,8 @@ version = "0.1.0"
 
 [deps]
 Base64 = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
-CSVFiles = "5d742f6a-9f54-50ce-8119-2520741973ca"
+BufferedStreams = "e1450e63-4bb3-523b-b2a4-4ffa8c0fd77d"
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
@@ -13,7 +14,7 @@ JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
-CSVFiles = "0.13,0.15"
+CSV = "0.5"
 DataFrames = "^0.18"
 HTTP = "^0.8"
 JSON = "^0"

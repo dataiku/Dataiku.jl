@@ -9,9 +9,8 @@
             @test length(Dataiku.get_column_names(columns)) == 18
 
             @test columns[1] == Dict("name" => "id", "type" => "bigint")
-            @test columns[2] == Dict("name" => "Date", "type" => "string")
-            @test columns[3] == Dict("name" => "Date_parsed", "type" => "date")
-            @test columns[4] == Dict("name" => "holiday_bank", "type" => "boolean")
+            @test columns[3] == Dict("name" => "Date_parsed", "type" => "string")
+            @test columns[4] == Dict("name" => "holiday_bank", "type" => "string")
             @test columns[end] == Dict("name" => "nb_colis", "type" => "double")
 
             schema["userModified"] = false
@@ -43,7 +42,7 @@
     end
 
     @testset "DataFrame" begin
-        df = Dataiku.get_dataframe(dataset; infer_types=false)
+        df = Dataiku.get_dataframe(dataset)
 
         @testset "Dimensions" begin
             @test nrow(df) == 800
@@ -57,23 +56,23 @@
 
         @testset "Column Types" begin
             @test eltypes(df)[1] <: Union{Missing, Int64}
-            @test eltypes(df)[2] <: Union{Missing, String}
             @test eltypes(df)[3] <: Union{Missing, DateTime}
             @test eltypes(df)[4] <: Union{Missing, Bool}
+            @test eltypes(df)[16] <: Union{Missing, String}
             @test eltypes(df)[end] <: Union{Missing, Float64}
         end
 
         @testset "Values" begin
             @test df[1][1] == 1
-            @test df[2][1] == "2014-06-18"
-            @test df[3][1] == DateTime("2014-06-18T00:00:00.000Z", "yyyy-mm-ddTHH:MM:SS.sssZ")
+            @test df[3][1] == DateTime(2014, 06, 18, 0)
             @test df[4][1] == false
+            @test df[16][1] == "Bordeaux"
             @test df[end][1] == 0.
 
             @test df[1][end] == 999
-            @test df[2][end] == "2014-07-29"
-            @test df[3][end] == DateTime("2014-07-29T00:00:00.000Z", "yyyy-mm-ddTHH:MM:SS.sssZ")
+            @test df[3][end] == DateTime(2014, 07, 29, 0)
             @test df[4][end] == false
+            @test df[16][end] == "Lyon"
             @test df[end][end] == 88.
 
             @test df[5][10] == """["Noël"]"""
@@ -83,23 +82,23 @@
     end
 
     @testset "Iteration" begin
-        chnl = Dataiku.iter_rows(dataset; infer_types=false)
+        chnl = Dataiku.iter_rows(dataset)
         row = take!(chnl)
         @testset "Row Values" begin
             @test row[1] == 1
-            @test row[2] == "2014-06-18"
-            @test row[3] == DateTime("2014-06-18T00:00:00.000Z", "yyyy-mm-ddTHH:MM:SS.sssZ")
+            @test row[3] == DateTime(2014, 06, 18, 0)
             @test row[4] == false
+            @test row[16] == "Bordeaux"
             @test row[end] == 0.
         end
 
-        chnl = Dataiku.iter_tuples(dataset; infer_types=false)
+        chnl = Dataiku.iter_tuples(dataset)
         tuple = take!(chnl)
         @testset "Tuples Values" begin
             @test tuple[1] == 1
-            @test tuple[2] == "2014-06-18"
-            @test tuple[3] == DateTime("2014-06-18T00:00:00.000Z", "yyyy-mm-ddTHH:MM:SS.sssZ")
+            @test tuple[3] == DateTime(2014, 06, 18, 0)
             @test tuple[4] == false
+            @test tuple[16] == "Bordeaux"
             @test tuple[end] == 0.
         end
 
@@ -109,18 +108,18 @@
                     put!(chnl, chunk)
                 end
             end
-            df = Dataiku.get_dataframe(dataset; infer_types=false)
+            df = Dataiku.get_dataframe(dataset)
 
             @test df[1][1] == 1
-            @test df[2][1] == "2014-06-18"
-            @test df[3][1] == DateTime("2014-06-18T00:00:00.000Z", "yyyy-mm-ddTHH:MM:SS.sssZ")
+            @test df[3][1] == DateTime(2014, 06, 18, 0)
             @test df[4][1] == false
+            @test df[16][1] == "Bordeaux"
             @test df[end][1] == 0.
 
             @test df[1][end] == 999
-            @test df[2][end] == "2014-07-29"
-            @test df[3][end] == DateTime("2014-07-29T00:00:00.000Z", "yyyy-mm-ddTHH:MM:SS.sssZ")
+            @test df[3][end] == DateTime(2014, 07, 29, 0)
             @test df[4][end] == false
+            @test df[16][end] == "Lyon"
             @test df[end][end] == 88.
 
             @test df[5][10] == """["Noël"]"""

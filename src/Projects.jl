@@ -52,7 +52,18 @@ get_tags(project::DSSProject=get_current_project()) = request_json("GET", "proje
 set_tags(project::DSSProject, body::AbstractDict) = set_tags(body, project)
 set_tags(body::AbstractDict, project::DSSProject=get_current_project()) = request_json("PUT", "projects/$(project.key)/tags", body)
 
-export_project(project::DSSProject; options...) = get_stream("projects/$(project.key)/export"; params=Dict(options))
+"""
+export_project(f::Function, project::DSSProject; options...)
+example :
+```julia
+export_project(project"A") do stream
+    open(filename) do output
+        write(output, stream)
+    end
+end
+```
+"""
+export_project(f::Function, project::DSSProject; options...) = get_stream(f, "projects/$(project.key)/export"; params=Dict(options))
 
 function export_project(project::DSSProject, output_file::AbstractString; options...)
     open(output_file; write=true) do file
