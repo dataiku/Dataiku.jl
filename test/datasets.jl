@@ -9,8 +9,9 @@
             @test length(Dataiku.get_column_names(columns)) == 18
 
             @test columns[1] == Dict("name" => "id", "type" => "bigint")
-            @test columns[3] == Dict("name" => "Date_parsed", "type" => "string")
-            @test columns[4] == Dict("name" => "holiday_bank", "type" => "string")
+            @test columns[2] == Dict("name" => "Date", "type" => "string")
+            @test columns[3] == Dict("name" => "Date_parsed", "type" => "date")
+            @test columns[4] == Dict("name" => "holiday_bank", "type" => "boolean")
             @test columns[end] == Dict("name" => "nb_colis", "type" => "double")
 
             schema["userModified"] = false

@@ -21,15 +21,6 @@
         @test length(variables) == 2
         @test Dataiku.set_variables(project, variables) == nothing
     end
-    Dataiku.export_project(project) do stream
-        open("/tmp/project.zip"; write=true) do output
-            write(output, stream)
-        end
-        open("/tmp/project.zip") do io
-            @test length(read(io)) > 3000
-        end
-    end
-
     try Dataiku.delete(DSSProject("NEW_"*projectKey)) catch end
     new_project = Dataiku.duplicate(project, "new_"*projectName, "NEW_"*projectKey)
     @test length(Dataiku.list_projects()) > 1

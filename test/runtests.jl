@@ -1,6 +1,6 @@
 using Dataiku
 using Test
-using CSVFiles
+using CSV
 using DataFrames
 using Dates
 
@@ -13,7 +13,13 @@ project = DSSProject(projectKey)
 try Dataiku.delete(project) catch end
 project = Dataiku.create_project(projectName)
 
-df = load(joinpath(dirname(pathof(Dataiku)), "..", "test/data/colis_80.csv")) |> DataFrame
+df = CSV.read(joinpath(dirname(pathof(Dataiku)), "..", "test", "data", "colis_80.csv")) |> DataFrame
+df.Date_parsed = map(df.Date_parsed) do a
+    DateTime(a, dateformat"yyyy-mm-ddT00:00:00.000Z")
+end
+df.Date = map(df.Date) do a
+    string(a)
+end
 
 Dataiku.set_current_project(project)
 

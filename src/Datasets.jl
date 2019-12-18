@@ -314,8 +314,9 @@ function write_data(ds, data, schema; infer_schema=false, kwargs...)
         set_schema(ds, schema)
     end
     id = _init_write_session(ds, schema; kwargs...)
-    @async _wait_write_session(id)
+    task = @async _wait_write_session(id)
     _push_data(id, data)
+    Base.wait(task);
 end
 
 function _init_write_session(ds::DSSDataset, schema::AbstractDict; method="STREAM", partition="", overwrite=true)
@@ -342,7 +343,7 @@ _push_data(id::AbstractString, data) = request("POST", "datasets/push-data/?id=$
 
 function _get_stream_write(df::AbstractDataFrame)
     io = Base.BufferStream()
-    CSV.write(io, df; writeheader=false )
+    CSV.write(io, df; writeheader=false, dateformat=DKU_DATE_FORMAT)
     close(io)
     io
 end
