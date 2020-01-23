@@ -278,15 +278,15 @@ get_trained_models_ids(mltask::DSSMLTask[, sessionId, algorithm])
 ```
 Gets the list of trained model identifiers for this ML task.
 """
-get_trained_models_ids(mltask::DSSMLTask, session::Integer, algorithm=nothing) = get_trained_models_ids(mtask, "s$_session", algorihtm)
+get_trained_models_ids(mltask::DSSMLTask, session::Integer, algorithm=nothing) = get_trained_models_ids(mltask, "s$session", algorithm)
 
 function get_trained_models_ids(mltask::DSSMLTask, session=nothing, algorithm=nothing)
     full_model_ids = get_status(mltask)["fullModelIds"]
-    if session != nothing
+    if !isnothing(session)
         full_model_ids = [fmi for fmi in full_model_ids if fmi["fullModelId"]["sessionId"] == session]
     end
     model_ids = [x["id"] for x in full_model_ids]
-    if algorithm != nothing
+    if !isnothing(algorithm)
         model_ids = [fmi for (fmi, s) in get_trained_model_snippet(mltask, model_ids) if s["algorithm"] == algorithm]
     end
     model_ids

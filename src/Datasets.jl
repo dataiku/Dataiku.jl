@@ -3,7 +3,7 @@ using Dates
 using CSV
 
 """
-```julia
+```julia…
 struct DSSDataset <: DSSObject
     project::DSSProject
     name::AbstractString
@@ -76,7 +76,7 @@ function _get_reading_schema(ds::DSSDataset, columns::AbstractArray=[]; infer_ty
 end
 
 function _get_reading_params(ds::DSSDataset; partitions=nothing, kwargs...)
-    if !(partitions!=nothing && !isempty(partitions)) && !runs_remotely()
+    if !(!isnothing(partitions) && !isempty(partitions)) && !runs_remotely()
         partitions = get(get_flow_inputs(ds), "partitions", "")
     end
     Dict(
@@ -404,45 +404,45 @@ function get_schema_from_df(df::AbstractDataFrame)
     new_columns = Any[]
     for name in names(df)
         new_column = Dict("name" => String(name),
-                          "type" => _type_to_string(eltype(df[name])))
+                          "type" => _type_to_string(eltype(df[!, name])))
         push!(new_columns, new_column)
     end
     Dict("columns" => new_columns, "userModified" => false)
 end
 
 function _create_sampling_argument(; sampling::String="head", sampling_column=nothing, limit=nothing, ratio=nothing)
-    if sampling_column != nothing && sampling != "random-column"
+    if !isnothing(sampling_column) && sampling != "random-column"
         throw(ArgumentError("sampling_column argument does not make sense with $(sampling) sampling method"))
     end
     if sampling == "head"
-        if ratio != nothing
+        if !isnothing(ratio)
             throw(ArgumentError("target_ratio parameter is not supported by the head sampling method"))
-        elseif limit == nothing
+        elseif isnothing(limit)
             return Dict("samplingMethod" => "FULL")
         else
             return Dict("samplingMethod" => "HEAD_SEQUENCIAL",
                         "maxRecords"     => limit)
         end
     elseif sampling == "random"
-        if ratio != nothing
-            if limit != nothing
+        if !isnothing(ratio)
+            if !isnothing(limit)
                 throw(ArgumentError("Cannot set both ratio and limit"))
             else
                 return Dict("samplingMethod" => "RANDOM_FIXED_RATIO",
                             "targetRatio"    => ratio)
             end
-        elseif limit != nothing
+        elseif !isnothing(limit)
             return Dict("samplingMethod" => "RANDOM_FIXED_NB",
                         "maxRecords"     => limit)
         else
             throw(ArgumentError("Sampling method random requires either a parameter limit or ratio"))
         end
     elseif sampling == "random-column"
-        if sampling_column == nothing
+        if isnothing(sampling_column)
             throw(ArgumentError("random-column sampling method requires a sampling_column argument"))
-        elseif ratio != nothing
+        elseif !isnothing(ratio)
             throw(ArgumentError("ratio parameter is not handled by sampling column method"))
-        elseif limit == nothing
+        elseif isnothing(limit)
             throw(ArgumentError("random-column requires a limit parameter"))
         end
         return Dict("samplingMethod" => "COLUMN_BASED",
@@ -498,7 +498,9 @@ function build(ds::DSSDataset; partitions=nothing, job_type::AbstractString="REC
             )],
         "type" => job_type
     )
-    if partitions != nothing body["outputs"][1]["partition"] = partitions end
+    if !isnothing(partitions)
+        body["outputs"][1]["partition"] = partitions
+    end
     start_job(body, ds.project)
 end
 
@@ -529,7 +531,7 @@ get_single_metric_history(ds::DSSDataset, metricLookup::AbstractString, partitio
     request_json("GET", "projects/$(ds.project.key)/datasets/$(ds.name)/metrics/history/$(partition)?metricLookup=$(metricLookup)")
 
 function compute_metrics(ds::DSSDataset; partition::AbstractString="", metrics_ids=nothing, probes=[])
-    body = metrics_ids != nothing ? Dict("metricIds" => metrics_ids) : probes
+    body = !isnothing(metrics_ids) ? Dict("metricIds" => metrics_ids) : probes
     request_json("POST", "projects/$(ds.project.key)/datasets/$(ds.name)/actions/computeMetrics/", body; params=Dict(:partition => partitions))
 end
 

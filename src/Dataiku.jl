@@ -25,7 +25,7 @@ module Dataiku
     function get_project(object::DSSObject)
         for field in fieldnames(typeof(object))
             project = get_project(getproperty(object, field))
-            if project != nothing
+            if !isnothing(project)
                 return project
             end
         end
@@ -43,7 +43,6 @@ get the global variable FLOW that would be defined if running inside DSS
     """
 
     # TODO : find a way to give flow variable from the backend here
-
     function get_flow()
         if isdefined(Main, :FLOW)
             Main.FLOW
@@ -139,7 +138,9 @@ look for a dict that has this `value` at this `field` in an array of dict
             "projectKey" => project.key,
             "id"         => name
         )
-        if parent != nothing data["parent"] = parent end
+        if !isnothing(parent)
+            data["parent"] = parent
+        end
         request_json("POST", "projects/$(project.key)/wiki/", data)
     end
 

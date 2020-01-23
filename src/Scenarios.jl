@@ -163,7 +163,7 @@ is_cancelled(trigger::DSSTriggerFire) =
 
 function wait_for_scenario_run(trigger::DSSTriggerFire; no_fail=false)
     scenario_run = nothing
-    while scenario_run == nothing
+    while isnothing(scenario_run)
         if is_cancelled(trigger)
             if no_fail
                 return nothing

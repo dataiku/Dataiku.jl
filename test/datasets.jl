@@ -56,29 +56,29 @@
         end
 
         @testset "Column Types" begin
-            @test eltypes(df)[1] <: Union{Missing, Int64}
-            @test eltypes(df)[3] <: Union{Missing, DateTime}
-            @test eltypes(df)[4] <: Union{Missing, Bool}
-            @test eltypes(df)[16] <: Union{Missing, String}
-            @test eltypes(df)[end] <: Union{Missing, Float64}
+            @test eltype(df[!, 1]) <: Union{Missing, Int64}
+            @test eltype(df[!, 3]) <: Union{Missing, DateTime}
+            @test eltype(df[!, 4]) <: Union{Missing, Bool}
+            @test eltype(df[!, 16]) <: Union{Missing, String}
+            @test eltype(df[!, end]) <: Union{Missing, Float64}
         end
 
         @testset "Values" begin
-            @test df[1][1] == 1
-            @test df[3][1] == DateTime(2014, 06, 18, 0)
-            @test df[4][1] == false
-            @test df[16][1] == "Bordeaux"
-            @test df[end][1] == 0.
+            @test df[1, 1] == 1
+            @test df[1, 3] == DateTime(2014, 06, 18, 0)
+            @test df[1, 4] == false
+            @test df[1, 16] == "Bordeaux"
+            @test df[1, end] == 0.
 
-            @test df[1][end] == 999
-            @test df[3][end] == DateTime(2014, 07, 29, 0)
-            @test df[4][end] == false
-            @test df[16][end] == "Lyon"
-            @test df[end][end] == 88.
+            @test df[end, 1] == 999
+            @test df[end, 3] == DateTime(2014, 07, 29, 0)
+            @test df[end, 4] == false
+            @test df[end, 16] == "Lyon"
+            @test df[end, end] == 88.
 
-            @test df[5][10] == """["Noël"]"""
-            @test df[7][4] == """["Vacances de printemps - Zone B","Vacances de printemps - Zone C"]"""
-            @test df[6][4] == true
+            @test df[10, 5] == """["Noël"]"""
+            @test df[4, 7] == """["Vacances de printemps - Zone B","Vacances de printemps - Zone C"]"""
+            @test df[4, 6] == true
         end
     end
 
@@ -111,21 +111,21 @@
             end
             df = Dataiku.get_dataframe(dataset)
 
-            @test df[1][1] == 1
-            @test df[3][1] == DateTime(2014, 06, 18, 0)
-            @test df[4][1] == false
-            @test df[16][1] == "Bordeaux"
-            @test df[end][1] == 0.
+            @test df[1, 1] == 1
+            @test df[1, 3] == DateTime(2014, 06, 18, 0)
+            @test df[1, 4] == false
+            @test df[1, 16] == "Bordeaux"
+            @test df[1, end] == 0.
 
-            @test df[1][end] == 999
-            @test df[3][end] == DateTime(2014, 07, 29, 0)
-            @test df[4][end] == false
-            @test df[16][end] == "Lyon"
-            @test df[end][end] == 88.
+            @test df[end, 1] == 999
+            @test df[end, 3] == DateTime(2014, 07, 29, 0)
+            @test df[end, 4] == false
+            @test df[end, 16] == "Lyon"
+            @test df[end, end] == 88.
 
-            @test df[5][10] == """["Noël"]"""
-            @test df[7][4] == """["Vacances de printemps - Zone B","Vacances de printemps - Zone C"]"""
-            @test df[6][4] == true
+            @test df[10, 5] == """["Noël"]"""
+            @test df[4, 7] == """["Vacances de printemps - Zone B","Vacances de printemps - Zone C"]"""
+            @test df[4, 6] == true
         end
     end
 end
