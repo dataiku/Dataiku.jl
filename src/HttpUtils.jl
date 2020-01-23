@@ -40,7 +40,7 @@ If no argument given, will try to find url and authentication from (in this orde
 				config["dss_instances"][config["default_instance"]]["api_key"]
 			)
 		else
-			throw(ArgumentError("No context found, please initialize context by giving url and authentication parameters"))
+			throw(ErrorException("No context found, please initialize context by giving url and authentication parameters"))
 		end
 		context
 	end

@@ -1,1861 +1,1772 @@
-# We need to use all used packages in the precompile file for maximum
-# usage of the precompile statements.
-# Since this can be any recursive dependency of the package we AOT compile,
-# we decided to just use them without installing them. An added
-# benefit is, that we can call __init__ this way more easily, since
-# incremental sysimage compilation won't call __init__ on `using`
-# https://github.com/JuliaLang/julia/issues/22910
-using CSV, Dates, HTTP, JSON, Statistics, Base64, Test, BufferedStreams, DataFrames, Dataiku
-for Mod in [CSV, Dates, HTTP, JSON, Statistics, Base64, Test, BufferedStreams, DataFrames, Dataiku]
-    isdefined(Mod, :__init__) && Mod.__init__()
-end
-
-# bring recursive dependencies of used packages and standard libraries into namespace
-for Mod in Base.loaded_modules_array()
-    if !Core.isdefined(@__MODULE__, nameof(Mod))
-        Core.eval(@__MODULE__, Expr(:const, Expr(:(=), nameof(Mod), Mod)))
-    end
-end
-
-try;precompile(Tuple{typeof(Pkg.API.activate), String}); catch e; @debug "couldn't precompile statement 1" exception = e; end
-try;precompile(Tuple{typeof(Base.setproperty!), Pkg.Types.PackageEntry, Symbol, Base.VersionNumber}); catch e; @debug "couldn't precompile statement 2" exception = e; end
-try;precompile(Tuple{typeof(Base.convert), Type{Union{Nothing, Base.VersionNumber}}, Base.VersionNumber}); catch e; @debug "couldn't precompile statement 3" exception = e; end
-try;precompile(Tuple{typeof(Base.convert), Type{Union{Nothing, Base.SHA1}}, Base.SHA1}); catch e; @debug "couldn't precompile statement 4" exception = e; end
-try;precompile(Tuple{Type{Base.VersionNumber}, UInt32, UInt32, UInt32, Tuple{}, Tuple{UInt64}}); catch e; @debug "couldn't precompile statement 5" exception = e; end
-try;precompile(Tuple{typeof(Base.setproperty!), Pkg.Types.Project, Symbol, Base.VersionNumber}); catch e; @debug "couldn't precompile statement 6" exception = e; end
-try;precompile(Tuple{typeof(Base.convert), Type{Union{Nothing, Pkg.Types.UpgradeLevel, Base.VersionNumber, Pkg.Types.VersionSpec}}, Base.VersionNumber}); catch e; @debug "couldn't precompile statement 7" exception = e; end
-try;precompile(Tuple{typeof(Pkg.Types.semver_interval), Base.RegexMatch}); catch e; @debug "couldn't precompile statement 8" exception = e; end
-try;precompile(Tuple{typeof(Base.push!), Array{Pkg.Types.VersionRange, 1}, Pkg.Types.VersionRange}); catch e; @debug "couldn't precompile statement 9" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{String, String}}, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 10" exception = e; end
-try;precompile(Tuple{typeof(Base.convert), Type{Base.Dict{String, String}}, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 11" exception = e; end
-try;precompile(Tuple{typeof(Base.vect), String, Vararg{Any, N} where N}); catch e; @debug "couldn't precompile statement 12" exception = e; end
-try;precompile(Tuple{typeof(Base.promote_typeof), String, Base.UUID, Vararg{Any, N} where N}); catch e; @debug "couldn't precompile statement 13" exception = e; end
-try;precompile(Tuple{typeof(Base.promote_typeof), Base.UUID, Base.VersionNumber}); catch e; @debug "couldn't precompile statement 14" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Tuple{String, Base.UUID, Base.VersionNumber}}); catch e; @debug "couldn't precompile statement 15" exception = e; end
-try;precompile(Tuple{typeof(Base.any), Function, Array{Any, 1}}); catch e; @debug "couldn't precompile statement 16" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##any#596")), Function, typeof(Base.any), Function, Array{Any, 1}}); catch e; @debug "couldn't precompile statement 17" exception = e; end
-try;precompile(Tuple{typeof(Base._any), getfield(Pkg.Types, Symbol("#58#59")), Array{Any, 1}, Base.Colon}); catch e; @debug "couldn't precompile statement 18" exception = e; end
-try;precompile(Tuple{Type{Pkg.Types.EnvCache}, Nothing, String, String, String, Pkg.Types.PackageSpec, Pkg.Types.Project, Base.Dict{Base.UUID, Pkg.Types.PackageEntry}, Base.Dict{String, Array{Base.UUID, 1}}, Base.Dict{Base.UUID, Array{String, 1}}, Base.Dict{Base.UUID, Array{String, 1}}}); catch e; @debug "couldn't precompile statement 19" exception = e; end
-try;precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Pkg.Types.UpgradeLevel, Pkg.Types.PackageMode, Bool}}}); catch e; @debug "couldn't precompile statement 20" exception = e; end
-try;precompile(Tuple{typeof(Pkg.Operations.up_load_versions!), Pkg.Types.PackageSpec, Pkg.Types.PackageEntry, Pkg.Types.UpgradeLevel}); catch e; @debug "couldn't precompile statement 21" exception = e; end
-try;precompile(Tuple{typeof(Pkg.Operations.download_artifacts), Array{Pkg.Types.PackageSpec, 1}}); catch e; @debug "couldn't precompile statement 22" exception = e; end
-try;precompile(Tuple{typeof(Pkg.Operations.up), Pkg.Types.Context, Array{Pkg.Types.PackageSpec, 1}, Pkg.Types.UpgradeLevel}); catch e; @debug "couldn't precompile statement 23" exception = e; end
-try;precompile(Tuple{getfield(Pkg.API, Symbol("##up#43")), Pkg.Types.UpgradeLevel, Pkg.Types.PackageMode, Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Pkg.API.up), Pkg.Types.Context, Array{Pkg.Types.PackageSpec, 1}}); catch e; @debug "couldn't precompile statement 24" exception = e; end
-try;precompile(Tuple{typeof(Pkg.API.resolve)}); catch e; @debug "couldn't precompile statement 25" exception = e; end
-try;precompile(Tuple{Type{NamedTuple{(:name, :uuid), T} where T<:Tuple}, Tuple{String, Base.UUID}}); catch e; @debug "couldn't precompile statement 26" exception = e; end
-try;precompile(Tuple{getfield(Core, Symbol("#kw#Type")), NamedTuple{(:name, :uuid), Tuple{String, Base.UUID}}, Type{Pkg.Types.PackageSpec}}); catch e; @debug "couldn't precompile statement 27" exception = e; end
-try;precompile(Tuple{typeof(Base.convert), Type{Union{Pkg.Types.UpgradeLevel, Base.VersionNumber, Pkg.Types.VersionSpec}}, Base.VersionNumber}); catch e; @debug "couldn't precompile statement 28" exception = e; end
-try;precompile(Tuple{typeof(Base.get), Base.Dict{String, Any}, String, Bool}); catch e; @debug "couldn't precompile statement 29" exception = e; end
-try;precompile(Tuple{Type{Base.SHA1}, String}); catch e; @debug "couldn't precompile statement 30" exception = e; end
-try;precompile(Tuple{typeof(Pkg.Operations.load_package_data_raw), Type{T} where T, String}); catch e; @debug "couldn't precompile statement 31" exception = e; end
-try;precompile(Tuple{Type{Pkg.Types.VersionBound}, Int64, Vararg{Int64, N} where N}); catch e; @debug "couldn't precompile statement 32" exception = e; end
-try;precompile(Tuple{Type{Pkg.Types.VersionBound}, Tuple{Int64, Int64}}); catch e; @debug "couldn't precompile statement 33" exception = e; end
-try;precompile(Tuple{typeof(Base.get!), Base.Dict{Pkg.Types.VersionRange, Base.Dict{String, Base.UUID}}, Pkg.Types.VersionRange, Base.Dict{String, Base.UUID}}); catch e; @debug "couldn't precompile statement 34" exception = e; end
-try;precompile(Tuple{typeof(Base.haskey), Base.Dict{String, Base.UUID}, String}); catch e; @debug "couldn't precompile statement 35" exception = e; end
-try;precompile(Tuple{typeof(Base.get!), Base.Dict{Pkg.Types.VersionRange, Base.Dict{String, Pkg.Types.VersionSpec}}, Pkg.Types.VersionRange, Base.Dict{String, Pkg.Types.VersionSpec}}); catch e; @debug "couldn't precompile statement 36" exception = e; end
-try;precompile(Tuple{typeof(Base.ht_keyindex), Base.Dict{String, Pkg.Types.VersionSpec}, String}); catch e; @debug "couldn't precompile statement 37" exception = e; end
-try;precompile(Tuple{typeof(Base.haskey), Base.Dict{String, Pkg.Types.VersionSpec}, String}); catch e; @debug "couldn't precompile statement 38" exception = e; end
-try;precompile(Tuple{Type{Pkg.Types.VersionSpec}, String}); catch e; @debug "couldn't precompile statement 39" exception = e; end
-try;precompile(Tuple{Type{Pkg.Types.VersionBound}, Tuple{Int64}}); catch e; @debug "couldn't precompile statement 40" exception = e; end
-try;precompile(Tuple{Type{Pkg.Types.VersionBound}, Tuple{Int64, Int64, Int64}}); catch e; @debug "couldn't precompile statement 41" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Pkg.Types.VersionRange, 1}, Pkg.Types.VersionRange, Base.Generator{Array{String, 1}, Type{Pkg.Types.VersionRange}}, Int64}); catch e; @debug "couldn't precompile statement 42" exception = e; end
-try;precompile(Tuple{typeof(Base._collect), Array{String, 1}, Base.Generator{Array{String, 1}, Type{Pkg.Types.VersionRange}}, Base.EltypeUnknown, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 43" exception = e; end
-try;precompile(Tuple{Type{Pkg.Types.VersionSpec}, Array{String, 1}}); catch e; @debug "couldn't precompile statement 44" exception = e; end
-try;precompile(Tuple{Type{NamedTuple{(:name, :version, :pinned, :tree_hash, :path, :repo), T} where T<:Tuple}, Tuple{String, Base.VersionNumber, Bool, Base.SHA1, Nothing, Pkg.Types.GitRepo}}); catch e; @debug "couldn't precompile statement 45" exception = e; end
-try;precompile(Tuple{getfield(Core, Symbol("#kw#Type")), NamedTuple{(:name, :version, :pinned, :tree_hash, :path, :repo), Tuple{String, Base.VersionNumber, Bool, Base.SHA1, Nothing, Pkg.Types.GitRepo}}, Type{Pkg.Types.PackageEntry}}); catch e; @debug "couldn't precompile statement 46" exception = e; end
-try;precompile(Tuple{typeof(Base.haskey), Base.Dict{String, Any}, String}); catch e; @debug "couldn't precompile statement 47" exception = e; end
-try;precompile(Tuple{typeof(Base.deepcopy_internal), Array{String, 1}, Base.IdDict{Any, Any}}); catch e; @debug "couldn't precompile statement 48" exception = e; end
-try;precompile(Tuple{typeof(Base.similar), Array{String, 1}}); catch e; @debug "couldn't precompile statement 49" exception = e; end
-try;precompile(Tuple{getfield(Pkg.Types, Symbol("#should_delete#36")), String}); catch e; @debug "couldn't precompile statement 50" exception = e; end
-try;precompile(Tuple{getfield(Pkg.Types, Symbol("#should_delete#36")), Base.UUID}); catch e; @debug "couldn't precompile statement 51" exception = e; end
-try;precompile(Tuple{getfield(Pkg.Types, Symbol("#should_delete#36")), Base.VersionNumber}); catch e; @debug "couldn't precompile statement 52" exception = e; end
-try;precompile(Tuple{Type{Pkg.Display.VerInfo}, Base.SHA1, Nothing, Base.VersionNumber, Bool, Nothing}); catch e; @debug "couldn't precompile statement 53" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#kw##printstyled")), NamedTuple{(:color,), Tuple{Symbol}}, typeof(Base.printstyled), String}); catch e; @debug "couldn't precompile statement 54" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##printstyled#709")), Bool, Symbol, typeof(Base.printstyled), String}); catch e; @debug "couldn't precompile statement 55" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#kw##printstyled")), NamedTuple{(:bold, :color), Tuple{Bool, Symbol}}, typeof(Base.printstyled), Base.TTY, String}); catch e; @debug "couldn't precompile statement 56" exception = e; end
-try;precompile(Tuple{typeof(Base.findfirst), Function, Array{String, 1}}); catch e; @debug "couldn't precompile statement 57" exception = e; end
-try;precompile(Tuple{typeof(Base.findnext), getfield(Pkg.Types, Symbol("#38#39")){String}, Array{String, 1}, Int64}); catch e; @debug "couldn't precompile statement 58" exception = e; end
-try;precompile(Tuple{typeof(Base.something), Int64, Int64}); catch e; @debug "couldn't precompile statement 59" exception = e; end
-try;precompile(Tuple{typeof(Base.isless), Tuple{Int64, String}, Tuple{Int64, String}}); catch e; @debug "couldn't precompile statement 60" exception = e; end
-try;precompile(Tuple{typeof(Base.something), Nothing, Int64}); catch e; @debug "couldn't precompile statement 61" exception = e; end
-try;precompile(Tuple{getfield(Pkg.TOML, Symbol("#kw##printvalue")), NamedTuple{(:sorted,), Tuple{Bool}}, typeof(Pkg.TOML.printvalue), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.UUID}); catch e; @debug "couldn't precompile statement 62" exception = e; end
-try;precompile(Tuple{typeof(Pkg.TOML.is_tabular), Base.Dict{String, String}}); catch e; @debug "couldn't precompile statement 63" exception = e; end
-try;precompile(Tuple{typeof(Pkg.TOML.is_tabular), Base.Dict{String, Array{String, 1}}}); catch e; @debug "couldn't precompile statement 64" exception = e; end
-try;precompile(Tuple{typeof(Pkg.TOML.is_tabular), Base.VersionNumber}); catch e; @debug "couldn't precompile statement 65" exception = e; end
-try;precompile(Tuple{getfield(Pkg.TOML, Symbol("##printvalue#8")), Bool, typeof(Pkg.TOML.printvalue), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.VersionNumber}); catch e; @debug "couldn't precompile statement 66" exception = e; end
-try;precompile(Tuple{getfield(Pkg.TOML, Symbol("#kw##printvalue")), NamedTuple{(:sorted,), Tuple{Bool}}, typeof(Pkg.TOML.printvalue), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.VersionNumber}); catch e; @debug "couldn't precompile statement 67" exception = e; end
-try;precompile(Tuple{typeof(Base.values), Base.Dict{String, String}}); catch e; @debug "couldn't precompile statement 68" exception = e; end
-try;precompile(Tuple{Type{Base.Generator{I, F} where F where I}, typeof(Pkg.TOML.is_tabular), Base.ValueIterator{Base.Dict{String, String}}}); catch e; @debug "couldn't precompile statement 69" exception = e; end
-try;precompile(Tuple{typeof(Base._all), typeof(Base.identity), Base.Generator{Base.ValueIterator{Base.Dict{String, String}}, typeof(Pkg.TOML.is_tabular)}, Base.Colon}); catch e; @debug "couldn't precompile statement 70" exception = e; end
-try;precompile(Tuple{typeof(Base.all), Base.Generator{Base.ValueIterator{Base.Dict{String, String}}, typeof(Pkg.TOML.is_tabular)}}); catch e; @debug "couldn't precompile statement 71" exception = e; end
-try;precompile(Tuple{getfield(Pkg.TOML, Symbol("#kw##_print")), NamedTuple{(:indent, :first_block, :sorted, :by), Tuple{Int64, Bool, Bool, getfield(Pkg.Types, Symbol("#40#42"))}}, typeof(Pkg.TOML._print), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.Dict{String, String}, Array{String, 1}}); catch e; @debug "couldn't precompile statement 72" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{String, 1}, Base.KeySet{String, Base.Dict{String, String}}}); catch e; @debug "couldn't precompile statement 73" exception = e; end
-try;precompile(Tuple{getfield(Pkg.TOML, Symbol("##_print#9")), Int64, Bool, Bool, Function, typeof(Pkg.TOML._print), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.Dict{String, String}, Array{String, 1}}); catch e; @debug "couldn't precompile statement 74" exception = e; end
-try;precompile(Tuple{typeof(Base.values), Base.Dict{String, Array{String, 1}}}); catch e; @debug "couldn't precompile statement 75" exception = e; end
-try;precompile(Tuple{Type{Base.Generator{I, F} where F where I}, typeof(Pkg.TOML.is_tabular), Base.ValueIterator{Base.Dict{String, Array{String, 1}}}}); catch e; @debug "couldn't precompile statement 76" exception = e; end
-try;precompile(Tuple{typeof(Base._all), typeof(Base.identity), Base.Generator{Base.ValueIterator{Base.Dict{String, Array{String, 1}}}, typeof(Pkg.TOML.is_tabular)}, Base.Colon}); catch e; @debug "couldn't precompile statement 77" exception = e; end
-try;precompile(Tuple{typeof(Base.all), Base.Generator{Base.ValueIterator{Base.Dict{String, Array{String, 1}}}, typeof(Pkg.TOML.is_tabular)}}); catch e; @debug "couldn't precompile statement 78" exception = e; end
-try;precompile(Tuple{getfield(Pkg.TOML, Symbol("#kw##_print")), NamedTuple{(:indent, :first_block, :sorted, :by), Tuple{Int64, Bool, Bool, getfield(Pkg.Types, Symbol("#40#42"))}}, typeof(Pkg.TOML._print), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.Dict{String, Array{String, 1}}, Array{String, 1}}); catch e; @debug "couldn't precompile statement 79" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{String, 1}, Base.KeySet{String, Base.Dict{String, Array{String, 1}}}}); catch e; @debug "couldn't precompile statement 80" exception = e; end
-try;precompile(Tuple{getfield(Pkg.TOML, Symbol("##_print#9")), Int64, Bool, Bool, Function, typeof(Pkg.TOML._print), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.Dict{String, Array{String, 1}}, Array{String, 1}}); catch e; @debug "couldn't precompile statement 81" exception = e; end
-try;precompile(Tuple{getfield(Pkg.Types, Symbol("#entry!#52")){getfield(Pkg.Types, Symbol("#entry!#50#53"))}, Base.Dict{String, Any}, String, Base.VersionNumber}); catch e; @debug "couldn't precompile statement 82" exception = e; end
-try;precompile(Tuple{getfield(Pkg.Types, Symbol("#entry!#52")){getfield(Pkg.Types, Symbol("#entry!#50#53"))}, Base.Dict{String, Any}, String, Base.SHA1}); catch e; @debug "couldn't precompile statement 83" exception = e; end
-try;precompile(Tuple{typeof(Pkg.API.instantiate), Pkg.Types.Context}); catch e; @debug "couldn't precompile statement 84" exception = e; end
-try;precompile(Tuple{typeof(Pkg.API.instantiate)}); catch e; @debug "couldn't precompile statement 85" exception = e; end
-try;precompile(Tuple{typeof(Pkg.Operations.check_artifacts_downloaded), String}); catch e; @debug "couldn't precompile statement 86" exception = e; end
-try;precompile(Tuple{typeof(Pkg.Operations.is_instantiated), Pkg.Types.Context}); catch e; @debug "couldn't precompile statement 87" exception = e; end
-try;precompile(Tuple{getfield(Pkg.API, Symbol("##instantiate#114")), Nothing, Bool, Bool, Pkg.BinaryPlatforms.MacOS, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Pkg.API.instantiate), Pkg.Types.Context}); catch e; @debug "couldn't precompile statement 88" exception = e; end
-try;precompile(Tuple{Type{NamedTuple{(:name, :uuid, :path, :version, :repo, :tree_hash), T} where T<:Tuple}, Tuple{String, Base.UUID, Nothing, Base.VersionNumber, Pkg.Types.GitRepo, Base.SHA1}}); catch e; @debug "couldn't precompile statement 89" exception = e; end
-try;precompile(Tuple{getfield(Core, Symbol("#kw#Type")), NamedTuple{(:name, :uuid, :path, :version, :repo, :tree_hash), Tuple{String, Base.UUID, Nothing, Base.VersionNumber, Pkg.Types.GitRepo, Base.SHA1}}, Type{Pkg.Types.PackageSpec}}); catch e; @debug "couldn't precompile statement 90" exception = e; end
-try;precompile(Tuple{Type{NamedTuple{(:name, :uuid, :path, :version, :repo, :tree_hash), T} where T<:Tuple}, Tuple{String, Base.UUID, Nothing, Pkg.Types.VersionSpec, Pkg.Types.GitRepo, Nothing}}); catch e; @debug "couldn't precompile statement 91" exception = e; end
-try;precompile(Tuple{getfield(Core, Symbol("#kw#Type")), NamedTuple{(:name, :uuid, :path, :version, :repo, :tree_hash), Tuple{String, Base.UUID, Nothing, Pkg.Types.VersionSpec, Pkg.Types.GitRepo, Nothing}}, Type{Pkg.Types.PackageSpec}}); catch e; @debug "couldn't precompile statement 92" exception = e; end
-try;precompile(Tuple{typeof(Pkg.Artifacts.extract_all_hashes), String}); catch e; @debug "couldn't precompile statement 93" exception = e; end
-try;precompile(Tuple{typeof(Base.throw_boundserror), Base.Broadcast.Broadcasted{Nothing, Tuple{Base.OneTo{Int64}}, typeof(Pkg.Artifacts.artifact_exists), Tuple{Base.Broadcast.Extruded{Array{Base.SHA1, 1}, Tuple{Bool}, Tuple{Int64}}}}, Tuple{Int64}}); catch e; @debug "couldn't precompile statement 94" exception = e; end
-try;precompile(Tuple{getfield(Pkg.Operations, Symbol("##check_artifacts_downloaded#79")), Pkg.BinaryPlatforms.MacOS, typeof(Pkg.Operations.check_artifacts_downloaded), String}); catch e; @debug "couldn't precompile statement 95" exception = e; end
-try;precompile(Tuple{typeof(Base.MainInclude.include), String}); catch e; @debug "couldn't precompile statement 96" exception = e; end
-try;precompile(Tuple{typeof(Parsers.__init__)}); catch e; @debug "couldn't precompile statement 97" exception = e; end
-try;precompile(Tuple{typeof(Base.GMP.MPZ.set), Base.GMP.BigInt}); catch e; @debug "couldn't precompile statement 98" exception = e; end
-try;precompile(Tuple{typeof(Base.deepcopy), Base.GMP.BigInt}); catch e; @debug "couldn't precompile statement 99" exception = e; end
-try;precompile(Tuple{typeof(Base.Threads.resize_nthreads!), Array{Base.GMP.BigInt, 1}, Base.GMP.BigInt}); catch e; @debug "couldn't precompile statement 100" exception = e; end
-try;precompile(Tuple{typeof(Base.foreach), getfield(Parsers, Symbol("#33#38")), Array{Base.GMP.BigInt, 1}}); catch e; @debug "couldn't precompile statement 101" exception = e; end
-try;precompile(Tuple{typeof(Base.foreach), getfield(Parsers, Symbol("#34#39")), Array{Base.GMP.BigInt, 1}}); catch e; @debug "couldn't precompile statement 102" exception = e; end
-try;precompile(Tuple{typeof(Base.foreach), getfield(Parsers, Symbol("#35#40")), Array{Base.GMP.BigInt, 1}}); catch e; @debug "couldn't precompile statement 103" exception = e; end
-try;precompile(Tuple{typeof(Base.foreach), getfield(Parsers, Symbol("#36#41")), Array{Base.GMP.BigInt, 1}}); catch e; @debug "couldn't precompile statement 104" exception = e; end
-try;precompile(Tuple{typeof(Base.foreach), getfield(Parsers, Symbol("#37#42")), Array{Base.GMP.BigInt, 1}}); catch e; @debug "couldn't precompile statement 105" exception = e; end
-try;precompile(Tuple{typeof(Compat.Sys.__init__)}); catch e; @debug "couldn't precompile statement 106" exception = e; end
-try;precompile(Tuple{typeof(FilePathsBase.__init__)}); catch e; @debug "couldn't precompile statement 107" exception = e; end
-try;precompile(Tuple{typeof(CSV.__init__)}); catch e; @debug "couldn't precompile statement 108" exception = e; end
-try;precompile(Tuple{typeof(MbedTLS.f_send), Ptr{Nothing}, Ptr{UInt8}, UInt64}); catch e; @debug "couldn't precompile statement 109" exception = e; end
-try;precompile(Tuple{typeof(MbedTLS.f_recv), Ptr{Nothing}, Ptr{UInt8}, UInt64}); catch e; @debug "couldn't precompile statement 110" exception = e; end
-try;precompile(Tuple{typeof(MbedTLS.__init__)}); catch e; @debug "couldn't precompile statement 111" exception = e; end
-try;precompile(Tuple{typeof(HTTP.URIs.__init__)}); catch e; @debug "couldn't precompile statement 112" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Parsers.__init__)}); catch e; @debug "couldn't precompile statement 113" exception = e; end
-try;precompile(Tuple{typeof(Base.active_project), Bool}); catch e; @debug "couldn't precompile statement 114" exception = e; end
-try;precompile(Tuple{typeof(Base.load_path_expand), String}); catch e; @debug "couldn't precompile statement 115" exception = e; end
-try;precompile(Tuple{typeof(Base.load_path)}); catch e; @debug "couldn't precompile statement 116" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#681#682")){String}, Base.IOStream}); catch e; @debug "couldn't precompile statement 117" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##open#271")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Base.open), getfield(Base, Symbol("#681#682")){String}, String}); catch e; @debug "couldn't precompile statement 118" exception = e; end
-try;precompile(Tuple{typeof(Base.project_deps_get), String, String}); catch e; @debug "couldn't precompile statement 119" exception = e; end
-try;precompile(Tuple{typeof(Base.identify_package), String}); catch e; @debug "couldn't precompile statement 120" exception = e; end
-try;precompile(Tuple{typeof(Base.ht_keyindex), Base.Dict{Any, Int64}, Symbol}); catch e; @debug "couldn't precompile statement 121" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#689#690")){Base.UUID, String}, Base.IOStream}); catch e; @debug "couldn't precompile statement 122" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##open#271")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Base.open), getfield(Base, Symbol("#689#690")){Base.UUID, String}, String}); catch e; @debug "couldn't precompile statement 123" exception = e; end
-try;precompile(Tuple{typeof(Base.manifest_deps_get), String, Base.PkgId, String}); catch e; @debug "couldn't precompile statement 124" exception = e; end
-try;precompile(Tuple{typeof(Base.identify_package), Base.PkgId, String}); catch e; @debug "couldn't precompile statement 125" exception = e; end
-try;precompile(Tuple{typeof(Base.manifest_uuid_path), String, Base.PkgId}); catch e; @debug "couldn't precompile statement 126" exception = e; end
-try;precompile(Tuple{typeof(Base.locate_package), Base.PkgId}); catch e; @debug "couldn't precompile statement 127" exception = e; end
-try;precompile(Tuple{typeof(Base.stat), Base.Libc.RawFD}); catch e; @debug "couldn't precompile statement 128" exception = e; end
-try;precompile(Tuple{typeof(Base.isvalid_file_crc), Base.IOStream}); catch e; @debug "couldn't precompile statement 129" exception = e; end
-try;precompile(Tuple{typeof(Base.stale_cachefile), String, String}); catch e; @debug "couldn't precompile statement 130" exception = e; end
-try;precompile(Tuple{typeof(Base.register_root_module), Module}); catch e; @debug "couldn't precompile statement 131" exception = e; end
-try;precompile(Tuple{typeof(Base._include_from_serialized), String, Array{Any, 1}}); catch e; @debug "couldn't precompile statement 132" exception = e; end
-try;precompile(Tuple{typeof(Base._tryrequire_from_serialized), Base.PkgId, UInt64, String}); catch e; @debug "couldn't precompile statement 133" exception = e; end
-try;precompile(Tuple{typeof(Base._require_search_from_serialized), Base.PkgId, String}); catch e; @debug "couldn't precompile statement 134" exception = e; end
-try;precompile(Tuple{typeof(Base.compilecache_path), Base.PkgId}); catch e; @debug "couldn't precompile statement 135" exception = e; end
-try;precompile(Tuple{typeof(Base.load_path_setup_code), Bool}); catch e; @debug "couldn't precompile statement 136" exception = e; end
-try;precompile(Tuple{typeof(Base.create_expr_cache), String, String, Array{Base.Pair{Base.PkgId, UInt64}, 1}, Nothing}); catch e; @debug "couldn't precompile statement 137" exception = e; end
-try;precompile(Tuple{typeof(Base.compilecache), Base.PkgId, String}); catch e; @debug "couldn't precompile statement 138" exception = e; end
-try;precompile(Tuple{typeof(Base._include_dependency), Module, String}); catch e; @debug "couldn't precompile statement 139" exception = e; end
-try;precompile(Tuple{typeof(Base.include_relative), Module, String}); catch e; @debug "couldn't precompile statement 140" exception = e; end
-try;precompile(Tuple{typeof(Base._tryrequire_from_serialized), Base.PkgId, UInt64, Nothing}); catch e; @debug "couldn't precompile statement 141" exception = e; end
-try;precompile(Tuple{typeof(Base._require_from_serialized), String}); catch e; @debug "couldn't precompile statement 142" exception = e; end
-try;precompile(Tuple{typeof(Base._require), Base.PkgId}); catch e; @debug "couldn't precompile statement 143" exception = e; end
-try;precompile(Tuple{typeof(Base.require), Base.PkgId}); catch e; @debug "couldn't precompile statement 144" exception = e; end
-try;precompile(Tuple{typeof(Base.require), Module, Symbol}); catch e; @debug "couldn't precompile statement 145" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("#10#12")), Char}); catch e; @debug "couldn't precompile statement 146" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), Base.Iterators.Filter{getfield(Dataiku, Symbol("#10#12")), String}}); catch e; @debug "couldn't precompile statement 147" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), Base.Iterators.Filter{getfield(Dataiku, Symbol("#10#12")), String}, Int64}); catch e; @debug "couldn't precompile statement 148" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Array{Char, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#10#12")), String}, getfield(Dataiku, Symbol("#9#11"))}, Int64}); catch e; @debug "couldn't precompile statement 149" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Array{Char, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#10#12")), String}, getfield(Dataiku, Symbol("#9#11"))}}); catch e; @debug "couldn't precompile statement 150" exception = e; end
-try;precompile(Tuple{typeof(Base.map), typeof(Base.Unicode.uppercase), String}); catch e; @debug "couldn't precompile statement 151" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.create_projectKey), String}); catch e; @debug "couldn't precompile statement 152" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##sprint#339")), Nothing, Int64, typeof(Base.sprint), Function, Array{Char, 1}}); catch e; @debug "couldn't precompile statement 153" exception = e; end
-try;precompile(Tuple{typeof(Base.join), Base.GenericIOBuffer{Array{UInt8, 1}}, Array{Char, 1}, String}); catch e; @debug "couldn't precompile statement 154" exception = e; end
-try;precompile(Tuple{typeof(Base.join), Base.GenericIOBuffer{Array{UInt8, 1}}, Array{Char, 1}}); catch e; @debug "couldn't precompile statement 155" exception = e; end
-try;precompile(Tuple{Type{Dataiku.DSSProject}, String}); catch e; @debug "couldn't precompile statement 156" exception = e; end
-try;precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:intern_call,), Tuple{Bool}}}, Type{NamedTuple{(:params,), Tuple{Base.Dict{String, Bool}}}}}); catch e; @debug "couldn't precompile statement 157" exception = e; end
-try;precompile(Tuple{typeof(Core.Compiler.zero), Type{Int128}}); catch e; @debug "couldn't precompile statement 158" exception = e; end
-try;precompile(Tuple{typeof(Core.Compiler.eltype), Type{Array{Base.OneTo{Int64}, 1}}}); catch e; @debug "couldn't precompile statement 159" exception = e; end
-try;precompile(Tuple{getfield(Base.Cartesian, Symbol("#@nloops")), LineNumberNode, Module, Any, Any, Any, Vararg{Any, N} where N}); catch e; @debug "couldn't precompile statement 160" exception = e; end
-try;precompile(Tuple{typeof(Base.Cartesian.exprresolve_arith), Expr}); catch e; @debug "couldn't precompile statement 161" exception = e; end
-try;precompile(Tuple{typeof(Base.Cartesian.exprresolve_conditional), Expr}); catch e; @debug "couldn't precompile statement 162" exception = e; end
-try;precompile(Tuple{typeof(Base.Cartesian.exprresolve), Expr}); catch e; @debug "couldn't precompile statement 163" exception = e; end
-try;precompile(Tuple{typeof(Base.Cartesian.inlineanonymous), Expr, Int64}); catch e; @debug "couldn't precompile statement 164" exception = e; end
-try;precompile(Tuple{typeof(Base.Cartesian._nloops), Int64, Symbol, Expr, Expr}); catch e; @debug "couldn't precompile statement 165" exception = e; end
-try;precompile(Tuple{typeof(Base.Cartesian.lreplace!), Expr, Base.Cartesian.LReplace{String}}); catch e; @debug "couldn't precompile statement 166" exception = e; end
-try;precompile(Tuple{typeof(Base.Cartesian.lreplace), Expr, Symbol, Int64}); catch e; @debug "couldn't precompile statement 167" exception = e; end
-try;precompile(Tuple{Type{Base.Val{x} where x}, Bool}); catch e; @debug "couldn't precompile statement 168" exception = e; end
-try;precompile(Tuple{Type{Base.Val{true}}}); catch e; @debug "couldn't precompile statement 169" exception = e; end
-try;precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol}, Type{NamedTuple{(:dims,), Tuple{Int64}}}, Type{NamedTuple{(), Tuple{}}}}); catch e; @debug "couldn't precompile statement 170" exception = e; end
-try;precompile(Tuple{typeof(Core.Compiler.eltype), Type{Array{DataFrames.RowIndexMap, 1}}}); catch e; @debug "couldn't precompile statement 171" exception = e; end
-try;precompile(Tuple{typeof(Core.Compiler.eltype), Type{Array{Base.SubString{String}, 1}}}); catch e; @debug "couldn't precompile statement 172" exception = e; end
-try;precompile(Tuple{typeof(Base.diff_names), Tuple{Symbol, Symbol}, Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}}); catch e; @debug "couldn't precompile statement 173" exception = e; end
-try;precompile(Tuple{Type{Base.Val{3}}}); catch e; @debug "couldn't precompile statement 174" exception = e; end
-try;precompile(Tuple{typeof(Base.diff_names), Tuple{Symbol, Symbol}, Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}}); catch e; @debug "couldn't precompile statement 175" exception = e; end
-try;precompile(Tuple{typeof(Base.typeintersect), Any, Any}); catch e; @debug "couldn't precompile statement 176" exception = e; end
-try;precompile(Tuple{typeof(Mmap.grow!), Base.IOStream, Int64, Int64}); catch e; @debug "couldn't precompile statement 177" exception = e; end
-try;precompile(Tuple{getfield(Mmap, Symbol("##mmap#1")), Bool, Bool, typeof(Mmap.mmap), Base.IOStream, Type{Array{UInt8, 1}}, Tuple{Int64}, Int64}); catch e; @debug "couldn't precompile statement 178" exception = e; end
-try;precompile(Tuple{getfield(JSON.Parser, Symbol("#kw##parse")), NamedTuple{(:dicttype, :inttype, :allownan, :null), Tuple{DataType, DataType, Bool, Nothing}}, typeof(JSON.Parser.parse), String}); catch e; @debug "couldn't precompile statement 179" exception = e; end
-try;precompile(Tuple{typeof(Base.read), Base.IOStream}); catch e; @debug "couldn't precompile statement 180" exception = e; end
-try;precompile(Tuple{getfield(JSON.Parser, Symbol("#4#5")){DataType, DataType, Nothing, Bool, Bool, Int64}, Base.IOStream}); catch e; @debug "couldn't precompile statement 181" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##open#271")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Base.open), getfield(JSON.Parser, Symbol("#4#5")){DataType, DataType, Nothing, Bool, Bool, Int64}, String}); catch e; @debug "couldn't precompile statement 182" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.init_context)}); catch e; @debug "couldn't precompile statement 183" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_context)}); catch e; @debug "couldn't precompile statement 184" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_auth_header)}); catch e; @debug "couldn't precompile statement 185" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Array{String, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, Bool}}, getfield(Dataiku, Symbol("#1#3"))}, Int64}); catch e; @debug "couldn't precompile statement 186" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Array{String, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, Bool}}, getfield(Dataiku, Symbol("#1#3"))}}); catch e; @debug "couldn't precompile statement 187" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##get_url_and_header#5")), Bool, Base.Dict{String, Bool}, Bool, typeof(Dataiku.get_url_and_header), String}); catch e; @debug "couldn't precompile statement 188" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Symbol, Base.Dict{String, Bool}, Tuple{Symbol}, NamedTuple{(:params,), Tuple{Base.Dict{String, Bool}}}}, typeof(Dataiku.request), String, String, String}); catch e; @debug "couldn't precompile statement 189" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Symbol, Base.Dict{String, Bool}, Tuple{Symbol}, NamedTuple{(:params,), Tuple{Base.Dict{String, Bool}}}}, typeof(Dataiku.request_json), String, String, String}); catch e; @debug "couldn't precompile statement 190" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.delete), Dataiku.DSSProject, Bool}); catch e; @debug "couldn't precompile statement 191" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.delete), Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 192" exception = e; end
-try;precompile(Tuple{typeof(JSON.Parser._count_before), String, Char, Int64}); catch e; @debug "couldn't precompile statement 193" exception = e; end
-try;precompile(Tuple{typeof(JSON.Parser._error), String, JSON.Parser.MemoryParserState}); catch e; @debug "couldn't precompile statement 194" exception = e; end
-try;precompile(Tuple{getfield(JSON.Parser, Symbol("##parse#1")), Type{T} where T, Type{Int64}, Bool, Nothing, typeof(JSON.Parser.parse), String}); catch e; @debug "couldn't precompile statement 195" exception = e; end
-try;precompile(Tuple{typeof(JSON.Parser.read_four_hex_digits!), JSON.Parser.MemoryParserState}); catch e; @debug "couldn't precompile statement 196" exception = e; end
-try;precompile(Tuple{typeof(JSON.Parser._error_expected_char), UInt8, JSON.Parser.MemoryParserState}); catch e; @debug "couldn't precompile statement 197" exception = e; end
-try;precompile(Tuple{typeof(JSON.Parser.read_unicode_escape!), JSON.Parser.MemoryParserState}); catch e; @debug "couldn't precompile statement 198" exception = e; end
-try;precompile(Tuple{typeof(JSON.Parser.predict_string), JSON.Parser.MemoryParserState}); catch e; @debug "couldn't precompile statement 199" exception = e; end
-try;precompile(Tuple{typeof(Base.ht_keyindex), Base.Dict{UInt8, UInt8}, UInt8}); catch e; @debug "couldn't precompile statement 200" exception = e; end
-try;precompile(Tuple{typeof(JSON.Parser.parse_string), JSON.Parser.MemoryParserState, Base.GenericIOBuffer{Array{UInt8, 1}}}); catch e; @debug "couldn't precompile statement 201" exception = e; end
-try;precompile(Tuple{typeof(JSON.Parser.parse_string), JSON.Parser.MemoryParserState}); catch e; @debug "couldn't precompile statement 202" exception = e; end
-try;precompile(Tuple{typeof(JSON.Parser.skip!), JSON.Parser.MemoryParserState, UInt8, UInt8}); catch e; @debug "couldn't precompile statement 203" exception = e; end
-try;precompile(Tuple{typeof(JSON.Parser.parse_jsconstant), JSON.Parser.ParserContext{Base.Dict{String, Any}, Int64, true, nothing}, JSON.Parser.MemoryParserState}); catch e; @debug "couldn't precompile statement 204" exception = e; end
-try;precompile(Tuple{typeof(JSON.Parser.hasleadingzero), JSON.Parser.MemoryParserState, Int64, Int64}); catch e; @debug "couldn't precompile statement 205" exception = e; end
-try;precompile(Tuple{typeof(JSON.Parser.int_from_bytes), JSON.Parser.ParserContext{Base.Dict{String, Any}, Int64, true, nothing}, JSON.Parser.MemoryParserState, JSON.Parser.MemoryParserState, Int64, Int64}); catch e; @debug "couldn't precompile statement 206" exception = e; end
-try;precompile(Tuple{typeof(Parsers.pow10), Type{Float64}, Int64}); catch e; @debug "couldn't precompile statement 207" exception = e; end
-try;precompile(Tuple{Type{Float64}, Base.GMP.BigInt, Base.Rounding.RoundingMode{:Nearest}}); catch e; @debug "couldn't precompile statement 208" exception = e; end
-try;precompile(Tuple{typeof(Parsers.roundQuotient), Base.GMP.BigInt, Base.GMP.BigInt}); catch e; @debug "couldn't precompile statement 209" exception = e; end
-try;precompile(Tuple{typeof(Base.Math.ldexp), Base.MPFR.BigFloat, Int64}); catch e; @debug "couldn't precompile statement 210" exception = e; end
-try;precompile(Tuple{typeof(Parsers.scale), Type{Float64}, Int64, Int64}); catch e; @debug "couldn't precompile statement 211" exception = e; end
-try;precompile(Tuple{typeof(Core.throw_inexacterror), Symbol, Type{Int32}, Int128}); catch e; @debug "couldn't precompile statement 212" exception = e; end
-try;precompile(Tuple{typeof(Parsers.BigInt!), Base.GMP.BigInt, Int128}); catch e; @debug "couldn't precompile statement 213" exception = e; end
-try;precompile(Tuple{typeof(Parsers.scale), Type{Float64}, Int128, Int64}); catch e; @debug "couldn't precompile statement 214" exception = e; end
-try;precompile(Tuple{typeof(Parsers.pow10), Type{Float64}, Int128}); catch e; @debug "couldn't precompile statement 215" exception = e; end
-try;precompile(Tuple{typeof(Base.Math.ldexp), Float64, Int128}); catch e; @debug "couldn't precompile statement 216" exception = e; end
-try;precompile(Tuple{typeof(Base.GMP.MPZ.realloc2), Int64}); catch e; @debug "couldn't precompile statement 217" exception = e; end
-try;precompile(Tuple{Type{Base.GMP.BigInt}, Int128}); catch e; @debug "couldn't precompile statement 218" exception = e; end
-try;precompile(Tuple{typeof(Base.exp2), Base.MPFR.BigFloat}); catch e; @debug "couldn't precompile statement 219" exception = e; end
-try;precompile(Tuple{typeof(Base.:(*)), Base.MPFR.BigFloat, Base.MPFR.BigFloat}); catch e; @debug "couldn't precompile statement 220" exception = e; end
-try;precompile(Tuple{typeof(Parsers.scale), Type{Float64}, Int128, Int128}); catch e; @debug "couldn't precompile statement 221" exception = e; end
-try;precompile(Tuple{typeof(Base.GMP.MPZ.add_ui), Base.GMP.BigInt, UInt8}); catch e; @debug "couldn't precompile statement 222" exception = e; end
-try;precompile(Tuple{typeof(Parsers.scale), Type{Float64}, Base.GMP.BigInt, Int64}); catch e; @debug "couldn't precompile statement 223" exception = e; end
-try;precompile(Tuple{typeof(Parsers.pow10), Type{Float64}, Base.GMP.BigInt}); catch e; @debug "couldn't precompile statement 224" exception = e; end
-try;precompile(Tuple{typeof(Base.Math.ldexp), Float64, Base.GMP.BigInt}); catch e; @debug "couldn't precompile statement 225" exception = e; end
-try;precompile(Tuple{typeof(Parsers.scale), Type{Float64}, Base.GMP.BigInt, Base.GMP.BigInt}); catch e; @debug "couldn't precompile statement 226" exception = e; end
-try;precompile(Tuple{typeof(Parsers._typeparser), Type{Float64}, Base.CodeUnits{UInt8, String}, Int64, Int64, UInt8, Int16, Parsers.Options{false, false, false, Nothing, Nothing, Nothing}, Type{Base.GMP.BigInt}}); catch e; @debug "couldn't precompile statement 227" exception = e; end
-try;precompile(Tuple{typeof(Parsers._typeparser), Type{Float64}, Base.CodeUnits{UInt8, String}, Int64, Int64, UInt8, Int16, Parsers.Options{false, false, false, Nothing, Nothing, Nothing}, Type{Int128}}); catch e; @debug "couldn't precompile statement 228" exception = e; end
-try;precompile(Tuple{typeof(Parsers.xparse), Type{Float64}, String, Int64, Int64, Parsers.Options{false, false, false, Nothing, Nothing, Nothing}}); catch e; @debug "couldn't precompile statement 229" exception = e; end
-try;precompile(Tuple{typeof(JSON.Parser.number_from_bytes), JSON.Parser.ParserContext{Base.Dict{String, Any}, Int64, true, nothing}, JSON.Parser.MemoryParserState, Bool, JSON.Parser.MemoryParserState, Int64, Int64}); catch e; @debug "couldn't precompile statement 230" exception = e; end
-try;precompile(Tuple{typeof(JSON.Parser.parse_number), JSON.Parser.ParserContext{Base.Dict{String, Any}, Int64, true, nothing}, JSON.Parser.MemoryParserState}); catch e; @debug "couldn't precompile statement 231" exception = e; end
-try;precompile(Tuple{typeof(JSON.Parser.parse_object), JSON.Parser.ParserContext{Base.Dict{String, Any}, Int64, true, nothing}, JSON.Parser.MemoryParserState}); catch e; @debug "couldn't precompile statement 232" exception = e; end
-try;precompile(Tuple{typeof(JSON.Parser.parse_array), JSON.Parser.ParserContext{Base.Dict{String, Any}, Int64, true, nothing}, JSON.Parser.MemoryParserState}); catch e; @debug "couldn't precompile statement 233" exception = e; end
-try;precompile(Tuple{typeof(JSON.Parser.parse_value), JSON.Parser.ParserContext{Base.Dict{String, Any}, Int64, true, nothing}, JSON.Parser.MemoryParserState}); catch e; @debug "couldn't precompile statement 234" exception = e; end
-try;precompile(Tuple{Type{Dataiku.DSSContext}, String, String}); catch e; @debug "couldn't precompile statement 235" exception = e; end
-try;precompile(Tuple{typeof(Base.getproperty), Dataiku.DSSContext, Symbol}); catch e; @debug "couldn't precompile statement 236" exception = e; end
-try;precompile(Tuple{typeof(Base64.base64encode), String}); catch e; @debug "couldn't precompile statement 237" exception = e; end
-try;precompile(Tuple{getfield(Mmap, Symbol("#3#5")){Int64, Ptr{Nothing}}, Array{UInt8, 1}}); catch e; @debug "couldn't precompile statement 238" exception = e; end
-try;precompile(Tuple{typeof(Base64.encode), UInt8}); catch e; @debug "couldn't precompile statement 239" exception = e; end
-try;precompile(Tuple{typeof(Base.close), Base64.Base64EncodePipe}); catch e; @debug "couldn't precompile statement 240" exception = e; end
-try;precompile(Tuple{getfield(Base64, Symbol("##base64encode#3")), Nothing, typeof(Base64.base64encode), Function, String}); catch e; @debug "couldn't precompile statement 241" exception = e; end
-try;precompile(Tuple{typeof(Base.unsafe_write), Base64.Base64EncodePipe, Ptr{UInt8}, UInt64}); catch e; @debug "couldn't precompile statement 242" exception = e; end
-try;precompile(Tuple{typeof(Base.write), Base64.Base64EncodePipe, String}); catch e; @debug "couldn't precompile statement 243" exception = e; end
-try;precompile(Tuple{typeof(Base.unsafe_write), Base.GenericIOBuffer{Array{UInt8, 1}}, Ptr{UInt8}, Int64}); catch e; @debug "couldn't precompile statement 244" exception = e; end
-try;precompile(Tuple{typeof(Base.isnothing), Dataiku.DSSContext}); catch e; @debug "couldn't precompile statement 245" exception = e; end
-try;precompile(Tuple{typeof(Base.:(*)), String, String, String, String}); catch e; @debug "couldn't precompile statement 246" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("##stack#18")), Bool, Bool, Bool, Bool, Bool, Bool, Bool, Int64, Bool, Int64, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.stack)}); catch e; @debug "couldn't precompile statement 247" exception = e; end
-try;precompile(Tuple{typeof(HTTP.URIs.group), Int64, HTTP.URIs.RegexAndMatchData, String, Base.SubString{String}}); catch e; @debug "couldn't precompile statement 248" exception = e; end
-try;precompile(Tuple{typeof(HTTP.URIs.ensurevalid), HTTP.URIs.URI}); catch e; @debug "couldn't precompile statement 249" exception = e; end
-try;precompile(Tuple{typeof(Base.print), Base.GenericIOBuffer{Array{UInt8, 1}}, String, Base.SubString{String}}); catch e; @debug "couldn't precompile statement 250" exception = e; end
-try;precompile(Tuple{typeof(Base.print), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.SubString{String}, String}); catch e; @debug "couldn't precompile statement 251" exception = e; end
-try;precompile(Tuple{typeof(HTTP.URIs.formaturi), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.SubString{String}, Base.SubString{String}, Base.SubString{String}, Base.SubString{String}, Base.SubString{String}, Base.SubString{String}, Base.SubString{String}}); catch e; @debug "couldn't precompile statement 252" exception = e; end
-try;precompile(Tuple{typeof(Base.backtrace)}); catch e; @debug "couldn't precompile statement 253" exception = e; end
-try;precompile(Tuple{typeof(Base.StackTraces.lookup), Base.InterpreterIP}); catch e; @debug "couldn't precompile statement 254" exception = e; end
-try;precompile(Tuple{typeof(Base.StackTraces.lookup), Ptr{Nothing}}); catch e; @debug "couldn't precompile statement 255" exception = e; end
-try;precompile(Tuple{typeof(HTTP.method_name), Array{Union{Ptr{Nothing}, Base.InterpreterIP}, 1}}); catch e; @debug "couldn't precompile statement 256" exception = e; end
-try;precompile(Tuple{typeof(HTTP.postcondition_error), String, Array{Union{Ptr{Nothing}, Base.InterpreterIP}, 1}, String, String, String, String}); catch e; @debug "couldn't precompile statement 257" exception = e; end
-try;precompile(Tuple{getfield(HTTP.URIs, Symbol("##parse_uri_reference#6")), Bool, typeof(HTTP.URIs.parse_uri_reference), String}); catch e; @debug "couldn't precompile statement 258" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Messages.mkheaders), Base.Dict{String, String}}); catch e; @debug "couldn't precompile statement 259" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("##request#4")), Base.Dict{String, String}, String, Nothing, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), String, String, Base.Dict{String, String}, String}); catch e; @debug "couldn't precompile statement 260" exception = e; end
-try;precompile(Tuple{typeof(HTTP.request), String, String, Base.Dict{String, String}, String}); catch e; @debug "couldn't precompile statement 261" exception = e; end
-try;precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol}, Type{NamedTuple{(:iofunction,), Tuple{Nothing}}}, Type{NamedTuple{(), Tuple{}}}}); catch e; @debug "couldn't precompile statement 262" exception = e; end
-try;precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:reuse_limit,), Tuple{Int64}}}, Type{NamedTuple{(:iofunction,), Tuple{Nothing}}}}); catch e; @debug "couldn't precompile statement 263" exception = e; end
-try;precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:require_ssl_verification,), Tuple{Bool}}}, Type{NamedTuple{(:iofunction,), Tuple{Nothing}}}}); catch e; @debug "couldn't precompile statement 264" exception = e; end
-try;precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Bool, Nothing}}}); catch e; @debug "couldn't precompile statement 265" exception = e; end
-try;precompile(Tuple{typeof(Base.diff_names), Tuple{}, Tuple{Symbol, Symbol, Symbol, Symbol}}); catch e; @debug "couldn't precompile statement 266" exception = e; end
-try;precompile(Tuple{typeof(Base.diff_names), Tuple{}, Tuple{Symbol, Symbol, Symbol}}); catch e; @debug "couldn't precompile statement 267" exception = e; end
-try;precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol}, Type{NamedTuple{(:parent,), Tuple{HTTP.Messages.Response}}}, Type{NamedTuple{(:parent,), Tuple{HTTP.Messages.Response}}}}); catch e; @debug "couldn't precompile statement 268" exception = e; end
-try;precompile(Tuple{typeof(HTTP.URIs.resource), HTTP.URIs.URI}); catch e; @debug "couldn't precompile statement 269" exception = e; end
-try;precompile(Tuple{Type{Base.SubString{T} where T<:AbstractString}, Base.SubString{String}}); catch e; @debug "couldn't precompile statement 270" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Messages.ascii_lc_isequal), Base.SubString{String}, Base.SubString{String}}); catch e; @debug "couldn't precompile statement 271" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Pairs.setbyfirst), Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Base.Pair{Base.SubString{String}, Base.SubString{String}}, typeof(HTTP.Messages.field_name_isequal)}); catch e; @debug "couldn't precompile statement 272" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Messages.ascii_lc_isequal), Base.SubString{String}, String}); catch e; @debug "couldn't precompile statement 273" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Messages.defaultheader!), Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Base.Pair{String, Base.SubString{String}}}); catch e; @debug "couldn't precompile statement 274" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Messages.defaultheader!), Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Base.Pair{String, String}}); catch e; @debug "couldn't precompile statement 275" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Messages.hasheader), Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, String}); catch e; @debug "couldn't precompile statement 276" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Messages.mkheaders), Array{Any, 1}}); catch e; @debug "couldn't precompile statement 277" exception = e; end
-try;precompile(Tuple{getfield(HTTP.Messages, Symbol("##Request#3")), Base.VersionNumber, Nothing, Type{HTTP.Messages.Request}, String, String, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Base.CodeUnits{UInt8, String}}); catch e; @debug "couldn't precompile statement 278" exception = e; end
-try;precompile(Tuple{getfield(HTTP.MessageRequest, Symbol("##request#1")), Base.VersionNumber, String, Nothing, Nothing, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), Type{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, String}); catch e; @debug "couldn't precompile statement 279" exception = e; end
-try;precompile(Tuple{getfield(HTTP.RedirectRequest, Symbol("##request#1")), Int64, Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), Type{HTTP.RedirectRequest.RedirectLayer{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, String}); catch e; @debug "couldn't precompile statement 280" exception = e; end
-try;precompile(Tuple{typeof(HTTP.request), Type{HTTP.RedirectRequest.RedirectLayer{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, String}); catch e; @debug "couldn't precompile statement 281" exception = e; end
-try;precompile(Tuple{getfield(Base64, Symbol("#1#2")){Base64.Base64EncodePipe}, Base64.Buffer}); catch e; @debug "couldn't precompile statement 282" exception = e; end
-try;precompile(Tuple{typeof(Base.string), Base.SubString{String}, String, Base.SubString{String}, String, Vararg{Union{Char, Base.SubString{String}, String}, N} where N}); catch e; @debug "couldn't precompile statement 283" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#Timer#505#506")), Float64, Type{Base.Timer}, Float64}); catch e; @debug "couldn't precompile statement 284" exception = e; end
-try;precompile(Tuple{typeof(Random.make_seed)}); catch e; @debug "couldn't precompile statement 285" exception = e; end
-try;precompile(Tuple{Type{Random.MersenneTwister}, Nothing}); catch e; @debug "couldn't precompile statement 286" exception = e; end
-try;precompile(Tuple{typeof(Random.default_rng), Int64}); catch e; @debug "couldn't precompile statement 287" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#50#51#53")){Base.ExponentialBackOff, getfield(HTTP.RetryRequest, Symbol("#2#3")){Bool, HTTP.Messages.Request}, typeof(HTTP.request)}, Base.Iterators.Pairs{Symbol, Nothing, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{Nothing}}}, getfield(Base, Symbol("#50#52")){getfield(Base, Symbol("#50#51#53")){Base.ExponentialBackOff, getfield(HTTP.RetryRequest, Symbol("#2#3")){Bool, HTTP.Messages.Request}, typeof(HTTP.request)}}, Type{T} where T, Vararg{Any, N} where N}); catch e; @debug "couldn't precompile statement 288" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{Nothing}}, typeof(HTTP.request), Type{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}, HTTP.URIs.URI, HTTP.Messages.Request, String}); catch e; @debug "couldn't precompile statement 289" exception = e; end
-try;precompile(Tuple{getfield(HTTP.ExceptionRequest, Symbol("##request#1")), Base.Iterators.Pairs{Symbol, Nothing, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{Nothing}}}, typeof(HTTP.request), Type{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}, HTTP.URIs.URI, Vararg{Any, N} where N}); catch e; @debug "couldn't precompile statement 290" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{Nothing}}, typeof(HTTP.request), Type{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}, HTTP.URIs.URI, HTTP.Messages.Request, String}); catch e; @debug "couldn't precompile statement 291" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Messages.defaultheader!), HTTP.Messages.Request, Base.Pair{String, String}}); catch e; @debug "couldn't precompile statement 292" exception = e; end
-try;precompile(Tuple{getfield(HTTP.ConnectionRequest, Symbol("##request#1")), Nothing, Type{T} where T, Int64, Base.Iterators.Pairs{Symbol, Nothing, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{Nothing}}}, typeof(HTTP.request), Type{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}, HTTP.URIs.URI, HTTP.Messages.Request, String}); catch e; @debug "couldn't precompile statement 293" exception = e; end
-try;precompile(Tuple{typeof(Base.filter), getfield(HTTP.ConnectionPool, Symbol("#6#7")){DataType, Base.SubString{String}, Base.SubString{String}, Int64}, Array{HTTP.ConnectionPool.Connection{T} where T<:IO, 1}}); catch e; @debug "couldn't precompile statement 294" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Bool, 1}, Base.Generator{Array{HTTP.ConnectionPool.Connection{T} where T<:IO, 1}, getfield(HTTP.ConnectionPool, Symbol("#isdeletable#10"))}, Int64, Int64}); catch e; @debug "couldn't precompile statement 295" exception = e; end
-try;precompile(Tuple{typeof(Base._collect), Array{HTTP.ConnectionPool.Connection{T} where T<:IO, 1}, Base.Generator{Array{HTTP.ConnectionPool.Connection{T} where T<:IO, 1}, getfield(HTTP.ConnectionPool, Symbol("#isdeletable#10"))}, Base.EltypeUnknown, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 296" exception = e; end
-try;precompile(Tuple{typeof(Base.deleteat!), Array{HTTP.ConnectionPool.Connection{T} where T<:IO, 1}, Array{Bool, 1}}); catch e; @debug "couldn't precompile statement 297" exception = e; end
-try;precompile(Tuple{typeof(HTTP.ConnectionPool.purge)}); catch e; @debug "couldn't precompile statement 298" exception = e; end
-try;precompile(Tuple{typeof(Base.filter), getfield(HTTP.ConnectionPool, Symbol("#4#5")){DataType, Base.SubString{String}, Base.SubString{String}, Int64, Bool, Int64}, Array{HTTP.ConnectionPool.Connection{T} where T<:IO, 1}}); catch e; @debug "couldn't precompile statement 299" exception = e; end
-try;precompile(Tuple{typeof(Base.filter), getfield(HTTP.ConnectionPool, Symbol("#12#13")), Array{HTTP.ConnectionPool.Connection{T} where T<:IO, 1}}); catch e; @debug "couldn't precompile statement 300" exception = e; end
-try;precompile(Tuple{typeof(Base.filter), getfield(HTTP.ConnectionPool, Symbol("#8#9")){DataType, Base.SubString{String}, Base.SubString{String}, Int64, Bool}, Array{HTTP.ConnectionPool.Connection{T} where T<:IO, 1}}); catch e; @debug "couldn't precompile statement 301" exception = e; end
-try;precompile(Tuple{typeof(Sockets.connect!), Sockets.TCPSocket, Sockets.IPv4, UInt64}); catch e; @debug "couldn't precompile statement 302" exception = e; end
-try;precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("##getconnection#14")), Bool, Int64, Base.Iterators.Pairs{Symbol, Union{Nothing, Bool}, Tuple{Symbol, Symbol}, NamedTuple{(:require_ssl_verification, :iofunction), Tuple{Bool, Nothing}}}, typeof(HTTP.ConnectionPool.getconnection), Type{Sockets.TCPSocket}, Base.SubString{String}, Base.SubString{String}}); catch e; @debug "couldn't precompile statement 303" exception = e; end
-try;precompile(Tuple{typeof(HTTP.IOExtras.peerport), Sockets.TCPSocket}); catch e; @debug "couldn't precompile statement 304" exception = e; end
-try;precompile(Tuple{typeof(HTTP.IOExtras.localport), Sockets.TCPSocket}); catch e; @debug "couldn't precompile statement 305" exception = e; end
-try;precompile(Tuple{Type{HTTP.ConnectionPool.Connection{Sockets.TCPSocket}}, Base.SubString{String}, Base.SubString{String}, Int64, Int64, Bool, Int64, Int64, Sockets.TCPSocket, Base.GenericIOBuffer{Array{UInt8, 1}}, Int64, Int64, Bool, Base.GenericCondition{Base.AlwaysLockedST}, Int64, Bool, Base.GenericCondition{Base.AlwaysLockedST}, Float64}); catch e; @debug "couldn't precompile statement 306" exception = e; end
-try;precompile(Tuple{Type{HTTP.ConnectionPool.Connection{Sockets.TCPSocket}}, Base.SubString{String}, Base.SubString{String}, Int64, Int64, Bool, UInt16, Int64, Sockets.TCPSocket, Base.GenericIOBuffer{Array{UInt8, 1}}, Int64, Int64, Bool, Base.GenericCondition{Base.AlwaysLockedST}, Int64, Bool, Base.GenericCondition{Base.AlwaysLockedST}, Float64}); catch e; @debug "couldn't precompile statement 307" exception = e; end
-try;precompile(Tuple{Type{HTTP.ConnectionPool.Connection{Sockets.TCPSocket}}, Base.SubString{String}, Base.SubString{String}, Int64, Int64, Bool, Int64, UInt16, Sockets.TCPSocket, Base.GenericIOBuffer{Array{UInt8, 1}}, Int64, Int64, Bool, Base.GenericCondition{Base.AlwaysLockedST}, Int64, Bool, Base.GenericCondition{Base.AlwaysLockedST}, Float64}); catch e; @debug "couldn't precompile statement 308" exception = e; end
-try;precompile(Tuple{Type{HTTP.ConnectionPool.Connection{Sockets.TCPSocket}}, Base.SubString{String}, Base.SubString{String}, Int64, Int64, Bool, UInt16, UInt16, Sockets.TCPSocket, Base.GenericIOBuffer{Array{UInt8, 1}}, Int64, Int64, Bool, Base.GenericCondition{Base.AlwaysLockedST}, Int64, Bool, Base.GenericCondition{Base.AlwaysLockedST}, Float64}); catch e; @debug "couldn't precompile statement 309" exception = e; end
-try;precompile(Tuple{Type{HTTP.ConnectionPool.Connection{T} where T<:IO}, Base.SubString{String}, Base.SubString{String}, Int64, Int64, Bool, Sockets.TCPSocket}); catch e; @debug "couldn't precompile statement 310" exception = e; end
-try;precompile(Tuple{typeof(HTTP.precondition_error), String, Array{Union{Ptr{Nothing}, Base.InterpreterIP}, 1}}); catch e; @debug "couldn't precompile statement 311" exception = e; end
-try;precompile(Tuple{typeof(HTTP.postcondition_error), String, Array{Union{Ptr{Nothing}, Base.InterpreterIP}, 1}}); catch e; @debug "couldn't precompile statement 312" exception = e; end
-try;precompile(Tuple{typeof(HTTP.IOExtras.startwrite), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}); catch e; @debug "couldn't precompile statement 313" exception = e; end
-try;precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("##getconnection#11")), Int64, Int64, Int64, Int64, Bool, Base.Iterators.Pairs{Symbol, Nothing, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{Nothing}}}, typeof(HTTP.ConnectionPool.getconnection), Type{HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Base.SubString{String}, Base.SubString{String}}); catch e; @debug "couldn't precompile statement 314" exception = e; end
-try;precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("#kw##getconnection")), NamedTuple{(:reuse_limit, :iofunction), Tuple{Int64, Nothing}}, typeof(HTTP.ConnectionPool.getconnection), Type{HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Base.SubString{String}, Base.SubString{String}}); catch e; @debug "couldn't precompile statement 315" exception = e; end
-try;precompile(Tuple{typeof(Base.notify), Base.GenericCondition{Base.Threads.SpinLock}}); catch e; @debug "couldn't precompile statement 316" exception = e; end
-try;precompile(Tuple{typeof(Base._any), getfield(HTTP.Messages, Symbol("#4#5")), Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Base.Colon}); catch e; @debug "couldn't precompile statement 317" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Messages.bodylength), HTTP.Messages.Request}); catch e; @debug "couldn't precompile statement 318" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Messages.bodylength), HTTP.Messages.Response}); catch e; @debug "couldn't precompile statement 319" exception = e; end
-try;precompile(Tuple{typeof(HTTP.IOExtras.startwrite), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}}); catch e; @debug "couldn't precompile statement 320" exception = e; end
-try;precompile(Tuple{typeof(Base.println), HTTP.Messages.Request}); catch e; @debug "couldn't precompile statement 321" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Messages.issafe), String}); catch e; @debug "couldn't precompile statement 322" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Messages.isidempotent), String}); catch e; @debug "couldn't precompile statement 323" exception = e; end
-try;precompile(Tuple{typeof(HTTP.IOExtras.startread), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}); catch e; @debug "couldn't precompile statement 324" exception = e; end
-try;precompile(Tuple{typeof(Base.unalias), Array{UInt8, 1}, Base.SubArray{UInt8, 1, Array{UInt8, 1}, Tuple{Base.UnitRange{Int64}}, true}}); catch e; @debug "couldn't precompile statement 325" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{UInt8, 1}, Base.SubArray{UInt8, 1, Array{UInt8, 1}, Tuple{Base.UnitRange{Int64}}, true}}); catch e; @debug "couldn't precompile statement 326" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Parsers.group), Int64, HTTP.Parsers.RegexAndMatchData, String}); catch e; @debug "couldn't precompile statement 327" exception = e; end
-try;precompile(Tuple{typeof(Base.ntuple), getfield(Base, Symbol("#457#458")){Array{Base.SubString{String}, 1}}, Int64}); catch e; @debug "couldn't precompile statement 328" exception = e; end
-try;precompile(Tuple{Type{Base.VersionNumber}, Base.SubString{String}}); catch e; @debug "couldn't precompile statement 329" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Parsers.nextbytes), HTTP.Parsers.RegexAndMatchData, String}); catch e; @debug "couldn't precompile statement 330" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Parsers.parse_status_line!), String, HTTP.Messages.Response}); catch e; @debug "couldn't precompile statement 331" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Parsers.group), Int64, HTTP.Parsers.RegexAndMatchData, Base.SubString{String}}); catch e; @debug "couldn't precompile statement 332" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Parsers.nextbytes), HTTP.Parsers.RegexAndMatchData, Base.SubString{String}}); catch e; @debug "couldn't precompile statement 333" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Messages.appendheader), HTTP.Messages.Response, Base.Pair{Base.SubString{String}, Base.SubString{String}}}); catch e; @debug "couldn't precompile statement 334" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Messages.parse_header_fields!), Base.SubString{String}, HTTP.Messages.Response}); catch e; @debug "couldn't precompile statement 335" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Messages.readheaders), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Response}); catch e; @debug "couldn't precompile statement 336" exception = e; end
-try;precompile(Tuple{typeof(HTTP.IOExtras.startread), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}}); catch e; @debug "couldn't precompile statement 337" exception = e; end
-try;precompile(Tuple{Type{HTTP.Parsers.ParseError}, Symbol, Base.SubArray{UInt8, 1, Array{UInt8, 1}, Tuple{Base.UnitRange{Int64}}, true}}); catch e; @debug "couldn't precompile statement 338" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Parsers.parse_chunk_size), Base.SubArray{UInt8, 1, Array{UInt8, 1}, Tuple{Base.UnitRange{Int64}}, true}}); catch e; @debug "couldn't precompile statement 339" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Messages.readchunksize), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Response}); catch e; @debug "couldn't precompile statement 340" exception = e; end
-try;precompile(Tuple{typeof(Base.unsafe_read), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, Ptr{UInt8}, UInt64}); catch e; @debug "couldn't precompile statement 341" exception = e; end
-try;precompile(Tuple{typeof(HTTP.postcondition_error), String, Array{Union{Ptr{Nothing}, Base.InterpreterIP}, 1}, String, Int64, String, Int64}); catch e; @debug "couldn't precompile statement 342" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Streams.http_unsafe_read), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Ptr{UInt8}, UInt64}); catch e; @debug "couldn't precompile statement 343" exception = e; end
-try;precompile(Tuple{typeof(Base.eof), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}); catch e; @debug "couldn't precompile statement 344" exception = e; end
-try;precompile(Tuple{typeof(Base.unsafe_read), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Ptr{UInt8}, UInt64}); catch e; @debug "couldn't precompile statement 345" exception = e; end
-try;precompile(Tuple{typeof(Base.readbytes!), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Base.GenericIOBuffer{Array{UInt8, 1}}, Int64}); catch e; @debug "couldn't precompile statement 346" exception = e; end
-try;precompile(Tuple{typeof(Base.read), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}}); catch e; @debug "couldn't precompile statement 347" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Messages.ascii_lc_isequal), String, String}); catch e; @debug "couldn't precompile statement 348" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Messages.hasheader), HTTP.Messages.Response, String, String}); catch e; @debug "couldn't precompile statement 349" exception = e; end
-try;precompile(Tuple{typeof(HTTP.ConnectionPool.purge), HTTP.ConnectionPool.Connection{Sockets.TCPSocket}}); catch e; @debug "couldn't precompile statement 350" exception = e; end
-try;precompile(Tuple{typeof(HTTP.IOExtras.closewrite), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}); catch e; @debug "couldn't precompile statement 351" exception = e; end
-try;precompile(Tuple{typeof(HTTP.IOExtras.closeread), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}); catch e; @debug "couldn't precompile statement 352" exception = e; end
-try;precompile(Tuple{typeof(Base.close), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}); catch e; @debug "couldn't precompile statement 353" exception = e; end
-try;precompile(Tuple{typeof(Base.readavailable), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Int64}); catch e; @debug "couldn't precompile statement 354" exception = e; end
-try;precompile(Tuple{typeof(HTTP.IOExtras.closeread), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}}); catch e; @debug "couldn't precompile statement 355" exception = e; end
-try;precompile(Tuple{typeof(Base.println), HTTP.Messages.Response}); catch e; @debug "couldn't precompile statement 356" exception = e; end
-try;precompile(Tuple{getfield(HTTP.StreamRequest, Symbol("##request#1")), Nothing, Nothing, Int64, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), Type{HTTP.StreamRequest.StreamLayer{Union{}}}, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, String}); catch e; @debug "couldn't precompile statement 357" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{Nothing}}, typeof(HTTP.request), Type{HTTP.StreamRequest.StreamLayer{Union{}}}, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, String}); catch e; @debug "couldn't precompile statement 358" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Messages.hasheader), HTTP.Messages.Request, String}); catch e; @debug "couldn't precompile statement 359" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Messages.ischunked), HTTP.Messages.Request}); catch e; @debug "couldn't precompile statement 360" exception = e; end
-try;precompile(Tuple{typeof(Base.string), Base.SubString{String}, String, Base.SubString{String}, String}); catch e; @debug "couldn't precompile statement 361" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Messages.writeheaders), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request}); catch e; @debug "couldn't precompile statement 362" exception = e; end
-try;precompile(Tuple{typeof(Base.string), String, String, String, String, Vararg{String, N} where N}); catch e; @debug "couldn't precompile statement 363" exception = e; end
-try;precompile(Tuple{typeof(Base.write), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, UInt8}); catch e; @debug "couldn't precompile statement 364" exception = e; end
-try;precompile(Tuple{typeof(Base.write), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Char}); catch e; @debug "couldn't precompile statement 365" exception = e; end
-try;precompile(Tuple{typeof(HTTP.StreamRequest.writechunk), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, HTTP.Messages.Request, Char}); catch e; @debug "couldn't precompile statement 366" exception = e; end
-try;precompile(Tuple{typeof(Base.write), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, String, String}); catch e; @debug "couldn't precompile statement 367" exception = e; end
-try;precompile(Tuple{typeof(Base.unsafe_write), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Ptr{UInt8}, UInt64}); catch e; @debug "couldn't precompile statement 368" exception = e; end
-try;precompile(Tuple{typeof(HTTP.StreamRequest.writebody), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, HTTP.Messages.Request, String}); catch e; @debug "couldn't precompile statement 369" exception = e; end
-try;precompile(Tuple{typeof(Base.catch_backtrace)}); catch e; @debug "couldn't precompile statement 370" exception = e; end
-try;precompile(Tuple{getfield(HTTP.StreamRequest, Symbol("#2#3")){HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, String, HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}}}); catch e; @debug "couldn't precompile statement 371" exception = e; end
-try;precompile(Tuple{typeof(Base.task_done_hook), Task}); catch e; @debug "couldn't precompile statement 372" exception = e; end
-try;precompile(Tuple{typeof(HTTP.ConnectionPool.read_to_buffer), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, Int64}); catch e; @debug "couldn't precompile statement 373" exception = e; end
-try;precompile(Tuple{typeof(Base.readuntil), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, Function, Int64}); catch e; @debug "couldn't precompile statement 374" exception = e; end
-try;precompile(Tuple{typeof(Base.alloc_buf_hook), Sockets.TCPSocket, UInt64}); catch e; @debug "couldn't precompile statement 375" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#readcb_specialized#517")), Sockets.TCPSocket, Int64, UInt64}); catch e; @debug "couldn't precompile statement 376" exception = e; end
-try;precompile(Tuple{getfield(HTTP.Parsers, Symbol("##find_end_of_header#1")), Bool, typeof(HTTP.Parsers.find_end_of_header), Base.SubArray{UInt8, 1, Array{UInt8, 1}, Tuple{Base.UnitRange{Int64}}, true}}); catch e; @debug "couldn't precompile statement 377" exception = e; end
-try;precompile(Tuple{typeof(Base.readuntil), Base.GenericIOBuffer{Array{UInt8, 1}}, typeof(HTTP.Parsers.find_end_of_header)}); catch e; @debug "couldn't precompile statement 378" exception = e; end
-try;precompile(Tuple{typeof(Base.readuntil), Base.GenericIOBuffer{Array{UInt8, 1}}, typeof(HTTP.Parsers.find_end_of_chunk_size)}); catch e; @debug "couldn't precompile statement 379" exception = e; end
-try;precompile(Tuple{typeof(Base.readuntil), Base.GenericIOBuffer{Array{UInt8, 1}}, typeof(HTTP.Parsers.find_end_of_trailer)}); catch e; @debug "couldn't precompile statement 380" exception = e; end
-try;precompile(Tuple{getfield(HTTP.RetryRequest, Symbol("#2#3")){Bool, HTTP.Messages.Request}, Tuple{Int64, Float64}, HTTP.ExceptionRequest.StatusError}); catch e; @debug "couldn't precompile statement 381" exception = e; end
-try;precompile(Tuple{typeof(HTTP.ConnectionPool.monitor_idle_connection), HTTP.ConnectionPool.Connection{Sockets.TCPSocket}}); catch e; @debug "couldn't precompile statement 382" exception = e; end
-try;precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("#2#3")){HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}}); catch e; @debug "couldn't precompile statement 383" exception = e; end
-try;precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("#isdeletable#10")), HTTP.ConnectionPool.Connection{Sockets.TCPSocket}}); catch e; @debug "couldn't precompile statement 384" exception = e; end
-try;precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("#4#5")){DataType, Base.SubString{String}, Base.SubString{String}, Int64, Bool, Int64}, HTTP.ConnectionPool.Connection{Sockets.TCPSocket}}); catch e; @debug "couldn't precompile statement 385" exception = e; end
-try;precompile(Tuple{typeof(HTTP.ConnectionPool.client_transaction), HTTP.ConnectionPool.Connection{Sockets.TCPSocket}}); catch e; @debug "couldn't precompile statement 386" exception = e; end
-try;precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol}, Type{NamedTuple{(:intern_call,), Tuple{Bool}}}, Type{NamedTuple{(), Tuple{}}}}); catch e; @debug "couldn't precompile statement 387" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##get_url_and_header#5")), Bool, Nothing, Bool, typeof(Dataiku.get_url_and_header), String}); catch e; @debug "couldn't precompile statement 388" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request), String, String, Base.Dict{String, String}}); catch e; @debug "couldn't precompile statement 389" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request_json), String, String, Base.Dict{String, String}}); catch e; @debug "couldn't precompile statement 390" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.create_project), String, String, String}); catch e; @debug "couldn't precompile statement 391" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.create_project), String}); catch e; @debug "couldn't precompile statement 392" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##sprint#339")), Nothing, Int64, typeof(Base.sprint), Function, Base.Dict{String, String}}); catch e; @debug "couldn't precompile statement 393" exception = e; end
-try;precompile(Tuple{typeof(Base.unsafe_write), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, Ptr{UInt8}, UInt64}); catch e; @debug "couldn't precompile statement 394" exception = e; end
-try;precompile(Tuple{typeof(Base.write), JSON.Writer.StringContext{JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}}, UInt8}); catch e; @debug "couldn't precompile statement 395" exception = e; end
-try;precompile(Tuple{typeof(Base.write), JSON.Writer.StringContext{JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}}, String}); catch e; @debug "couldn't precompile statement 396" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_string), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, String}); catch e; @debug "couldn't precompile statement 397" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_key), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, String}); catch e; @debug "couldn't precompile statement 398" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_json), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String}); catch e; @debug "couldn't precompile statement 399" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_json), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Base.Dict{String, String}}); catch e; @debug "couldn't precompile statement 400" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.print), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.Dict{String, String}}); catch e; @debug "couldn't precompile statement 401" exception = e; end
-try;precompile(Tuple{typeof(Base.pathof), Module}); catch e; @debug "couldn't precompile statement 402" exception = e; end
-try;precompile(Tuple{getfield(Base.Cartesian, Symbol("#@nexprs")), LineNumberNode, Module, Int64, Expr}); catch e; @debug "couldn't precompile statement 403" exception = e; end
-try;precompile(Tuple{getfield(Base.Cartesian, Symbol("#@ncall")), LineNumberNode, Module, Int64, Any, Vararg{Any, N} where N}); catch e; @debug "couldn't precompile statement 404" exception = e; end
-try;precompile(Tuple{typeof(Core.Compiler.zero), Type{UInt8}}); catch e; @debug "couldn't precompile statement 405" exception = e; end
-try;precompile(Tuple{typeof(Mmap.mmap), String, Type{Array{UInt8, 1}}}); catch e; @debug "couldn't precompile statement 406" exception = e; end
-try;precompile(Tuple{getfield(Mmap, Symbol("##mmap#1")), Bool, Bool, typeof(Mmap.mmap), Mmap.Anonymous, Type{Array{UInt8, 1}}, Tuple{Int64}, Int64}); catch e; @debug "couldn't precompile statement 407" exception = e; end
-try;precompile(Tuple{typeof(CSV.getsource), String, Bool}); catch e; @debug "couldn't precompile statement 408" exception = e; end
-try;precompile(Tuple{typeof(CSV.skiptorow), CSV.ReversedBuf, Int64, Int64, UInt8, UInt8, UInt8, Int64, Int64}); catch e; @debug "couldn't precompile statement 409" exception = e; end
-try;precompile(Tuple{typeof(CSV.skiptorow), Array{UInt8, 1}, Int64, Int64, UInt8, UInt8, UInt8, Int64, Int64}); catch e; @debug "couldn't precompile statement 410" exception = e; end
-try;precompile(Tuple{typeof(CSV.checkcommentandemptyline), Array{UInt8, 1}, Int64, Int64, Nothing, Bool}); catch e; @debug "couldn't precompile statement 411" exception = e; end
-try;precompile(Tuple{typeof(CSV.detectheaderdatapos), Array{UInt8, 1}, Int64, Int64, UInt8, UInt8, UInt8, Nothing, Bool, Int64, Int64}); catch e; @debug "couldn't precompile statement 412" exception = e; end
-try;precompile(Tuple{typeof(CSV.detectdelimandguessrows), Array{UInt8, 1}, Int64, Int64, Int64, UInt8, UInt8, UInt8, UInt8, Nothing, Bool}); catch e; @debug "couldn't precompile statement 413" exception = e; end
-try;precompile(Tuple{Type{Parsers.Options{ignorerepeated, Q, debug, S, D, DF} where DF where D where S where debug where Q where ignorerepeated}, Base.Missing, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, Nothing, Nothing, Nothing, Bool, Bool, Bool, Bool, Bool}); catch e; @debug "couldn't precompile statement 414" exception = e; end
-try;precompile(Tuple{typeof(Base.ht_keyindex), Base.Dict{Int8, Type}, Int8}); catch e; @debug "couldn't precompile statement 415" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Base.Pair{String, UInt64}, 1}, Base.Dict{String, UInt64}}); catch e; @debug "couldn't precompile statement 416" exception = e; end
-try;precompile(Tuple{typeof(Base.sort!), Array{Base.Pair{String, UInt64}, 1}, Int64, Int64, Base.Sort.InsertionSortAlg, Base.Order.By{getfield(CSV, Symbol("#21#29"))}}); catch e; @debug "couldn't precompile statement 417" exception = e; end
-try;precompile(Tuple{typeof(Base.sort!), Array{Base.Pair{String, UInt64}, 1}, Int64, Int64, Base.Sort.MergeSortAlg, Base.Order.By{getfield(CSV, Symbol("#21#29"))}, Array{Base.Pair{String, UInt64}, 1}}); catch e; @debug "couldn't precompile statement 418" exception = e; end
-try;precompile(Tuple{typeof(Base.rand), Type{Bool}}); catch e; @debug "couldn't precompile statement 419" exception = e; end
-try;precompile(Tuple{getfield(CSV, Symbol("#22#30")){Array{UInt8, 1}, UInt8, Array{Type, 1}, Array{Union{Nothing, Array{String, 1}}, 1}, Int64}, Int64}); catch e; @debug "couldn't precompile statement 420" exception = e; end
-try;precompile(Tuple{typeof(Base.collect), Base.Generator{Base.UnitRange{Int64}, getfield(CSV, Symbol("#22#30")){Array{UInt8, 1}, UInt8, Array{Type, 1}, Array{Union{Nothing, Array{String, 1}}, 1}, Int64}}}); catch e; @debug "couldn't precompile statement 421" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Any, Any}, Base.Generator{Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Array{Union{CSV.Column{T, P} where P where T, CSV.Column2{T, P} where P where T}, 1}}}, getfield(CSV, Symbol("#23#31"))}}); catch e; @debug "couldn't precompile statement 422" exception = e; end
-try;precompile(Tuple{typeof(Base._all), getfield(Base, Symbol("#240#242")), Base.Generator{Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Array{Union{CSV.Column{T, P} where P where T, CSV.Column2{T, P} where P where T}, 1}}}, getfield(CSV, Symbol("#23#31"))}, Base.Colon}); catch e; @debug "couldn't precompile statement 423" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Base.Generator{Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Array{Union{CSV.Column{T, P} where P where T, CSV.Column2{T, P} where P where T}, 1}}}, getfield(CSV, Symbol("#23#31"))}}); catch e; @debug "couldn't precompile statement 424" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{String, 1}, String, Base.Generator{Array{Base.Pair{String, UInt64}, 1}, getfield(CSV, Symbol("#20#28"))}, Int64}); catch e; @debug "couldn't precompile statement 425" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Array{String, 1}, Array{String, 1}, Int64}); catch e; @debug "couldn't precompile statement 426" exception = e; end
-try;precompile(Tuple{typeof(Base.fill!), Array{Union{Nothing, Array{String, 1}}, 1}, Nothing}); catch e; @debug "couldn't precompile statement 427" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Tuple{Ptr{UInt8}, Int64}, 1}, Base.Generator{Array{String, 1}, typeof(Parsers.ptrlen)}, Int64, Int64}); catch e; @debug "couldn't precompile statement 428" exception = e; end
-try;precompile(Tuple{typeof(Base._collect), Array{String, 1}, Base.Generator{Array{String, 1}, typeof(Parsers.ptrlen)}, Base.EltypeUnknown, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 429" exception = e; end
-try;precompile(Tuple{typeof(Base.sort!), Array{Tuple{Ptr{UInt8}, Int64}, 1}, Int64, Int64, Base.Sort.InsertionSortAlg, Base.Order.By{getfield(Parsers, Symbol("#1#2"))}}); catch e; @debug "couldn't precompile statement 430" exception = e; end
-try;precompile(Tuple{typeof(Base.sort!), Array{Tuple{Ptr{UInt8}, Int64}, 1}, Int64, Int64, Base.Sort.MergeSortAlg, Base.Order.By{getfield(Parsers, Symbol("#1#2"))}, Array{Tuple{Ptr{UInt8}, Int64}, 1}}); catch e; @debug "couldn't precompile statement 431" exception = e; end
-try;precompile(Tuple{typeof(Base.sort!), Array{Tuple{Ptr{UInt8}, Int64}, 1}, Int64, Int64, Base.Sort.InsertionSortAlg, Base.Order.ReverseOrdering{Base.Order.By{getfield(Parsers, Symbol("#1#2"))}}}); catch e; @debug "couldn't precompile statement 432" exception = e; end
-try;precompile(Tuple{typeof(Base.sort!), Array{Tuple{Ptr{UInt8}, Int64}, 1}, Int64, Int64, Base.Sort.MergeSortAlg, Base.Order.ReverseOrdering{Base.Order.By{getfield(Parsers, Symbol("#1#2"))}}, Array{Tuple{Ptr{UInt8}, Int64}, 1}}); catch e; @debug "couldn't precompile statement 433" exception = e; end
-try;precompile(Tuple{typeof(Parsers.prepare), Array{String, 1}}); catch e; @debug "couldn't precompile statement 434" exception = e; end
-try;precompile(Tuple{Type{Parsers.Options{ignorerepeated, Q, debug, S, D, DF} where DF where D where S where debug where Q where ignorerepeated}, Array{String, 1}, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, Nothing, Nothing, Nothing, Bool, Bool, Bool, Bool, Bool}); catch e; @debug "couldn't precompile statement 435" exception = e; end
-try;precompile(Tuple{typeof(CSV.file), String, Int64, Bool, Int64, Nothing, Int64, Int64, Bool, Nothing, Bool, Bool, Array{String, 1}, String, Nothing, Bool, Char, Nothing, Nothing, Char, Nothing, UInt8, Nothing, Nothing, Nothing, Nothing, Base.Dict{Int8, Int8}, Bool, Float64, Bool, Bool, Nothing, Bool, Bool, Nothing}); catch e; @debug "couldn't precompile statement 436" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Base.IndexLinear, Array{AbstractArray{T, 1} where T, 1}, Base.IndexLinear, Array{Union{CSV.Column{T, P} where P where T, CSV.Column2{T, P} where P where T}, 1}}); catch e; @debug "couldn't precompile statement 437" exception = e; end
-try;precompile(Tuple{typeof(Base.throw_checksize_error), Array{Symbol, 1}, Tuple{Base.OneTo{Int64}}}); catch e; @debug "couldn't precompile statement 438" exception = e; end
-try;precompile(Tuple{typeof(Base._unsafe_getindex), Base.IndexLinear, Array{Symbol, 1}, Array{Int64, 1}}); catch e; @debug "couldn't precompile statement 439" exception = e; end
-try;precompile(Tuple{typeof(Base.throw_boundserror), Base.Broadcast.Broadcasted{Nothing, Tuple{Base.OneTo{Int64}}, typeof(Base.string), Tuple{Base.Broadcast.Extruded{Array{Char, 0}, Tuple{}, Tuple{}}, Base.Broadcast.Extruded{Array{Symbol, 1}, Tuple{Bool}, Tuple{Int64}}}}, Tuple{Int64}}); catch e; @debug "couldn't precompile statement 440" exception = e; end
-try;precompile(Tuple{typeof(Base.throw_boundserror), Array{Symbol, 1}, Tuple{Array{Int64, 1}}}); catch e; @debug "couldn't precompile statement 441" exception = e; end
-try;precompile(Tuple{getfield(DataFrames, Symbol("##make_unique!#1")), Bool, typeof(DataFrames.make_unique!), Array{Symbol, 1}, Array{Symbol, 1}}); catch e; @debug "couldn't precompile statement 442" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{Symbol, Int64}}}); catch e; @debug "couldn't precompile statement 443" exception = e; end
-try;precompile(Tuple{typeof(Base.rehash!), Base.Dict{Symbol, Int64}, Int64}); catch e; @debug "couldn't precompile statement 444" exception = e; end
-try;precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{Symbol, Int64}, Symbol}); catch e; @debug "couldn't precompile statement 445" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, Int64}, Int64, Symbol}); catch e; @debug "couldn't precompile statement 446" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{Symbol, Int64}}, Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Base.UnitRange{Int64}}}}); catch e; @debug "couldn't precompile statement 447" exception = e; end
-try;precompile(Tuple{typeof(Base.collect), Base.Generator{Array{AbstractArray{T, 1} where T, 1}, getfield(DataFrames, Symbol("#84#87"))}}); catch e; @debug "couldn't precompile statement 448" exception = e; end
-try;precompile(Tuple{typeof(Base.throw_boundserror), Base.Broadcast.Broadcasted{Nothing, Tuple{Base.OneTo{Int64}}, typeof(Base.string), Tuple{Base.Broadcast.Extruded{Array{Symbol, 1}, Tuple{Bool}, Tuple{Int64}}}}, Tuple{Int64}}); catch e; @debug "couldn't precompile statement 449" exception = e; end
-try;precompile(Tuple{getfield(DataFrames, Symbol("#DataFrame#83#86")), Bool, Type{DataFrames.DataFrame}, Array{AbstractArray{T, 1} where T, 1}, DataFrames.Index}); catch e; @debug "couldn't precompile statement 450" exception = e; end
-try;precompile(Tuple{getfield(DataFrames, Symbol("##DataFrame#98")), Bool, Bool, Type{DataFrames.DataFrame}, Array{Union{CSV.Column{T, P} where P where T, CSV.Column2{T, P} where P where T}, 1}, Array{Symbol, 1}}); catch e; @debug "couldn't precompile statement 451" exception = e; end
-try;precompile(Tuple{typeof(CSV.read), String}); catch e; @debug "couldn't precompile statement 452" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##open#271")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Base.open), getfield(Mmap, Symbol("#7#8")){Array{UInt8, 1}, Bool, Bool, Tuple{Int64}, Int64}, String, Vararg{String, N} where N}); catch e; @debug "couldn't precompile statement 453" exception = e; end
-try;precompile(Tuple{Type{Parsers.Options{false, true, false, Base.Missing, UInt8, Nothing}}, Array{String, 1}, Base.Missing, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, Nothing, Nothing, Nothing, Bool, Bool}); catch e; @debug "couldn't precompile statement 454" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Symbol, 1}, Base.Generator{Base.UnitRange{Int64}, getfield(CSV, Symbol("#8#11"))}, Int64, Int64}); catch e; @debug "couldn't precompile statement 455" exception = e; end
-try;precompile(Tuple{typeof(Base.collect), Base.Generator{Base.UnitRange{Int64}, getfield(CSV, Symbol("#8#11"))}}); catch e; @debug "couldn't precompile statement 456" exception = e; end
-try;precompile(Tuple{typeof(CSV.unescape), CSV.PointerString, UInt8}); catch e; @debug "couldn't precompile statement 457" exception = e; end
-try;precompile(Tuple{typeof(CSV.columnname), Array{UInt8, 1}, Int64, Int64, Int16, Parsers.Options{false, true, false, Base.Missing, UInt8, Nothing}, Int64}); catch e; @debug "couldn't precompile statement 458" exception = e; end
-try;precompile(Tuple{typeof(Base.ht_keyindex), Base.Dict{String, Nothing}, Base.SubString{String}}); catch e; @debug "couldn't precompile statement 459" exception = e; end
-try;precompile(Tuple{typeof(Base.map), getfield(CSV, Symbol("#4#5")), Base.SubString{String}}); catch e; @debug "couldn't precompile statement 460" exception = e; end
-try;precompile(Tuple{typeof(CSV.normalizename), String}); catch e; @debug "couldn't precompile statement 461" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Symbol, 1}, Base.Generator{Array{String, 1}, getfield(CSV, Symbol("#9#12")){Bool}}, Int64, Int64}); catch e; @debug "couldn't precompile statement 462" exception = e; end
-try;precompile(Tuple{typeof(Base.collect), Base.Generator{Array{String, 1}, getfield(CSV, Symbol("#9#12")){Bool}}}); catch e; @debug "couldn't precompile statement 463" exception = e; end
-try;precompile(Tuple{typeof(CSV.makeunique), Array{Symbol, 1}}); catch e; @debug "couldn't precompile statement 464" exception = e; end
-try;precompile(Tuple{typeof(CSV.detectcolumnnames), Array{UInt8, 1}, Int64, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Nothing}, Int64, Bool}); catch e; @debug "couldn't precompile statement 465" exception = e; end
-try;precompile(Tuple{Type{Base.Val{false}}}); catch e; @debug "couldn't precompile statement 466" exception = e; end
-try;precompile(Tuple{typeof(Dates.character_codes), Core.SimpleVector}); catch e; @debug "couldn't precompile statement 467" exception = e; end
-try;precompile(Tuple{getfield(Parsers, Symbol("##s52#15")), Any, Any, Any, Any, Any, Any, Any}); catch e; @debug "couldn't precompile statement 468" exception = e; end
-try;precompile(Tuple{typeof(Dates.character_codes), Type{Dates.DateFormat{Symbol("yyyy-mm-dd"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}}}}}); catch e; @debug "couldn't precompile statement 469" exception = e; end
-try;precompile(Tuple{typeof(Base.first), Core.SimpleVector}); catch e; @debug "couldn't precompile statement 470" exception = e; end
-try;precompile(Tuple{typeof(Dates.genvar), DataType}); catch e; @debug "couldn't precompile statement 471" exception = e; end
-try;precompile(Tuple{Type{Base.IteratorSize}, Tuple{DataType, DataType, DataType}}); catch e; @debug "couldn't precompile statement 472" exception = e; end
-try;precompile(Tuple{typeof(Base._array_for), Type{Symbol}, Tuple{DataType, DataType, DataType}, Base.HasLength}); catch e; @debug "couldn't precompile statement 473" exception = e; end
-try;precompile(Tuple{Type{Base.LinearIndices{N, R} where R<:Tuple{Vararg{Base.AbstractUnitRange{Int64}, N}} where N}, Array{Symbol, 1}}); catch e; @debug "couldn't precompile statement 474" exception = e; end
-try;precompile(Tuple{Type{Base.Generator{I, F} where F where I}, getfield(Parsers, Symbol("#16#17")), Tuple{DataType, DataType, DataType}}); catch e; @debug "couldn't precompile statement 475" exception = e; end
-try;precompile(Tuple{typeof(Base.collect), Base.Generator{Tuple{DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}}); catch e; @debug "couldn't precompile statement 476" exception = e; end
-try;precompile(Tuple{Type{Tuple}, Base.Generator{Tuple{DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}}); catch e; @debug "couldn't precompile statement 477" exception = e; end
-try;precompile(Tuple{typeof(Base._array_for), Type{Int64}, Tuple{DataType, DataType, DataType}, Base.HasLength}); catch e; @debug "couldn't precompile statement 478" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Tuple{DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}, Int64, Int64}); catch e; @debug "couldn't precompile statement 479" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Tuple{DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}, Int64}); catch e; @debug "couldn't precompile statement 480" exception = e; end
-try;precompile(Tuple{typeof(Base.Iterators.zip), Array{Symbol, 1}, Vararg{Any, N} where N}); catch e; @debug "couldn't precompile statement 481" exception = e; end
-try;precompile(Tuple{Type{Base.Iterators.Zip{Is} where Is<:Tuple}, Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64}}}); catch e; @debug "couldn't precompile statement 482" exception = e; end
-try;precompile(Tuple{Type{Base.IteratorSize}, Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64}}}}); catch e; @debug "couldn't precompile statement 483" exception = e; end
-try;precompile(Tuple{typeof(Base._array_for), Type{Expr}, Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64}}}, Base.HasLength}); catch e; @debug "couldn't precompile statement 484" exception = e; end
-try;precompile(Tuple{Type{Base.LinearIndices{N, R} where R<:Tuple{Vararg{Base.AbstractUnitRange{Int64}, N}} where N}, Array{Expr, 1}}); catch e; @debug "couldn't precompile statement 485" exception = e; end
-try;precompile(Tuple{typeof(Base.map), getfield(Base.Iterators, Symbol("#3#4")), Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64}}}); catch e; @debug "couldn't precompile statement 486" exception = e; end
-try;precompile(Tuple{typeof(Base.Iterators._zip_iterate_all), Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64}}, Tuple{Tuple{}, Tuple{}}}); catch e; @debug "couldn't precompile statement 487" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64}}}, Tuple{Int64, Int64}}); catch e; @debug "couldn't precompile statement 488" exception = e; end
-try;precompile(Tuple{typeof(Base.collect), Base.Generator{Array{Type, 1}, getfield(Parsers, Symbol("#19#20"))}}); catch e; @debug "couldn't precompile statement 489" exception = e; end
-try;precompile(Tuple{getfield(Parsers, Symbol("##s52#18")), Any, Any, Any, Any, Any}); catch e; @debug "couldn't precompile statement 490" exception = e; end
-try;precompile(Tuple{typeof(Dates._directives), Type{Dates.DateFormat{Symbol("yyyy-mm-dd"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}}}}}); catch e; @debug "couldn't precompile statement 491" exception = e; end
-try;precompile(Tuple{typeof(Base._array_for), Type{Int64}, Array{Type, 1}, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 492" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Array{Type, 1}, getfield(Parsers, Symbol("#19#20"))}, Int64, Int64}); catch e; @debug "couldn't precompile statement 493" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{Type, 1}, getfield(Parsers, Symbol("#19#20"))}, Int64}); catch e; @debug "couldn't precompile statement 494" exception = e; end
-try;precompile(Tuple{Type{Base.IteratorSize}, Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType, DataType}}); catch e; @debug "couldn't precompile statement 496" exception = e; end
-try;precompile(Tuple{typeof(Base._array_for), Type{Symbol}, Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType, DataType}, Base.HasLength}); catch e; @debug "couldn't precompile statement 497" exception = e; end
-try;precompile(Tuple{Type{Base.Generator{I, F} where F where I}, getfield(Parsers, Symbol("#16#17")), Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType, DataType}}); catch e; @debug "couldn't precompile statement 498" exception = e; end
-try;precompile(Tuple{typeof(Base.collect), Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}}); catch e; @debug "couldn't precompile statement 499" exception = e; end
-try;precompile(Tuple{Type{Tuple}, Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}}); catch e; @debug "couldn't precompile statement 500" exception = e; end
-try;precompile(Tuple{typeof(Base._array_for), Type{Int64}, Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType, DataType}, Base.HasLength}); catch e; @debug "couldn't precompile statement 501" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}, Int64, Int64}); catch e; @debug "couldn't precompile statement 502" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}, Int64}); catch e; @debug "couldn't precompile statement 503" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{Int64, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 504" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex_widen_up_to), Array{Int64, 1}, Dates.AMPM, Int64}); catch e; @debug "couldn't precompile statement 505" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Any, 1}, Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}, Int64, Int64}); catch e; @debug "couldn't precompile statement 506" exception = e; end
-try;precompile(Tuple{Type{Base.Iterators.Zip{Is} where Is<:Tuple}, Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}}}); catch e; @debug "couldn't precompile statement 507" exception = e; end
-try;precompile(Tuple{Type{Base.IteratorSize}, Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}}}}); catch e; @debug "couldn't precompile statement 508" exception = e; end
-try;precompile(Tuple{typeof(Base._array_for), Type{Expr}, Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}}}, Base.HasLength}); catch e; @debug "couldn't precompile statement 509" exception = e; end
-try;precompile(Tuple{typeof(Base.map), getfield(Base.Iterators, Symbol("#3#4")), Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}}}); catch e; @debug "couldn't precompile statement 510" exception = e; end
-try;precompile(Tuple{typeof(Base.Iterators._zip_iterate_all), Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}}, Tuple{Tuple{}, Tuple{}}}); catch e; @debug "couldn't precompile statement 511" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}}}, Tuple{Int64, Int64}}); catch e; @debug "couldn't precompile statement 512" exception = e; end
-try;precompile(Tuple{typeof(Base.indexed_iterate), Tuple{Symbol, Dates.AMPM}, Int64}); catch e; @debug "couldn't precompile statement 513" exception = e; end
-try;precompile(Tuple{typeof(Base.indexed_iterate), Tuple{Symbol, Dates.AMPM}, Int64, Int64}); catch e; @debug "couldn't precompile statement 514" exception = e; end
-try;precompile(Tuple{Type{Base.Iterators.Zip{Is} where Is<:Tuple}, Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Int64}}}); catch e; @debug "couldn't precompile statement 516" exception = e; end
-try;precompile(Tuple{typeof(Base.map), getfield(Base.Iterators, Symbol("#3#4")), Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Int64}}}); catch e; @debug "couldn't precompile statement 517" exception = e; end
-try;precompile(Tuple{typeof(Base.Iterators._zip_iterate_all), Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Int64}}, Tuple{Tuple{}, Tuple{}}}); catch e; @debug "couldn't precompile statement 518" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Int64}}}, Tuple{Int64, Int64}}); catch e; @debug "couldn't precompile statement 519" exception = e; end
-try;precompile(Tuple{typeof(Dates.character_codes), Type{Dates.DateFormat{Symbol("HH:MM:SS.s"), Tuple{Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}}}}}); catch e; @debug "couldn't precompile statement 520" exception = e; end
-try;precompile(Tuple{Type{Base.IteratorSize}, Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType}}); catch e; @debug "couldn't precompile statement 521" exception = e; end
-try;precompile(Tuple{typeof(Base._array_for), Type{Symbol}, Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType}, Base.HasLength}); catch e; @debug "couldn't precompile statement 522" exception = e; end
-try;precompile(Tuple{Type{Base.Generator{I, F} where F where I}, getfield(Parsers, Symbol("#16#17")), Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType}}); catch e; @debug "couldn't precompile statement 523" exception = e; end
-try;precompile(Tuple{typeof(Base.collect), Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}}); catch e; @debug "couldn't precompile statement 524" exception = e; end
-try;precompile(Tuple{Type{Tuple}, Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}}); catch e; @debug "couldn't precompile statement 525" exception = e; end
-try;precompile(Tuple{typeof(Base._array_for), Type{Int64}, Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType}, Base.HasLength}); catch e; @debug "couldn't precompile statement 526" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}, Int64, Int64}); catch e; @debug "couldn't precompile statement 527" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}, Int64}); catch e; @debug "couldn't precompile statement 528" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Any, 1}, Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}, Int64, Int64}); catch e; @debug "couldn't precompile statement 529" exception = e; end
-try;precompile(Tuple{Type{Base.Iterators.Zip{Is} where Is<:Tuple}, Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}}}); catch e; @debug "couldn't precompile statement 530" exception = e; end
-try;precompile(Tuple{Type{Base.IteratorSize}, Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}}}}); catch e; @debug "couldn't precompile statement 531" exception = e; end
-try;precompile(Tuple{typeof(Base._array_for), Type{Expr}, Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}}}, Base.HasLength}); catch e; @debug "couldn't precompile statement 532" exception = e; end
-try;precompile(Tuple{typeof(Base.map), getfield(Base.Iterators, Symbol("#3#4")), Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}}}); catch e; @debug "couldn't precompile statement 533" exception = e; end
-try;precompile(Tuple{typeof(Base.Iterators._zip_iterate_all), Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}}, Tuple{Tuple{}, Tuple{}}}); catch e; @debug "couldn't precompile statement 534" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}}}, Tuple{Int64, Int64}}); catch e; @debug "couldn't precompile statement 535" exception = e; end
-try;precompile(Tuple{typeof(Dates._directives), Type{Dates.DateFormat{Symbol("HH:MM:SS.s"), Tuple{Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}}}}}); catch e; @debug "couldn't precompile statement 536" exception = e; end
-try;precompile(Tuple{Type{Base.Iterators.Zip{Is} where Is<:Tuple}, Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64}}}); catch e; @debug "couldn't precompile statement 537" exception = e; end
-try;precompile(Tuple{typeof(Base.map), getfield(Base.Iterators, Symbol("#3#4")), Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64}}}); catch e; @debug "couldn't precompile statement 538" exception = e; end
-try;precompile(Tuple{typeof(Base.Iterators._zip_iterate_all), Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64}}, Tuple{Tuple{}, Tuple{}}}); catch e; @debug "couldn't precompile statement 539" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64}}}, Tuple{Int64, Int64}}); catch e; @debug "couldn't precompile statement 540" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##chop#326")), Int64, Int64, typeof(Base.chop), String}); catch e; @debug "couldn't precompile statement 541" exception = e; end
-try;precompile(Tuple{typeof(Base.nextind), Base.SubString{String}, Int64, Int64}); catch e; @debug "couldn't precompile statement 542" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##chop#326")), Int64, Int64, typeof(Base.chop), Base.SubString{String}}); catch e; @debug "couldn't precompile statement 543" exception = e; end
-try;precompile(Tuple{typeof(Parsers.codes), Int16}); catch e; @debug "couldn't precompile statement 544" exception = e; end
-try;precompile(Tuple{typeof(CSV.fatalerror), Array{UInt8, 1}, Int64, Int64, Int16, Int64, Int64}); catch e; @debug "couldn't precompile statement 545" exception = e; end
-try;precompile(Tuple{typeof(CSV.reallocatetape), Int64, Int64, Int64}); catch e; @debug "couldn't precompile statement 546" exception = e; end
-try;precompile(Tuple{getfield(Mmap, Symbol("##mmap#1")), Bool, Bool, typeof(Mmap.mmap), Mmap.Anonymous, Type{Array{UInt64, 1}}, Tuple{Int64}, Int64}); catch e; @debug "couldn't precompile statement 547" exception = e; end
-try;precompile(Tuple{typeof(CSV.notenoughcolumns), Int64, Int64, Int64}); catch e; @debug "couldn't precompile statement 548" exception = e; end
-try;precompile(Tuple{typeof(CSV.toomanycolumns), Int64, Int64}); catch e; @debug "couldn't precompile statement 549" exception = e; end
-try;precompile(Tuple{typeof(Base.ht_keyindex), Base.Dict{Int8, Int8}, Int8}); catch e; @debug "couldn't precompile statement 550" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{String, UInt64}}}); catch e; @debug "couldn't precompile statement 551" exception = e; end
-try;precompile(Tuple{typeof(Base.rehash!), Base.Dict{String, UInt64}, Int64}); catch e; @debug "couldn't precompile statement 552" exception = e; end
-try;precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{String, UInt64}, String}); catch e; @debug "couldn't precompile statement 553" exception = e; end
-try;precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{String, UInt64}, CSV.PointerString}); catch e; @debug "couldn't precompile statement 554" exception = e; end
-try;precompile(Tuple{typeof(Dates.validargs), Type{Dates.Time}, Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}); catch e; @debug "couldn't precompile statement 555" exception = e; end
-try;precompile(Tuple{typeof(Base.power_by_squaring), Int64, Int64}); catch e; @debug "couldn't precompile statement 556" exception = e; end
-try;precompile(Tuple{typeof(Parsers._typeparser), Type{Float64}, Array{UInt8, 1}, Int64, Int64, UInt8, Int16, Parsers.Options{false, true, false, Base.Missing, UInt8, Nothing}, Type{Base.GMP.BigInt}}); catch e; @debug "couldn't precompile statement 557" exception = e; end
-try;precompile(Tuple{typeof(Parsers._typeparser), Type{Float64}, Array{UInt8, 1}, Int64, Int64, UInt8, Int16, Parsers.Options{false, true, false, Base.Missing, UInt8, Nothing}, Type{Int128}}); catch e; @debug "couldn't precompile statement 558" exception = e; end
-try;precompile(Tuple{typeof(CSV.detect), Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Nothing}, Int64, Int64, Base.Dict{Int8, Int8}, Float64, Array{Base.Dict{String, UInt64}, 1}, Array{UInt64, 1}, Array{Int64, 1}, Bool, Array{Int8, 1}, Bool, Array{Array{UInt64, 1}, 1}}); catch e; @debug "couldn't precompile statement 559" exception = e; end
-try;precompile(Tuple{typeof(CSV.parsevalue!), Type{Float64}, Int8, Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Nothing}, Int64, Int64, Array{Int8, 1}, Array{Array{UInt64, 1}, 1}}); catch e; @debug "couldn't precompile statement 560" exception = e; end
-try;precompile(Tuple{typeof(CSV.parsevalue!), Type{Dates.Date}, Int8, Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Nothing}, Int64, Int64, Array{Int8, 1}, Array{Array{UInt64, 1}, 1}}); catch e; @debug "couldn't precompile statement 561" exception = e; end
-try;precompile(Tuple{typeof(CSV.parsevalue!), Type{Dates.DateTime}, Int8, Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Nothing}, Int64, Int64, Array{Int8, 1}, Array{Array{UInt64, 1}, 1}}); catch e; @debug "couldn't precompile statement 562" exception = e; end
-try;precompile(Tuple{typeof(CSV.parsevalue!), Type{Dates.Time}, Int8, Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Nothing}, Int64, Int64, Array{Int8, 1}, Array{Array{UInt64, 1}, 1}}); catch e; @debug "couldn't precompile statement 563" exception = e; end
-try;precompile(Tuple{typeof(CSV.parsevalue!), Type{Bool}, Int8, Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Nothing}, Int64, Int64, Array{Int8, 1}, Array{Array{UInt64, 1}, 1}}); catch e; @debug "couldn't precompile statement 564" exception = e; end
-try;precompile(Tuple{typeof(CSV.parsetape), Base.Val{false}, Bool, Int64, Base.Dict{Int8, Int8}, Array{Array{UInt64, 1}, 1}, Array{Array{UInt64, 1}, 1}, Array{UInt8, 1}, Int64, Int64, Int64, Nothing, Array{Int64, 1}, Float64, Array{Base.Dict{String, UInt64}, 1}, Array{UInt64, 1}, Int64, Array{Int8, 1}, Array{Int64, 1}, Bool, Parsers.Options{false, true, false, Base.Missing, UInt8, Nothing}, Bool}); catch e; @debug "couldn't precompile statement 565" exception = e; end
-try;precompile(Tuple{typeof(CSV._eltype), Type{Int64}}); catch e; @debug "couldn't precompile statement 566" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), Array{Array{UInt64, 1}, 1}, Int64}); catch e; @debug "couldn't precompile statement 567" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), Array{Int64, 1}, Int64}); catch e; @debug "couldn't precompile statement 568" exception = e; end
-try;precompile(Tuple{typeof(CSV.uint64), Int64}); catch e; @debug "couldn't precompile statement 569" exception = e; end
-try;precompile(Tuple{Type{CSV.Column{Int64, Int64}}, Array{UInt64, 1}, Int64, UInt8, Bool, Nothing, Array{UInt8, 1}, UInt64}); catch e; @debug "couldn't precompile statement 570" exception = e; end
-try;precompile(Tuple{typeof(CSV._eltype), Type{Dates.Date}}); catch e; @debug "couldn't precompile statement 571" exception = e; end
-try;precompile(Tuple{typeof(Base.nonmissingtype), Type{Dates.Date}}); catch e; @debug "couldn't precompile statement 572" exception = e; end
-try;precompile(Tuple{Type{CSV.Column{Dates.Date, Dates.Date}}, Array{UInt64, 1}, Int64, UInt8, Bool, Nothing, Array{UInt8, 1}, UInt64}); catch e; @debug "couldn't precompile statement 573" exception = e; end
-try;precompile(Tuple{typeof(CSV._eltype), Type{String}}); catch e; @debug "couldn't precompile statement 574" exception = e; end
-try;precompile(Tuple{typeof(Base.nonmissingtype), Type{String}}); catch e; @debug "couldn't precompile statement 575" exception = e; end
-try;precompile(Tuple{typeof(CSV.sentinelvalue), Type{String}}); catch e; @debug "couldn't precompile statement 576" exception = e; end
-try;precompile(Tuple{Type{CSV.Column{String, String}}, Array{UInt64, 1}, Int64, UInt8, Bool, Array{String, 1}, Array{UInt8, 1}, UInt64}); catch e; @debug "couldn't precompile statement 577" exception = e; end
-try;precompile(Tuple{typeof(CSV._eltype), Type{Bool}}); catch e; @debug "couldn't precompile statement 578" exception = e; end
-try;precompile(Tuple{typeof(Base.nonmissingtype), Type{Bool}}); catch e; @debug "couldn't precompile statement 579" exception = e; end
-try;precompile(Tuple{Type{CSV.Column{Bool, Bool}}, Array{UInt64, 1}, Int64, UInt8, Bool, Nothing, Array{UInt8, 1}, UInt64}); catch e; @debug "couldn't precompile statement 580" exception = e; end
-try;precompile(Tuple{typeof(Base.nonmissingtype), Type{CSV.PooledString}}); catch e; @debug "couldn't precompile statement 581" exception = e; end
-try;precompile(Tuple{typeof(CSV.sentinelvalue), Type{CSV.PooledString}}); catch e; @debug "couldn't precompile statement 582" exception = e; end
-try;precompile(Tuple{Type{CSV.Column{String, CSV.PooledString}}, Array{UInt64, 1}, Int64, UInt8, Bool, Array{String, 1}, Array{UInt8, 1}, UInt64}); catch e; @debug "couldn't precompile statement 583" exception = e; end
-try;precompile(Tuple{typeof(CSV._eltype), Type{Float64}}); catch e; @debug "couldn't precompile statement 584" exception = e; end
-try;precompile(Tuple{typeof(Base.nonmissingtype), Type{Float64}}); catch e; @debug "couldn't precompile statement 585" exception = e; end
-try;precompile(Tuple{Type{CSV.Column{Float64, Float64}}, Array{UInt64, 1}, Int64, UInt8, Bool, Nothing, Array{UInt8, 1}, UInt64}); catch e; @debug "couldn't precompile statement 586" exception = e; end
-try;precompile(Tuple{getfield(CSV, Symbol("#23#31")), Tuple{Symbol, CSV.Column{Int64, Int64}}}); catch e; @debug "couldn't precompile statement 587" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{Symbol, CSV.Column{Int64, Int64}}}}); catch e; @debug "couldn't precompile statement 588" exception = e; end
-try;precompile(Tuple{typeof(Base.empty), Base.Dict{Any, Any}, Type{Symbol}, Type{CSV.Column{Int64, Int64}}}); catch e; @debug "couldn't precompile statement 589" exception = e; end
-try;precompile(Tuple{typeof(Base.rehash!), Base.Dict{Symbol, CSV.Column{Int64, Int64}}, Int64}); catch e; @debug "couldn't precompile statement 590" exception = e; end
-try;precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{Symbol, CSV.Column{Int64, Int64}}, Symbol}); catch e; @debug "couldn't precompile statement 591" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, CSV.Column{Int64, Int64}}, CSV.Column{Int64, Int64}, Symbol}); catch e; @debug "couldn't precompile statement 592" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Symbol, CSV.Column{Int64, Int64}}, Base.Generator{Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Array{Union{CSV.Column{T, P} where P where T, CSV.Column2{T, P} where P where T}, 1}}}, getfield(CSV, Symbol("#23#31"))}, Tuple{Int64, Int64}}); catch e; @debug "couldn't precompile statement 593" exception = e; end
-try;precompile(Tuple{getfield(CSV, Symbol("#23#31")), Tuple{Symbol, CSV.Column{Dates.Date, Dates.Date}}}); catch e; @debug "couldn't precompile statement 594" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{Symbol, CSV.Column{T, P} where P where T}}}); catch e; @debug "couldn't precompile statement 595" exception = e; end
-try;precompile(Tuple{typeof(Base.empty), Base.Dict{Symbol, CSV.Column{Int64, Int64}}, Type{Symbol}, Type{CSV.Column{T, P} where P where T}}); catch e; @debug "couldn't precompile statement 596" exception = e; end
-try;precompile(Tuple{typeof(Base.rehash!), Base.Dict{Symbol, CSV.Column{T, P} where P where T}, Int64}); catch e; @debug "couldn't precompile statement 597" exception = e; end
-try;precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{Symbol, CSV.Column{T, P} where P where T}, Symbol}); catch e; @debug "couldn't precompile statement 598" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, CSV.Column{T, P} where P where T}, CSV.Column{Int64, Int64}, Symbol}); catch e; @debug "couldn't precompile statement 599" exception = e; end
-try;precompile(Tuple{typeof(Base.merge!), Base.Dict{Symbol, CSV.Column{T, P} where P where T}, Base.Dict{Symbol, CSV.Column{Int64, Int64}}}); catch e; @debug "couldn't precompile statement 600" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, CSV.Column{T, P} where P where T}, CSV.Column{Dates.Date, Dates.Date}, Symbol}); catch e; @debug "couldn't precompile statement 601" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Symbol, CSV.Column{T, P} where P where T}, Base.Generator{Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Array{Union{CSV.Column{T, P} where P where T, CSV.Column2{T, P} where P where T}, 1}}}, getfield(CSV, Symbol("#23#31"))}, Tuple{Int64, Int64}}); catch e; @debug "couldn't precompile statement 602" exception = e; end
-try;precompile(Tuple{getfield(CSV, Symbol("#23#31")), Tuple{Symbol, CSV.Column{String, String}}}); catch e; @debug "couldn't precompile statement 603" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, CSV.Column{T, P} where P where T}, CSV.Column{String, String}, Symbol}); catch e; @debug "couldn't precompile statement 604" exception = e; end
-try;precompile(Tuple{getfield(CSV, Symbol("#23#31")), Tuple{Symbol, CSV.Column{Bool, Bool}}}); catch e; @debug "couldn't precompile statement 605" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, CSV.Column{T, P} where P where T}, CSV.Column{Bool, Bool}, Symbol}); catch e; @debug "couldn't precompile statement 606" exception = e; end
-try;precompile(Tuple{getfield(CSV, Symbol("#23#31")), Tuple{Symbol, CSV.Column{String, CSV.PooledString}}}); catch e; @debug "couldn't precompile statement 607" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, CSV.Column{T, P} where P where T}, CSV.Column{String, CSV.PooledString}, Symbol}); catch e; @debug "couldn't precompile statement 608" exception = e; end
-try;precompile(Tuple{getfield(CSV, Symbol("#23#31")), Tuple{Symbol, CSV.Column{Float64, Float64}}}); catch e; @debug "couldn't precompile statement 609" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, CSV.Column{T, P} where P where T}, CSV.Column{Float64, Float64}, Symbol}); catch e; @debug "couldn't precompile statement 610" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{Symbol, AbstractArray{T, 1} where T}}}); catch e; @debug "couldn't precompile statement 611" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{Symbol, AbstractArray{T, 1} where T}}, Base.Dict{Symbol, CSV.Column{T, P} where P where T}}); catch e; @debug "couldn't precompile statement 612" exception = e; end
-try;precompile(Tuple{Type{CSV.File{false}}, String, Array{Symbol, 1}, Array{Type, 1}, Int64, Int64, Array{Union{CSV.Column{T, P} where P where T, CSV.Column2{T, P} where P where T}, 1}, Base.Dict{Symbol, CSV.Column{T, P} where P where T}}); catch e; @debug "couldn't precompile statement 613" exception = e; end
-try;precompile(Tuple{typeof(Base.rehash!), Base.Dict{Symbol, AbstractArray{T, 1} where T}, Int64}); catch e; @debug "couldn't precompile statement 614" exception = e; end
-try;precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{Symbol, AbstractArray{T, 1} where T}, Symbol}); catch e; @debug "couldn't precompile statement 615" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, AbstractArray{T, 1} where T}, CSV.Column{Int64, Int64}, Symbol}); catch e; @debug "couldn't precompile statement 616" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, AbstractArray{T, 1} where T}, CSV.Column{Bool, Bool}, Symbol}); catch e; @debug "couldn't precompile statement 617" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, AbstractArray{T, 1} where T}, CSV.Column{String, CSV.PooledString}, Symbol}); catch e; @debug "couldn't precompile statement 618" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, AbstractArray{T, 1} where T}, CSV.Column{Float64, Float64}, Symbol}); catch e; @debug "couldn't precompile statement 619" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, AbstractArray{T, 1} where T}, CSV.Column{String, String}, Symbol}); catch e; @debug "couldn't precompile statement 620" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, AbstractArray{T, 1} where T}, CSV.Column{Dates.Date, Dates.Date}, Symbol}); catch e; @debug "couldn't precompile statement 621" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, CSV.Column{Int64, Int64}, Int64}); catch e; @debug "couldn't precompile statement 622" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, CSV.Column{Dates.Date, Dates.Date}, Int64}); catch e; @debug "couldn't precompile statement 623" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, CSV.Column{String, String}, Int64}); catch e; @debug "couldn't precompile statement 624" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, CSV.Column{Bool, Bool}, Int64}); catch e; @debug "couldn't precompile statement 625" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, CSV.Column{String, CSV.PooledString}, Int64}); catch e; @debug "couldn't precompile statement 626" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, CSV.Column{Float64, Float64}, Int64}); catch e; @debug "couldn't precompile statement 627" exception = e; end
-try;precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), CSV.Column{Int64, Int64}}); catch e; @debug "couldn't precompile statement 628" exception = e; end
-try;precompile(Tuple{typeof(Base._array_for), Type{Int64}, Array{AbstractArray{T, 1} where T, 1}, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 629" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Array{AbstractArray{T, 1} where T, 1}, getfield(DataFrames, Symbol("#84#87"))}, Int64, Int64}); catch e; @debug "couldn't precompile statement 630" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{AbstractArray{T, 1} where T, 1}, getfield(DataFrames, Symbol("#84#87"))}, Int64}); catch e; @debug "couldn't precompile statement 631" exception = e; end
-try;precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), CSV.Column{Dates.Date, Dates.Date}}); catch e; @debug "couldn't precompile statement 632" exception = e; end
-try;precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), CSV.Column{String, String}}); catch e; @debug "couldn't precompile statement 633" exception = e; end
-try;precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), CSV.Column{Bool, Bool}}); catch e; @debug "couldn't precompile statement 634" exception = e; end
-try;precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), CSV.Column{String, CSV.PooledString}}); catch e; @debug "couldn't precompile statement 635" exception = e; end
-try;precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), CSV.Column{Float64, Float64}}); catch e; @debug "couldn't precompile statement 636" exception = e; end
-try;precompile(Tuple{typeof(Base.extrema), Array{Int64, 1}}); catch e; @debug "couldn't precompile statement 637" exception = e; end
-try;precompile(Tuple{typeof(Base.indexed_iterate), Tuple{Int64, Int64}, Int64}); catch e; @debug "couldn't precompile statement 638" exception = e; end
-try;precompile(Tuple{typeof(Base.indexed_iterate), Tuple{Int64, Int64}, Int64, Int64}); catch e; @debug "couldn't precompile statement 639" exception = e; end
-try;precompile(Tuple{typeof(Base.:(|>)), DataFrames.DataFrame, Type{T} where T}); catch e; @debug "couldn't precompile statement 640" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), DataFrames.DataFrame, Base.Colon, Base.Colon}); catch e; @debug "couldn't precompile statement 641" exception = e; end
-try;precompile(Tuple{typeof(Base.copymutable), DataFrames.DataFrameColumns{DataFrames.DataFrame, AbstractArray{T, 1} where T}}); catch e; @debug "couldn't precompile statement 642" exception = e; end
-try;precompile(Tuple{typeof(Base.copy), DataFrames.DataFrameColumns{DataFrames.DataFrame, AbstractArray{T, 1} where T}}); catch e; @debug "couldn't precompile statement 643" exception = e; end
-try;precompile(Tuple{typeof(Base._unaliascopy), DataFrames.DataFrameColumns{DataFrames.DataFrame, AbstractArray{T, 1} where T}, Array{AbstractArray{T, 1} where T, 1}}); catch e; @debug "couldn't precompile statement 644" exception = e; end
-try;precompile(Tuple{typeof(Base.unaliascopy), DataFrames.DataFrameColumns{DataFrames.DataFrame, AbstractArray{T, 1} where T}}); catch e; @debug "couldn't precompile statement 645" exception = e; end
-try;precompile(Tuple{typeof(Base.unalias), Array{AbstractArray{T, 1} where T, 1}, DataFrames.DataFrameColumns{DataFrames.DataFrame, AbstractArray{T, 1} where T}}); catch e; @debug "couldn't precompile statement 646" exception = e; end
-try;precompile(Tuple{typeof(Base.throw_boundserror), DataFrames.DataFrameColumns{DataFrames.DataFrame, AbstractArray{T, 1} where T}, Tuple{Int64}}); catch e; @debug "couldn't precompile statement 647" exception = e; end
-try;precompile(Tuple{typeof(Base.throw_boundserror), Array{AbstractArray{T, 1} where T, 1}, Tuple{Base.OneTo{Int64}}}); catch e; @debug "couldn't precompile statement 648" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{AbstractArray{T, 1} where T, 1}, DataFrames.DataFrameColumns{DataFrames.DataFrame, AbstractArray{T, 1} where T}}); catch e; @debug "couldn't precompile statement 649" exception = e; end
-try;precompile(Tuple{getfield(DataFrames, Symbol("##DataFrame#98")), Bool, Bool, Type{DataFrames.DataFrame}, DataFrames.DataFrameColumns{DataFrames.DataFrame, AbstractArray{T, 1} where T}, Array{Symbol, 1}}); catch e; @debug "couldn't precompile statement 650" exception = e; end
-try;precompile(Tuple{Type{DataFrames.DataFrame}, DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 651" exception = e; end
-try;precompile(Tuple{typeof(Base.copy), CSV.Column{Int64, Int64}}); catch e; @debug "couldn't precompile statement 652" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, Array{Int64, 1}, Int64}); catch e; @debug "couldn't precompile statement 653" exception = e; end
-try;precompile(Tuple{typeof(Base.copy), CSV.Column{Dates.Date, Dates.Date}}); catch e; @debug "couldn't precompile statement 654" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, Array{Dates.Date, 1}, Int64}); catch e; @debug "couldn't precompile statement 655" exception = e; end
-try;precompile(Tuple{typeof(Base.fill!), Array{UInt32, 1}, UInt32}); catch e; @debug "couldn't precompile statement 656" exception = e; end
-try;precompile(Tuple{typeof(WeakRefStrings._setindex!), WeakRefStrings.StringArray{String, 1}, String, Int64}); catch e; @debug "couldn't precompile statement 657" exception = e; end
-try;precompile(Tuple{typeof(Base.throw_boundserror), CSV.Column{String, String}, Tuple{Int64}}); catch e; @debug "couldn't precompile statement 658" exception = e; end
-try;precompile(Tuple{typeof(Base.copy), CSV.Column{String, String}}); catch e; @debug "couldn't precompile statement 659" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, WeakRefStrings.StringArray{String, 1}, Int64}); catch e; @debug "couldn't precompile statement 660" exception = e; end
-try;precompile(Tuple{typeof(Base.throw_boundserror), CSV.Column{Bool, Bool}, Tuple{Int64}}); catch e; @debug "couldn't precompile statement 661" exception = e; end
-try;precompile(Tuple{typeof(Base.copy), CSV.Column{Bool, Bool}}); catch e; @debug "couldn't precompile statement 662" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, Array{Bool, 1}, Int64}); catch e; @debug "couldn't precompile statement 663" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{String, UInt32}}}); catch e; @debug "couldn't precompile statement 664" exception = e; end
-try;precompile(Tuple{typeof(Base.foreach), getfield(CSV, Symbol("#41#44")), Base.Iterators.Enumerate{Nothing}}); catch e; @debug "couldn't precompile statement 665" exception = e; end
-try;precompile(Tuple{getfield(CSV, Symbol("#41#44")), Tuple{Int64, String}}); catch e; @debug "couldn't precompile statement 666" exception = e; end
-try;precompile(Tuple{typeof(Base.copy), CSV.Column{String, CSV.PooledString}}); catch e; @debug "couldn't precompile statement 667" exception = e; end
-try;precompile(Tuple{typeof(Base.rehash!), Base.Dict{String, UInt32}, Int64}); catch e; @debug "couldn't precompile statement 668" exception = e; end
-try;precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{String, UInt32}, String}); catch e; @debug "couldn't precompile statement 669" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, UInt32}, UInt32, String}); catch e; @debug "couldn't precompile statement 670" exception = e; end
-try;precompile(Tuple{typeof(PooledArrays._invert), Base.Dict{String, UInt32}}); catch e; @debug "couldn't precompile statement 671" exception = e; end
-try;precompile(Tuple{typeof(Base.throw_boundserror), Array{UInt32, 1}, Tuple{Int64}}); catch e; @debug "couldn't precompile statement 672" exception = e; end
-try;precompile(Tuple{typeof(Base.mapreduce_impl), typeof(Base.identity), typeof(Base.max), Array{UInt32, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 673" exception = e; end
-try;precompile(Tuple{Type{PooledArrays.PooledArray{T, R, N, RA} where RA where N where R<:Integer where T}, PooledArrays.RefArray{Array{UInt32, 1}}, Base.Dict{String, UInt32}, Array{String, 1}}); catch e; @debug "couldn't precompile statement 674" exception = e; end
-try;precompile(Tuple{Type{PooledArrays.PooledArray{T, R, N, RA} where RA where N where R<:Integer where T}, PooledArrays.RefArray{Array{UInt32, 1}}, Base.Dict{String, UInt32}}); catch e; @debug "couldn't precompile statement 675" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Int64}); catch e; @debug "couldn't precompile statement 676" exception = e; end
-try;precompile(Tuple{typeof(Base.copy), CSV.Column{Float64, Float64}}); catch e; @debug "couldn't precompile statement 677" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, Array{Float64, 1}, Int64}); catch e; @debug "couldn't precompile statement 678" exception = e; end
-try;precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), Array{Int64, 1}}); catch e; @debug "couldn't precompile statement 679" exception = e; end
-try;precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), Array{Dates.Date, 1}}); catch e; @debug "couldn't precompile statement 680" exception = e; end
-try;precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), WeakRefStrings.StringArray{String, 1}}); catch e; @debug "couldn't precompile statement 681" exception = e; end
-try;precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), Array{Bool, 1}}); catch e; @debug "couldn't precompile statement 682" exception = e; end
-try;precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}}); catch e; @debug "couldn't precompile statement 683" exception = e; end
-try;precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), Array{Float64, 1}}); catch e; @debug "couldn't precompile statement 684" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.set_current_project), Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 685" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##create_dataset#62")), String, String, String, String, typeof(Dataiku.create_dataset), String, Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 686" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.create_dataset), String, Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 687" exception = e; end
-try;precompile(Tuple{typeof(Base.:(*)), String, String, String}); catch e; @debug "couldn't precompile statement 688" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Base.Pair{String, String}, Vararg{Base.Pair{A, B} where B where A, N} where N}); catch e; @debug "couldn't precompile statement 689" exception = e; end
-try;precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Bool}, Base.Pair{String, Base.Dict{String, String}}, Base.Pair{String, Base.Dict{String, String}}}}}); catch e; @debug "couldn't precompile statement 690" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Any, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Bool}, Base.Pair{String, Base.Dict{String, String}}, Base.Pair{String, Base.Dict{String, String}}}}); catch e; @debug "couldn't precompile statement 691" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Bool}, Base.Pair{String, Base.Dict{String, String}}, Base.Pair{String, Base.Dict{String, String}}}}); catch e; @debug "couldn't precompile statement 692" exception = e; end
-try;precompile(Tuple{typeof(Base.empty), Base.Dict{Any, Any}, Type{String}, Type{String}}); catch e; @debug "couldn't precompile statement 693" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, String}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Bool}, Base.Pair{String, Base.Dict{String, String}}, Base.Pair{String, Base.Dict{String, String}}}, Int64}); catch e; @debug "couldn't precompile statement 694" exception = e; end
-try;precompile(Tuple{typeof(Base.empty), Base.Dict{String, String}, Type{String}, Type{Any}}); catch e; @debug "couldn't precompile statement 695" exception = e; end
-try;precompile(Tuple{typeof(Base.merge!), Base.Dict{String, Any}, Base.Dict{String, String}}); catch e; @debug "couldn't precompile statement 696" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Bool}, Base.Pair{String, Base.Dict{String, String}}, Base.Pair{String, Base.Dict{String, String}}}, Int64}); catch e; @debug "couldn't precompile statement 697" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request), String, String, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 698" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request_json), String, String, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 699" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.create_dataset), Base.Dict{String, Any}, Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 700" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##sprint#339")), Nothing, Int64, typeof(Base.sprint), Function, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 701" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Base.Pair{String, Any}}); catch e; @debug "couldn't precompile statement 702" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_json), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 703" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.print), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 704" exception = e; end
-try;precompile(Tuple{typeof(Base.convert), Type{Any}, String}); catch e; @debug "couldn't precompile statement 705" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String, String}); catch e; @debug "couldn't precompile statement 706" exception = e; end
-try;precompile(Tuple{typeof(Base.convert), Type{Any}, Bool}); catch e; @debug "couldn't precompile statement 707" exception = e; end
-try;precompile(Tuple{typeof(Base.print), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, Bool}); catch e; @debug "couldn't precompile statement 708" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String, Bool}); catch e; @debug "couldn't precompile statement 709" exception = e; end
-try;precompile(Tuple{typeof(Base.convert), Type{Any}, Base.Dict{String, String}}); catch e; @debug "couldn't precompile statement 710" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String, Base.Dict{String, String}}); catch e; @debug "couldn't precompile statement 711" exception = e; end
-try;precompile(Tuple{Type{Dataiku.DSSDataset}, String, Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 712" exception = e; end
-try;precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol}, Type{NamedTuple{(:infer_schema,), Tuple{Bool}}}, Type{NamedTuple{(), Tuple{}}}}); catch e; @debug "couldn't precompile statement 713" exception = e; end
-try;precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Base.Pair{String, Array{Any, 1}}, Base.Pair{String, Bool}}}}); catch e; @debug "couldn't precompile statement 714" exception = e; end
-try;precompile(Tuple{typeof(Base.diff_names), Tuple{Symbol}, Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}}); catch e; @debug "couldn't precompile statement 715" exception = e; end
-try;precompile(Tuple{typeof(Base.ht_keyindex), Base.Dict{Symbol, Int64}, Symbol}); catch e; @debug "couldn't precompile statement 716" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Tuple{Int64, Symbol}, 1}, Base.Generator{Base.KeySet{Symbol, Base.Dict{Symbol, Int64}}, getfield(DataFrames, Symbol("#9#14")){String}}, Int64, Int64}); catch e; @debug "couldn't precompile statement 717" exception = e; end
-try;precompile(Tuple{typeof(Base.collect), Base.Generator{Base.KeySet{Symbol, Base.Dict{Symbol, Int64}}, getfield(DataFrames, Symbol("#9#14")){String}}}); catch e; @debug "couldn't precompile statement 718" exception = e; end
-try;precompile(Tuple{typeof(Base.sort!), Array{Tuple{Int64, Symbol}, 1}, Int64, Int64, Base.Sort.InsertionSortAlg, Base.Order.ForwardOrdering}); catch e; @debug "couldn't precompile statement 719" exception = e; end
-try;precompile(Tuple{typeof(Base.sort!), Array{Tuple{Int64, Symbol}, 1}, Int64, Int64, Base.Sort.MergeSortAlg, Base.Order.ForwardOrdering, Array{Tuple{Int64, Symbol}, 1}}); catch e; @debug "couldn't precompile statement 720" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Base.UnitRange{Int64}, getfield(DataFrames, Symbol("#10#15")){Array{Tuple{Int64, Symbol}, 1}}}, Int64, Int64}); catch e; @debug "couldn't precompile statement 721" exception = e; end
-try;precompile(Tuple{typeof(Base.collect), Base.Generator{Base.UnitRange{Int64}, getfield(DataFrames, Symbol("#10#15")){Array{Tuple{Int64, Symbol}, 1}}}}); catch e; @debug "couldn't precompile statement 722" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Array{Symbol, 1}, Base.Generator{Base.Iterators.Filter{getfield(DataFrames, Symbol("#13#18")){Int64}, Array{Tuple{Int64, Symbol}, 1}}, getfield(DataFrames, Symbol("#12#17"))}, Int64}); catch e; @debug "couldn't precompile statement 723" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Array{Symbol, 1}, Base.Generator{Base.Iterators.Filter{getfield(DataFrames, Symbol("#13#18")){Int64}, Array{Tuple{Int64, Symbol}, 1}}, getfield(DataFrames, Symbol("#12#17"))}}); catch e; @debug "couldn't precompile statement 724" exception = e; end
-try;precompile(Tuple{typeof(DataFrames.fuzzymatch), Base.Dict{Symbol, Int64}, Symbol}); catch e; @debug "couldn't precompile statement 725" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), DataFrames.DataFrame, Symbol}); catch e; @debug "couldn't precompile statement 726" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Any, Any}, Tuple{Base.Pair{String, Array{Any, 1}}, Base.Pair{String, Bool}}}); catch e; @debug "couldn't precompile statement 727" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Tuple{Base.Pair{String, Array{Any, 1}}, Base.Pair{String, Bool}}}); catch e; @debug "couldn't precompile statement 728" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_schema_from_df), DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 729" exception = e; end
-try;precompile(Tuple{typeof(CSV.isvaliddelim), Char}); catch e; @debug "couldn't precompile statement 730" exception = e; end
-try;precompile(Tuple{typeof(CSV.checkvaliddelim), Char}); catch e; @debug "couldn't precompile statement 731" exception = e; end
-try;precompile(Tuple{typeof(Base.throw_boundserror), Base.Broadcast.Broadcasted{Base.Broadcast.DefaultArrayStyle{1}, Tuple{Base.OneTo{Int64}}, typeof(Base.eltype), Tuple{Base.Broadcast.Extruded{DataFrames.DataFrameColumns{DataFrames.DataFrame, AbstractArray{T, 1} where T}, Tuple{Bool}, Tuple{Int64}}}}, Tuple{Int64}}); catch e; @debug "couldn't precompile statement 732" exception = e; end
-try;precompile(Tuple{typeof(DataFrames.eltypes), DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 733" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Symbol, 1}, Int64, Array{Symbol, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 734" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Symbol, 1}, Symbol, Base.Generator{Array{Symbol, 1}, typeof(Tables.sym)}, Int64}); catch e; @debug "couldn't precompile statement 735" exception = e; end
-try;precompile(Tuple{Type{Tables.Schema{names, types} where types where names}, Array{Symbol, 1}, Nothing}); catch e; @debug "couldn't precompile statement 736" exception = e; end
-try;precompile(Tuple{typeof(Tables.schema), DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 737" exception = e; end
-try;precompile(Tuple{typeof(Tables.columntable), DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 738" exception = e; end
-try;precompile(Tuple{typeof(Tables.rows), DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 739" exception = e; end
-try;precompile(Tuple{getfield(CSV, Symbol("##write#53")), Char, Char, Nothing, Nothing, Char, Char, Char, Nothing, Bool, String, Base.Iterators.Pairs{Symbol, Bool, Tuple{Symbol}, NamedTuple{(:writeheader,), Tuple{Bool}}}, typeof(CSV.write), Base.BufferStream, DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 740" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##write_dataframe#42")), Base.Iterators.Pairs{Symbol, Bool, Tuple{Symbol}, NamedTuple{(:infer_schema,), Tuple{Bool}}}, typeof(Dataiku.write_dataframe), Dataiku.DSSDataset, DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 741" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.write_with_schema), Dataiku.DSSDataset, DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 742" exception = e; end
-try;precompile(Tuple{typeof(Dataiku._type_to_string), Type{T} where T}); catch e; @debug "couldn't precompile statement 743" exception = e; end
-try;precompile(Tuple{typeof(Base.eltype), Array{Dates.Date, 1}}); catch e; @debug "couldn't precompile statement 744" exception = e; end
-try;precompile(Tuple{typeof(Base.eltype), WeakRefStrings.StringArray{String, 1}}); catch e; @debug "couldn't precompile statement 745" exception = e; end
-try;precompile(Tuple{typeof(Base.eltype), Array{Bool, 1}}); catch e; @debug "couldn't precompile statement 746" exception = e; end
-try;precompile(Tuple{typeof(Base.eltype), PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}}); catch e; @debug "couldn't precompile statement 747" exception = e; end
-try;precompile(Tuple{typeof(Base.eltype), Array{Float64, 1}}); catch e; @debug "couldn't precompile statement 748" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{String, Array{Any, 1}}}}); catch e; @debug "couldn't precompile statement 749" exception = e; end
-try;precompile(Tuple{typeof(Base.empty), Base.Dict{Any, Any}, Type{String}, Type{Array{Any, 1}}}); catch e; @debug "couldn't precompile statement 750" exception = e; end
-try;precompile(Tuple{typeof(Base.rehash!), Base.Dict{String, Array{Any, 1}}, Int64}); catch e; @debug "couldn't precompile statement 751" exception = e; end
-try;precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{String, Array{Any, 1}}, String}); catch e; @debug "couldn't precompile statement 752" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Array{Any, 1}}, Array{Any, 1}, String}); catch e; @debug "couldn't precompile statement 753" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Array{Any, 1}}, Array{Any, 1}, Bool}); catch e; @debug "couldn't precompile statement 754" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Array{Any, 1}}, Array{Any, 1}, Array{Any, 1}}); catch e; @debug "couldn't precompile statement 755" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Array{Any, 1}}, Tuple{Base.Pair{String, Array{Any, 1}}, Base.Pair{String, Bool}}, Int64}); catch e; @debug "couldn't precompile statement 756" exception = e; end
-try;precompile(Tuple{typeof(Base.empty), Base.Dict{String, Array{Any, 1}}, Type{String}, Type{Any}}); catch e; @debug "couldn't precompile statement 757" exception = e; end
-try;precompile(Tuple{typeof(Base.merge!), Base.Dict{String, Any}, Base.Dict{String, Array{Any, 1}}}); catch e; @debug "couldn't precompile statement 758" exception = e; end
-try;precompile(Tuple{typeof(Base.merge!), Base.Dict{Any, Any}, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 759" exception = e; end
-try;precompile(Tuple{typeof(Base.merge!), Base.Dict{String, Any}, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 760" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Any}, Tuple{Base.Pair{String, Array{Any, 1}}, Base.Pair{String, Bool}}, Int64}); catch e; @debug "couldn't precompile statement 761" exception = e; end
-try;precompile(Tuple{Type{CSV.Options{D, N, DF, M} where M where DF where N where D}, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, Nothing, Bool, Tuple{}}); catch e; @debug "couldn't precompile statement 762" exception = e; end
-try;precompile(Tuple{typeof(Base.similar), Base.Broadcast.Broadcasted{Base.Broadcast.DefaultArrayStyle{1}, Tuple{Base.OneTo{Int64}}, typeof(Base.eltype), Tuple{Base.Broadcast.Extruded{DataFrames.DataFrameColumns{DataFrames.DataFrame, AbstractArray{T, 1} where T}, Tuple{Bool}, Tuple{Int64}}}}, Type{DataType}}); catch e; @debug "couldn't precompile statement 763" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Array{DataType, 1}, Type{T} where T, Int64}); catch e; @debug "couldn't precompile statement 764" exception = e; end
-try;precompile(Tuple{typeof(Base.Broadcast.copyto_nonleaf!), Array{DataType, 1}, Base.Broadcast.Broadcasted{Base.Broadcast.DefaultArrayStyle{1}, Tuple{Base.OneTo{Int64}}, typeof(Base.eltype), Tuple{Base.Broadcast.Extruded{DataFrames.DataFrameColumns{DataFrames.DataFrame, AbstractArray{T, 1} where T}, Tuple{Bool}, Tuple{Int64}}}}, Base.OneTo{Int64}, Int64, Int64}); catch e; @debug "couldn't precompile statement 765" exception = e; end
-try;precompile(Tuple{typeof(Core.Compiler.eltype), Type{Array{DataType, 1}}}); catch e; @debug "couldn't precompile statement 766" exception = e; end
-try;precompile(Tuple{Type{Tables.Schema{names, types} where types where names}, Array{Symbol, 1}, Array{DataType, 1}}); catch e; @debug "couldn't precompile statement 767" exception = e; end
-try;precompile(Tuple{Type{Tables.Schema{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Int64, Dates.Date, String, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}}}); catch e; @debug "couldn't precompile statement 768" exception = e; end
-try;precompile(Tuple{getfield(Tables, Symbol("##s19#16")), Any, Any, Any, Any, Any}); catch e; @debug "couldn't precompile statement 769" exception = e; end
-try;precompile(Tuple{Type{Base.Generator{I, F} where F where I}, getfield(Tables, Symbol("#17#19")){Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}, DataType}, Base.UnitRange{Int64}}); catch e; @debug "couldn't precompile statement 770" exception = e; end
-try;precompile(Tuple{getfield(Tables, Symbol("#17#19")){Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}, DataType}, Int64}); catch e; @debug "couldn't precompile statement 771" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Expr, 1}, Expr, Base.Generator{Base.UnitRange{Int64}, getfield(Tables, Symbol("#17#19")){Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}, DataType}}, Int64}); catch e; @debug "couldn't precompile statement 772" exception = e; end
-try;precompile(Tuple{typeof(Base.collect), Base.Generator{Base.UnitRange{Int64}, getfield(Tables, Symbol("#17#19")){Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}, DataType}}}); catch e; @debug "couldn't precompile statement 773" exception = e; end
-try;precompile(Tuple{Type{Tuple}, Base.Generator{Base.UnitRange{Int64}, getfield(Tables, Symbol("#17#19")){Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}, DataType}}}); catch e; @debug "couldn't precompile statement 774" exception = e; end
-try;precompile(Tuple{typeof(Tables.columntable), Tables.Schema{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Int64, Dates.Date, String, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}, DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 775" exception = e; end
-try;precompile(Tuple{Type{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), T} where T<:Tuple}, Tuple{Array{Int64, 1}, Array{Dates.Date, 1}, WeakRefStrings.StringArray{String, 1}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Float64, 1}}}); catch e; @debug "couldn't precompile statement 776" exception = e; end
-try;precompile(Tuple{typeof(Tables.rows), NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{Dates.Date, 1}, WeakRefStrings.StringArray{String, 1}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Float64, 1}}}}); catch e; @debug "couldn't precompile statement 777" exception = e; end
-try;precompile(Tuple{typeof(Tables._types), Type{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{Dates.Date, 1}, WeakRefStrings.StringArray{String, 1}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Float64, 1}}}}}); catch e; @debug "couldn't precompile statement 778" exception = e; end
-try;precompile(Tuple{typeof(Tables._eltype), Type{Array{Int64, 1}}}); catch e; @debug "couldn't precompile statement 779" exception = e; end
-try;precompile(Tuple{typeof(Tables._eltype), Type{Array{Dates.Date, 1}}}); catch e; @debug "couldn't precompile statement 780" exception = e; end
-try;precompile(Tuple{typeof(Tables._eltype), Type{WeakRefStrings.StringArray{String, 1}}}); catch e; @debug "couldn't precompile statement 781" exception = e; end
-try;precompile(Tuple{typeof(Tables._eltype), Type{Array{Bool, 1}}}); catch e; @debug "couldn't precompile statement 782" exception = e; end
-try;precompile(Tuple{typeof(Tables._eltype), Type{PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}}}); catch e; @debug "couldn't precompile statement 783" exception = e; end
-try;precompile(Tuple{typeof(Tables._eltype), Type{Array{Float64, 1}}}); catch e; @debug "couldn't precompile statement 784" exception = e; end
-try;precompile(Tuple{typeof(Tables.schema), Tables.RowIterator{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{Dates.Date, 1}, WeakRefStrings.StringArray{String, 1}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Float64, 1}}}}}); catch e; @debug "couldn't precompile statement 785" exception = e; end
-try;precompile(Tuple{getfield(Tables, Symbol("##s12#5")), Any, Any, Any, Any, Any, Any, Any}); catch e; @debug "couldn't precompile statement 786" exception = e; end
-try;precompile(Tuple{typeof(Base.seekstart), Base.BufferStream}); catch e; @debug "couldn't precompile statement 787" exception = e; end
-try;precompile(Tuple{getfield(CSV, Symbol("##write#54")), Bool, Bool, Array{String, 1}, typeof(CSV.write), Tables.Schema{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Int64, Dates.Date, String, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}, Tables.RowIterator{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{Dates.Date, 1}, WeakRefStrings.StringArray{String, 1}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Float64, 1}}}}, Base.BufferStream, CSV.Options{UInt8, UInt8, Nothing, Tuple{}}}); catch e; @debug "couldn't precompile statement 788" exception = e; end
-try;precompile(Tuple{getfield(CSV, Symbol("#kw##write")), NamedTuple{(:writeheader,), Tuple{Bool}}, typeof(CSV.write), Tables.Schema{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Int64, Dates.Date, String, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}, Tables.RowIterator{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{Dates.Date, 1}, WeakRefStrings.StringArray{String, 1}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Float64, 1}}}}, Base.BufferStream, CSV.Options{UInt8, UInt8, Nothing, Tuple{}}}); catch e; @debug "couldn't precompile statement 789" exception = e; end
-try;precompile(Tuple{typeof(CSV.writecell), Array{UInt8, 1}, Int64, Int64, Base.BufferStream, Int64, CSV.Options{UInt8, UInt8, Nothing, Tuple{}}}); catch e; @debug "couldn't precompile statement 790" exception = e; end
-try;precompile(Tuple{typeof(CSV.writedelimnewline), Array{UInt8, 1}, Int64, Int64, Base.BufferStream, UInt8}); catch e; @debug "couldn't precompile statement 791" exception = e; end
-try;precompile(Tuple{typeof(Dates.format), Base.GenericIOBuffer{Array{UInt8, 1}}, Dates.Date, Dates.DateFormat{Symbol("yyyy-mm-dd"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}}}}); catch e; @debug "couldn't precompile statement 792" exception = e; end
-try;precompile(Tuple{typeof(Dates.format), Dates.Date, Dates.DateFormat{Symbol("yyyy-mm-dd"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}}}, Int64}); catch e; @debug "couldn't precompile statement 793" exception = e; end
-try;precompile(Tuple{typeof(CSV.writecell), Array{UInt8, 1}, Int64, Int64, Base.BufferStream, Dates.Date, CSV.Options{UInt8, UInt8, Nothing, Tuple{}}}); catch e; @debug "couldn't precompile statement 794" exception = e; end
-try;precompile(Tuple{typeof(CSV.check), Base.CodeUnits{UInt8, String}, Int64, UInt8, UInt8, UInt8, UInt8}); catch e; @debug "couldn't precompile statement 795" exception = e; end
-try;precompile(Tuple{typeof(CSV.writecell), Array{UInt8, 1}, Int64, Int64, Base.BufferStream, String, CSV.Options{UInt8, UInt8, Nothing, Tuple{}}}); catch e; @debug "couldn't precompile statement 796" exception = e; end
-try;precompile(Tuple{typeof(CSV.writecell), Array{UInt8, 1}, Int64, Int64, Base.BufferStream, Bool, CSV.Options{UInt8, UInt8, Nothing, Tuple{}}}); catch e; @debug "couldn't precompile statement 797" exception = e; end
-try;precompile(Tuple{typeof(CSV.writecell), Array{UInt8, 1}, Int64, Int64, Base.BufferStream, Float64, CSV.Options{UInt8, UInt8, Nothing, Tuple{}}}); catch e; @debug "couldn't precompile statement 798" exception = e; end
-try;precompile(Tuple{typeof(CSV.writerow), Array{UInt8, 1}, Base.RefValue{Int64}, Int64, Base.BufferStream, Tables.Schema{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Int64, Dates.Date, String, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}, Tables.ColumnsRow{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{Dates.Date, 1}, WeakRefStrings.StringArray{String, 1}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Float64, 1}}}}, Int64, CSV.Options{UInt8, UInt8, Nothing, Tuple{}}}); catch e; @debug "couldn't precompile statement 799" exception = e; end
-try;precompile(Tuple{getfield(CSV, Symbol("#55#56")){Bool, Tables.Schema{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Int64, Dates.Date, String, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}, Tables.RowIterator{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{Dates.Date, 1}, WeakRefStrings.StringArray{String, 1}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Float64, 1}}}}, CSV.Options{UInt8, UInt8, Nothing, Tuple{}}, Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}, Int64, Int64, Array{UInt8, 1}}, Base.BufferStream}); catch e; @debug "couldn't precompile statement 800" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.set_schema), Dataiku.DSSDataset, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 801" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.runs_remotely)}); catch e; @debug "couldn't precompile statement 802" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_flow)}); catch e; @debug "couldn't precompile statement 803" exception = e; end
-try;precompile(Tuple{typeof(Base.getproperty), Dataiku.DSSDataset, Symbol}); catch e; @debug "couldn't precompile statement 804" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_name_or_id), Dataiku.DSSDataset}); catch e; @debug "couldn't precompile statement 805" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.full_name), Dataiku.DSSDataset}); catch e; @debug "couldn't precompile statement 806" exception = e; end
-try;precompile(Tuple{typeof(Base.:(==)), WeakRef, Nothing}); catch e; @debug "couldn't precompile statement 807" exception = e; end
-try;precompile(Tuple{typeof(Dataiku._get_flow_inputs_or_outputs), Dataiku.DSSDataset, String}); catch e; @debug "couldn't precompile statement 808" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Symbol, Bool, Tuple{Symbol}, NamedTuple{(:intern_call,), Tuple{Bool}}}, typeof(Dataiku.request_json), String, String, Base.Dict{String, String}}); catch e; @debug "couldn't precompile statement 809" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##_init_write_session#54")), String, String, Bool, typeof(Dataiku._init_write_session), Dataiku.DSSDataset, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 810" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##write_data#51")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.write_data), Dataiku.DSSDataset, Base.BufferStream, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 811" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("#kw##write_data")), NamedTuple{(:infer_schema,), Tuple{Bool}}, typeof(Dataiku.write_data), Dataiku.DSSDataset, Base.BufferStream, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 812" exception = e; end
-try;precompile(Tuple{typeof(Base.convert), Type{Any}, Array{Any, 1}}); catch e; @debug "couldn't precompile statement 813" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_json), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Array{Any, 1}}); catch e; @debug "couldn't precompile statement 814" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String, Array{Any, 1}}); catch e; @debug "couldn't precompile statement 815" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_element), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Base.Dict{String, String}}); catch e; @debug "couldn't precompile statement 816" exception = e; end
-try;precompile(Tuple{typeof(JSON.Parser.skip!), JSON.Parser.MemoryParserState, UInt8, UInt8, Vararg{UInt8, N} where N}); catch e; @debug "couldn't precompile statement 817" exception = e; end
-try;precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Base.Dict{String, Any}}}}}); catch e; @debug "couldn't precompile statement 818" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Any, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Base.Dict{String, Any}}}}); catch e; @debug "couldn't precompile statement 819" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Base.Dict{String, Any}}}}); catch e; @debug "couldn't precompile statement 820" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, String}, String, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 821" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, String}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Base.Dict{String, Any}}}, Int64}); catch e; @debug "couldn't precompile statement 822" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Any}, Base.Dict{String, Any}, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 823" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Any}, String, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 824" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Base.Dict{String, Any}}}, Int64}); catch e; @debug "couldn't precompile statement 825" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.json), Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 826" exception = e; end
-try;precompile(Tuple{typeof(Base.convert), Type{Any}, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 827" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 828" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##sprint#339")), Nothing, Int64, typeof(Base.sprint), Function, Base.Generator{Base.Dict{String, String}, getfield(HTTP.URIs, Symbol("#16#17"))}, Vararg{Any, N} where N}); catch e; @debug "couldn't precompile statement 829" exception = e; end
-try;precompile(Tuple{typeof(Base.join), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.Generator{Base.Dict{String, String}, getfield(HTTP.URIs, Symbol("#16#17"))}, String}); catch e; @debug "couldn't precompile statement 830" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##sprint#339")), Nothing, Int64, typeof(Base.sprint), Function, Base.Generator{Base.Generator{Base.CodeUnits{UInt8, String}, Type{Char}}, getfield(HTTP.URIs, Symbol("#12#13")){typeof(HTTP.URIs.issafe)}}}); catch e; @debug "couldn't precompile statement 831" exception = e; end
-try;precompile(Tuple{getfield(HTTP.URIs, Symbol("#12#13")){typeof(HTTP.URIs.issafe)}, Char}); catch e; @debug "couldn't precompile statement 832" exception = e; end
-try;precompile(Tuple{typeof(Base.join), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.Generator{Base.Generator{Base.CodeUnits{UInt8, String}, Type{Char}}, getfield(HTTP.URIs, Symbol("#12#13")){typeof(HTTP.URIs.issafe)}}, String}); catch e; @debug "couldn't precompile statement 833" exception = e; end
-try;precompile(Tuple{typeof(Base.join), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.Generator{Base.Generator{Base.CodeUnits{UInt8, String}, Type{Char}}, getfield(HTTP.URIs, Symbol("#12#13")){typeof(HTTP.URIs.issafe)}}}); catch e; @debug "couldn't precompile statement 834" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request), String, String, Base.BufferStream}); catch e; @debug "couldn't precompile statement 835" exception = e; end
-try;precompile(Tuple{typeof(Dataiku._push_data), String, Base.BufferStream}); catch e; @debug "couldn't precompile statement 836" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("##request#4")), Base.Dict{String, String}, Base.BufferStream, Nothing, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), String, String, Base.Dict{String, String}, Base.BufferStream}); catch e; @debug "couldn't precompile statement 837" exception = e; end
-try;precompile(Tuple{typeof(HTTP.request), String, String, Base.Dict{String, String}, Base.BufferStream}); catch e; @debug "couldn't precompile statement 838" exception = e; end
-try;precompile(Tuple{getfield(HTTP.MessageRequest, Symbol("##request#1")), Base.VersionNumber, String, Nothing, Nothing, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), Type{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Base.BufferStream}); catch e; @debug "couldn't precompile statement 839" exception = e; end
-try;precompile(Tuple{getfield(HTTP.RedirectRequest, Symbol("##request#1")), Int64, Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), Type{HTTP.RedirectRequest.RedirectLayer{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Base.BufferStream}); catch e; @debug "couldn't precompile statement 840" exception = e; end
-try;precompile(Tuple{typeof(HTTP.request), Type{HTTP.RedirectRequest.RedirectLayer{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Base.BufferStream}); catch e; @debug "couldn't precompile statement 841" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{Nothing}}, typeof(HTTP.request), Type{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Base.BufferStream}); catch e; @debug "couldn't precompile statement 842" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{Nothing}}, typeof(HTTP.request), Type{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Base.BufferStream}); catch e; @debug "couldn't precompile statement 843" exception = e; end
-try;precompile(Tuple{getfield(HTTP.ConnectionRequest, Symbol("##request#1")), Nothing, Type{T} where T, Int64, Base.Iterators.Pairs{Symbol, Nothing, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{Nothing}}}, typeof(HTTP.request), Type{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Base.BufferStream}); catch e; @debug "couldn't precompile statement 844" exception = e; end
-try;precompile(Tuple{getfield(HTTP.StreamRequest, Symbol("##request#1")), Nothing, Nothing, Int64, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), Type{HTTP.StreamRequest.StreamLayer{Union{}}}, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, Base.BufferStream}); catch e; @debug "couldn't precompile statement 845" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{Nothing}}, typeof(HTTP.request), Type{HTTP.StreamRequest.StreamLayer{Union{}}}, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, Base.BufferStream}); catch e; @debug "couldn't precompile statement 846" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Messages.setheader), HTTP.Messages.Request, Base.Pair{String, String}}); catch e; @debug "couldn't precompile statement 847" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request), String, String, String}); catch e; @debug "couldn't precompile statement 848" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Symbol, Bool, Tuple{Symbol}, NamedTuple{(:intern_call,), Tuple{Bool}}}, typeof(Dataiku.request_json), String, String, String}); catch e; @debug "couldn't precompile statement 849" exception = e; end
-try;precompile(Tuple{typeof(Dataiku._wait_write_session), String}); catch e; @debug "couldn't precompile statement 850" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("#52#53")){String}}); catch e; @debug "couldn't precompile statement 851" exception = e; end
-try;precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("#8#9")){DataType, Base.SubString{String}, Base.SubString{String}, Int64, Bool}, HTTP.ConnectionPool.Connection{Sockets.TCPSocket}}); catch e; @debug "couldn't precompile statement 852" exception = e; end
-try;precompile(Tuple{typeof(Base.write), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Base.BufferStream}); catch e; @debug "couldn't precompile statement 853" exception = e; end
-try;precompile(Tuple{typeof(HTTP.StreamRequest.writebody), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, HTTP.Messages.Request, Base.BufferStream}); catch e; @debug "couldn't precompile statement 854" exception = e; end
-try;precompile(Tuple{getfield(HTTP.StreamRequest, Symbol("#2#3")){HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, Base.BufferStream, HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}}}); catch e; @debug "couldn't precompile statement 855" exception = e; end
-try;precompile(Tuple{typeof(Base.include), Module, String}); catch e; @debug "couldn't precompile statement 856" exception = e; end
-try;precompile(Tuple{getfield(Test, Symbol("#@testset")), LineNumberNode, Module, Vararg{Any, N} where N}); catch e; @debug "couldn't precompile statement 857" exception = e; end
-try;precompile(Tuple{typeof(Test.testset_beginend), Tuple{String, Expr}, Expr, LineNumberNode}); catch e; @debug "couldn't precompile statement 858" exception = e; end
-try;precompile(Tuple{typeof(Test.parse_testset_args), Tuple{String}}); catch e; @debug "couldn't precompile statement 859" exception = e; end
-try;precompile(Tuple{getfield(Test, Symbol("#@test")), LineNumberNode, Module, Any, Vararg{Any, N} where N}); catch e; @debug "couldn't precompile statement 860" exception = e; end
-try;precompile(Tuple{typeof(Test.test_expr!), String, Expr}); catch e; @debug "couldn't precompile statement 861" exception = e; end
-try;precompile(Tuple{typeof(Test.get_test_result), Expr, LineNumberNode}); catch e; @debug "couldn't precompile statement 862" exception = e; end
-try;precompile(Tuple{typeof(Base.first), String}); catch e; @debug "couldn't precompile statement 863" exception = e; end
-try;precompile(Tuple{typeof(Base.in), Symbol, Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}}); catch e; @debug "couldn't precompile statement 864" exception = e; end
-try;precompile(Tuple{typeof(Base.collect), Base.Generator{Array{Any, 1}, typeof(Base.esc)}}); catch e; @debug "couldn't precompile statement 865" exception = e; end
-try;precompile(Tuple{Type{Base.Generator{I, F} where F where I}, Type{QuoteNode}, Array{Any, 1}}); catch e; @debug "couldn't precompile statement 866" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{QuoteNode, 1}, QuoteNode, Base.Generator{Array{Any, 1}, Type{QuoteNode}}, Int64}); catch e; @debug "couldn't precompile statement 867" exception = e; end
-try;precompile(Tuple{typeof(Base.collect), Base.Generator{Array{Any, 1}, Type{QuoteNode}}}); catch e; @debug "couldn't precompile statement 868" exception = e; end
-try;precompile(Tuple{typeof(Test.get_testset_depth)}); catch e; @debug "couldn't precompile statement 869" exception = e; end
-try;precompile(Tuple{typeof(Base.length), Array{Test.AbstractTestSet, 1}}); catch e; @debug "couldn't precompile statement 870" exception = e; end
-try;precompile(Tuple{typeof(Test._check_testset), Type{T} where T, Expr}); catch e; @debug "couldn't precompile statement 871" exception = e; end
-try;precompile(Tuple{typeof(Base.merge), NamedTuple{(), Tuple{}}, Base.Dict{Symbol, Any}}); catch e; @debug "couldn't precompile statement 872" exception = e; end
-try;precompile(Tuple{Type{Test.DefaultTestSet}, String}); catch e; @debug "couldn't precompile statement 873" exception = e; end
-try;precompile(Tuple{typeof(Test.push_testset), Test.DefaultTestSet}); catch e; @debug "couldn't precompile statement 874" exception = e; end
-try;precompile(Tuple{typeof(Base.push!), Array{Test.AbstractTestSet, 1}, Test.DefaultTestSet}); catch e; @debug "couldn't precompile statement 875" exception = e; end
-try;precompile(Tuple{typeof(Random.default_rng)}); catch e; @debug "couldn't precompile statement 876" exception = e; end
-try;precompile(Tuple{typeof(Base.copy), Random.MersenneTwister}); catch e; @debug "couldn't precompile statement 877" exception = e; end
-try;precompile(Tuple{typeof(Base.getproperty), Random.MersenneTwister, Symbol}); catch e; @debug "couldn't precompile statement 878" exception = e; end
-try;precompile(Tuple{typeof(Random.seed!), Array{UInt32, 1}}); catch e; @debug "couldn't precompile statement 879" exception = e; end
-try;precompile(Tuple{typeof(Test.get_testset)}); catch e; @debug "couldn't precompile statement 880" exception = e; end
-try;precompile(Tuple{typeof(Base.isempty), Array{Test.AbstractTestSet, 1}}); catch e; @debug "couldn't precompile statement 881" exception = e; end
-try;precompile(Tuple{typeof(Base.lastindex), Array{Test.AbstractTestSet, 1}}); catch e; @debug "couldn't precompile statement 882" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), Array{Test.AbstractTestSet, 1}, Int64}); catch e; @debug "couldn't precompile statement 883" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request_json), String, String, String}); catch e; @debug "couldn't precompile statement 884" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_settings), Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 885" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Any}, Int64, String}); catch e; @debug "couldn't precompile statement 886" exception = e; end
-try;precompile(Tuple{typeof(Base.string), Int64, String, String, String}); catch e; @debug "couldn't precompile statement 887" exception = e; end
-try;precompile(Tuple{typeof(Base.debug_color)}); catch e; @debug "couldn't precompile statement 888" exception = e; end
-try;precompile(Tuple{typeof(Base.warn_color)}); catch e; @debug "couldn't precompile statement 889" exception = e; end
-try;precompile(Tuple{typeof(Logging.default_metafmt), Base.CoreLogging.LogLevel, Module, String, Symbol, String, Int64}); catch e; @debug "couldn't precompile statement 890" exception = e; end
-try;precompile(Tuple{typeof(Base.show), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.CoreLogging.LogLevel}); catch e; @debug "couldn't precompile statement 891" exception = e; end
-try;precompile(Tuple{typeof(Base.indexed_iterate), Tuple{Symbol, String, String}, Int64}); catch e; @debug "couldn't precompile statement 892" exception = e; end
-try;precompile(Tuple{typeof(Base.indexed_iterate), Tuple{Symbol, String, String}, Int64, Int64}); catch e; @debug "couldn't precompile statement 893" exception = e; end
-try;precompile(Tuple{Type{Base.IOContext{IO_t} where IO_t<:IO}, Base.GenericIOBuffer{Array{UInt8, 1}}, Base.TTY}); catch e; @debug "couldn't precompile statement 894" exception = e; end
-try;precompile(Tuple{typeof(Base.afoldl), typeof(Base.:(+)), Int64, Int64, Int64}); catch e; @debug "couldn't precompile statement 895" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#kw##printstyled")), NamedTuple{(:bold, :color), Tuple{Bool, Symbol}}, typeof(Base.printstyled), Base.IOContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, String}); catch e; @debug "couldn't precompile statement 896" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#kw##printstyled")), NamedTuple{(:bold, :color), Tuple{Bool, Symbol}}, typeof(Base.printstyled), Base.IOContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, String, Vararg{String, N} where N}); catch e; @debug "couldn't precompile statement 897" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##printstyled#708")), Bool, Symbol, typeof(Base.printstyled), Base.IOContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, String, Vararg{String, N} where N}); catch e; @debug "couldn't precompile statement 898" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#kw##with_output_color")), NamedTuple{(:bold,), Tuple{Bool}}, typeof(Base.with_output_color), Function, Symbol, Base.IOContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, String, Vararg{String, N} where N}); catch e; @debug "couldn't precompile statement 899" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##with_output_color#707")), Bool, typeof(Base.with_output_color), Function, Symbol, Base.IOContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, String, Vararg{String, N} where N}); catch e; @debug "couldn't precompile statement 900" exception = e; end
-try;precompile(Tuple{typeof(Base.write), Base.TTY, Array{UInt8, 1}}); catch e; @debug "couldn't precompile statement 901" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Any}, Float64, String}); catch e; @debug "couldn't precompile statement 902" exception = e; end
-try;precompile(Tuple{Type{Test.Returned}, Bool, Nothing, LineNumberNode}); catch e; @debug "couldn't precompile statement 903" exception = e; end
-try;precompile(Tuple{typeof(Test.do_test), Test.Returned, Expr}); catch e; @debug "couldn't precompile statement 904" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.set_settings), Base.Dict{String, Any}, Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 905" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.set_settings), Dataiku.DSSProject, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 906" exception = e; end
-try;precompile(Tuple{typeof(Base.convert), Type{Any}, Int64}); catch e; @debug "couldn't precompile statement 907" exception = e; end
-try;precompile(Tuple{typeof(Base.print), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, Int64}); catch e; @debug "couldn't precompile statement 908" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String, Int64}); catch e; @debug "couldn't precompile statement 909" exception = e; end
-try;precompile(Tuple{typeof(Base.convert), Type{Any}, Float64}); catch e; @debug "couldn't precompile statement 910" exception = e; end
-try;precompile(Tuple{typeof(Base.write), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, Char}); catch e; @debug "couldn't precompile statement 911" exception = e; end
-try;precompile(Tuple{typeof(Base.Grisu.fastfixedtoa), Float64, Int64, Int64, Array{UInt8, 1}}); catch e; @debug "couldn't precompile statement 912" exception = e; end
-try;precompile(Tuple{typeof(Base.Grisu.grisu), Float64, Int64, Int64, Array{UInt8, 1}, Array{Base.Grisu.Bignums.Bignum, 1}}); catch e; @debug "couldn't precompile statement 913" exception = e; end
-try;precompile(Tuple{typeof(Base.Grisu.grisu), Float64, Int64, Int64, Array{UInt8, 1}}); catch e; @debug "couldn't precompile statement 914" exception = e; end
-try;precompile(Tuple{typeof(Base.Grisu._show), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, Float64, Int64, Int64, Bool, Bool}); catch e; @debug "couldn't precompile statement 915" exception = e; end
-try;precompile(Tuple{typeof(Base.print), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, Float64}); catch e; @debug "couldn't precompile statement 916" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String, Float64}); catch e; @debug "couldn't precompile statement 917" exception = e; end
-try;precompile(Tuple{typeof(Test.eval_test), Expr, Expr, LineNumberNode, Bool}); catch e; @debug "couldn't precompile statement 918" exception = e; end
-try;precompile(Tuple{typeof(Base.allocatedinline), Type{UInt128}}); catch e; @debug "couldn't precompile statement 919" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Float64, 1}, Int64, Array{Float64, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 920" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{UInt128, 1}, Int64, Array{UInt128, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 921" exception = e; end
-try;precompile(Tuple{typeof(Base.copy!), Random.MersenneTwister, Random.MersenneTwister}); catch e; @debug "couldn't precompile statement 922" exception = e; end
-try;precompile(Tuple{typeof(Test.pop_testset)}); catch e; @debug "couldn't precompile statement 923" exception = e; end
-try;precompile(Tuple{typeof(Base.pop!), Array{Test.AbstractTestSet, 1}}); catch e; @debug "couldn't precompile statement 924" exception = e; end
-try;precompile(Tuple{typeof(Test.record), Test.DefaultTestSet, Test.DefaultTestSet}); catch e; @debug "couldn't precompile statement 925" exception = e; end
-try;precompile(Tuple{typeof(Test.get_test_counts), Test.DefaultTestSet}); catch e; @debug "couldn't precompile statement 926" exception = e; end
-try;precompile(Tuple{typeof(Test.get_alignment), Test.DefaultTestSet, Int64}); catch e; @debug "couldn't precompile statement 927" exception = e; end
-try;precompile(Tuple{typeof(Base.lpad), String, Int64, String}); catch e; @debug "couldn't precompile statement 928" exception = e; end
-try;precompile(Tuple{typeof(Test.print_test_results), Test.DefaultTestSet, Int64}); catch e; @debug "couldn't precompile statement 929" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{Test.Error, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 930" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{Test.Fail, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 931" exception = e; end
-try;precompile(Tuple{typeof(Test.filter_errors), Test.DefaultTestSet}); catch e; @debug "couldn't precompile statement 932" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Base.IndexLinear, Array{Union{Test.Error, Test.Fail}, 1}, Base.IndexLinear, Array{Any, 1}}); catch e; @debug "couldn't precompile statement 933" exception = e; end
-try;precompile(Tuple{typeof(Test.finish), Test.DefaultTestSet}); catch e; @debug "couldn't precompile statement 934" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_metadata), Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 935" exception = e; end
-try;precompile(Tuple{typeof(Base.length), Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 936" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.set_metadata), Base.Dict{String, Any}, Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 937" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.set_metadata), Dataiku.DSSProject, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 938" exception = e; end
-try;precompile(Tuple{typeof(Base.convert), Type{Any}, Array{String, 1}}); catch e; @debug "couldn't precompile statement 939" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_element), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String}); catch e; @debug "couldn't precompile statement 940" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_json), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Array{String, 1}}); catch e; @debug "couldn't precompile statement 941" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String, Array{String, 1}}); catch e; @debug "couldn't precompile statement 942" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_tags), Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 943" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.set_tags), Base.Dict{String, Any}, Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 944" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.set_tags), Dataiku.DSSProject, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 945" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_variables), Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 946" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.set_variables), Base.Dict{String, Any}, Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 947" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.set_variables), Dataiku.DSSProject, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 948" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.duplicate), Dataiku.DSSProject, String, String, String}); catch e; @debug "couldn't precompile statement 949" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.duplicate), Dataiku.DSSProject, String, String}); catch e; @debug "couldn't precompile statement 950" exception = e; end
-try;precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:intern_call,), Tuple{Bool}}}, Type{NamedTuple{(:params,), Tuple{Base.Dict{String, Array{Any, 1}}}}}}); catch e; @debug "couldn't precompile statement 951" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, Array{Any, 1}}}}); catch e; @debug "couldn't precompile statement 952" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, Array{Any, 1}}}, Int64}); catch e; @debug "couldn't precompile statement 953" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Array{String, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, Array{Any, 1}}}, getfield(Dataiku, Symbol("#1#3"))}, Int64}); catch e; @debug "couldn't precompile statement 954" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Array{String, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, Array{Any, 1}}}, getfield(Dataiku, Symbol("#1#3"))}}); catch e; @debug "couldn't precompile statement 955" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##get_url_and_header#5")), Bool, Base.Dict{String, Array{Any, 1}}, Bool, typeof(Dataiku.get_url_and_header), String}); catch e; @debug "couldn't precompile statement 956" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Symbol, Base.Dict{String, Array{Any, 1}}, Tuple{Symbol}, NamedTuple{(:params,), Tuple{Base.Dict{String, Array{Any, 1}}}}}, typeof(Dataiku.request), String, String, String}); catch e; @debug "couldn't precompile statement 957" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Symbol, Base.Dict{String, Array{Any, 1}}, Tuple{Symbol}, NamedTuple{(:params,), Tuple{Base.Dict{String, Array{Any, 1}}}}}, typeof(Dataiku.request_json), String, String, String}); catch e; @debug "couldn't precompile statement 958" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##list_projects#17")), Array{Any, 1}, typeof(Dataiku.list_projects)}); catch e; @debug "couldn't precompile statement 959" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.list_projects)}); catch e; @debug "couldn't precompile statement 960" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#kw##printstyled")), NamedTuple{(:bold, :color), Tuple{Bool, Symbol}}, typeof(Base.printstyled), String, String, Vararg{String, N} where N}); catch e; @debug "couldn't precompile statement 961" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##printstyled#709")), Bool, Symbol, typeof(Base.printstyled), String, Vararg{String, N} where N}); catch e; @debug "couldn't precompile statement 962" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#kw##printstyled")), NamedTuple{(:bold, :color), Tuple{Bool, Symbol}}, typeof(Base.printstyled), Base.TTY, String, Vararg{String, N} where N}); catch e; @debug "couldn't precompile statement 963" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##printstyled#708")), Bool, Symbol, typeof(Base.printstyled), Base.TTY, String, Vararg{String, N} where N}); catch e; @debug "couldn't precompile statement 964" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#kw##with_output_color")), NamedTuple{(:bold,), Tuple{Bool}}, typeof(Base.with_output_color), Function, Symbol, Base.TTY, String, Vararg{String, N} where N}); catch e; @debug "couldn't precompile statement 965" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##with_output_color#707")), Bool, typeof(Base.with_output_color), Function, Symbol, Base.TTY, String, Vararg{String, N} where N}); catch e; @debug "couldn't precompile statement 966" exception = e; end
-try;precompile(Tuple{typeof(Base.print), Base.IOContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, String, String, Vararg{String, N} where N}); catch e; @debug "couldn't precompile statement 967" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#kw##printstyled")), NamedTuple{(:bold, :color), Tuple{Bool, Symbol}}, typeof(Base.printstyled), String, String}); catch e; @debug "couldn't precompile statement 968" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#kw##printstyled")), NamedTuple{(:bold, :color), Tuple{Bool, Symbol}}, typeof(Base.printstyled), String}); catch e; @debug "couldn't precompile statement 969" exception = e; end
-try;precompile(Tuple{typeof(Base.print), String, String}); catch e; @debug "couldn't precompile statement 970" exception = e; end
-try;precompile(Tuple{typeof(Test.print_counts), Test.DefaultTestSet, Int64, Int64, Int64, Int64, Int64, Int64, Int64}); catch e; @debug "couldn't precompile statement 971" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#kw##printstyled")), NamedTuple{(:color,), Tuple{Symbol}}, typeof(Base.printstyled), String, String}); catch e; @debug "couldn't precompile statement 972" exception = e; end
-try;precompile(Tuple{Type{NamedTuple{(:color,), T} where T<:Tuple}, Tuple{Symbol}}); catch e; @debug "couldn't precompile statement 973" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_schema), Dataiku.DSSDataset}); catch e; @debug "couldn't precompile statement 974" exception = e; end
-try;precompile(Tuple{typeof(Base.collect), Base.Generator{Array{Any, 1}, getfield(Dataiku, Symbol("#59#60"))}}); catch e; @debug "couldn't precompile statement 975" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_column_names), Array{Any, 1}}); catch e; @debug "couldn't precompile statement 976" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("#59#60")), Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 977" exception = e; end
-try;precompile(Tuple{typeof(Base._array_for), Type{Symbol}, Array{Any, 1}, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 978" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Symbol, 1}, Base.Generator{Array{Any, 1}, getfield(Dataiku, Symbol("#59#60"))}, Int64, Int64}); catch e; @debug "couldn't precompile statement 979" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Symbol, 1}, Symbol, Base.Generator{Array{Any, 1}, getfield(Dataiku, Symbol("#59#60"))}, Int64}); catch e; @debug "couldn't precompile statement 980" exception = e; end
-try;precompile(Tuple{typeof(Base.in), Base.Pair{String, Any}, Base.Dict{String, String}, typeof(Base.:(==))}); catch e; @debug "couldn't precompile statement 981" exception = e; end
-try;precompile(Tuple{typeof(Base.:(==)), Base.Dict{String, Any}, Base.Dict{String, String}}); catch e; @debug "couldn't precompile statement 982" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_settings), Dataiku.DSSDataset}); catch e; @debug "couldn't precompile statement 983" exception = e; end
-try;precompile(Tuple{typeof(Base.getproperty), Dataiku.DSSProject, Symbol}); catch e; @debug "couldn't precompile statement 984" exception = e; end
-try;precompile(Tuple{typeof(Base.in), Base.Pair{String, Any}, Base.Dict{String, Any}, typeof(Base.:(==))}); catch e; @debug "couldn't precompile statement 985" exception = e; end
-try;precompile(Tuple{typeof(Base.:(==)), Base.Dict{String, Any}, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 986" exception = e; end
-try;precompile(Tuple{typeof(Base.:(==)), Bool, Bool}); catch e; @debug "couldn't precompile statement 987" exception = e; end
-try;precompile(Tuple{typeof(Base.:(==)), Array{Any, 1}, Array{Any, 1}}); catch e; @debug "couldn't precompile statement 988" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.set_settings), Dataiku.DSSDataset, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 989" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_element), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 990" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_metadata), Dataiku.DSSDataset}); catch e; @debug "couldn't precompile statement 991" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.set_metadata), Dataiku.DSSDataset, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 992" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.list_partitions), Dataiku.DSSDataset}); catch e; @debug "couldn't precompile statement 993" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_column_names), Dataiku.DSSDataset, Array{Any, 1}}); catch e; @debug "couldn't precompile statement 994" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_column_types), Dataiku.DSSDataset, Array{Any, 1}}); catch e; @debug "couldn't precompile statement 995" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##_get_reading_schema#21")), Bool, typeof(Dataiku._get_reading_schema), Dataiku.DSSDataset, Array{Any, 1}}); catch e; @debug "couldn't precompile statement 996" exception = e; end
-try;precompile(Tuple{typeof(Base.collect), Base.Generator{Array{Any, 1}, getfield(DataFrames, Symbol("#84#87"))}}); catch e; @debug "couldn't precompile statement 997" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Base.IndexLinear, Array{AbstractArray{T, 1} where T, 1}, Base.IndexLinear, Array{Any, 1}}); catch e; @debug "couldn't precompile statement 998" exception = e; end
-try;precompile(Tuple{getfield(DataFrames, Symbol("#DataFrame#83#86")), Bool, Type{DataFrames.DataFrame}, Array{Any, 1}, DataFrames.Index}); catch e; @debug "couldn't precompile statement 999" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##_create_sampling_argument#61")), String, Nothing, Nothing, Nothing, typeof(Dataiku._create_sampling_argument)}); catch e; @debug "couldn't precompile statement 1000" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##_get_reading_params#22")), Nothing, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku._get_reading_params), Dataiku.DSSDataset}); catch e; @debug "couldn't precompile statement 1001" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##get_dataframe#18")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.get_dataframe), Dataiku.DSSDataset, Array{Any, 1}}); catch e; @debug "couldn't precompile statement 1002" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_dataframe), Dataiku.DSSDataset}); catch e; @debug "couldn't precompile statement 1003" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_column_names), Array{Any, 1}, Array{Any, 1}}); catch e; @debug "couldn't precompile statement 1004" exception = e; end
-try;precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}}}); catch e; @debug "couldn't precompile statement 1005" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Any, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}}); catch e; @debug "couldn't precompile statement 1006" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}}); catch e; @debug "couldn't precompile statement 1007" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, String}, String, Nothing}); catch e; @debug "couldn't precompile statement 1008" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, String}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}, Int64}); catch e; @debug "couldn't precompile statement 1009" exception = e; end
-try;precompile(Tuple{typeof(Base.empty), Base.Dict{String, String}, Type{String}, Type{Union{Nothing, String}}}); catch e; @debug "couldn't precompile statement 1010" exception = e; end
-try;precompile(Tuple{typeof(Base.rehash!), Base.Dict{String, Union{Nothing, String}}, Int64}); catch e; @debug "couldn't precompile statement 1011" exception = e; end
-try;precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{String, Union{Nothing, String}}, String}); catch e; @debug "couldn't precompile statement 1012" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Union{Nothing, String}}, String, String}); catch e; @debug "couldn't precompile statement 1013" exception = e; end
-try;precompile(Tuple{typeof(Base.merge!), Base.Dict{String, Union{Nothing, String}}, Base.Dict{String, String}}); catch e; @debug "couldn't precompile statement 1014" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Union{Nothing, String}}, Nothing, String}); catch e; @debug "couldn't precompile statement 1015" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Union{Nothing, String}}, Nothing, Nothing}); catch e; @debug "couldn't precompile statement 1016" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Union{Nothing, String}}, String, Nothing}); catch e; @debug "couldn't precompile statement 1017" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Union{Nothing, String}}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}, Int64}); catch e; @debug "couldn't precompile statement 1018" exception = e; end
-try;precompile(Tuple{Type{NamedTuple{(:params,), T} where T<:Tuple}, Tuple{Base.Dict{String, Union{Nothing, String}}}}); catch e; @debug "couldn't precompile statement 1019" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("#2#4")), Base.Pair{String, Union{Nothing, String}}}); catch e; @debug "couldn't precompile statement 1020" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, Union{Nothing, String}}}}); catch e; @debug "couldn't precompile statement 1021" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, Union{Nothing, String}}}, Int64}); catch e; @debug "couldn't precompile statement 1022" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Array{String, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, Union{Nothing, String}}}, getfield(Dataiku, Symbol("#1#3"))}, Int64}); catch e; @debug "couldn't precompile statement 1023" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Array{String, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, Union{Nothing, String}}}, getfield(Dataiku, Symbol("#1#3"))}}); catch e; @debug "couldn't precompile statement 1024" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##get_url_and_header#5")), Bool, Base.Dict{String, Union{Nothing, String}}, Bool, typeof(Dataiku.get_url_and_header), String}); catch e; @debug "couldn't precompile statement 1025" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##get_stream#8")), Base.Iterators.Pairs{Symbol, Base.Dict{String, Union{Nothing, String}}, Tuple{Symbol}, NamedTuple{(:params,), Tuple{Base.Dict{String, Union{Nothing, String}}}}}, typeof(Dataiku.get_stream), Function, String}); catch e; @debug "couldn't precompile statement 1026" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("#kw##get_stream")), NamedTuple{(:params,), Tuple{Base.Dict{String, Union{Nothing, String}}}}, typeof(Dataiku.get_stream), Function, String}); catch e; @debug "couldn't precompile statement 1027" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("##open#6")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.open), Function, String, String, Base.Dict{String, String}}); catch e; @debug "couldn't precompile statement 1028" exception = e; end
-try;precompile(Tuple{typeof(HTTP.open), Function, String, String, Base.Dict{String, String}}); catch e; @debug "couldn't precompile statement 1029" exception = e; end
-try;precompile(Tuple{Type{NamedTuple{(:iofunction,), T} where T<:Tuple}, Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}); catch e; @debug "couldn't precompile statement 1030" exception = e; end
-try;precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol}, Type{NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}, Type{NamedTuple{(), Tuple{}}}}); catch e; @debug "couldn't precompile statement 1031" exception = e; end
-try;precompile(Tuple{typeof(Base.merge), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}}); catch e; @debug "couldn't precompile statement 1032" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("##stack#18")), Bool, Bool, Bool, Bool, Bool, Bool, Bool, Int64, Bool, Int64, Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.stack)}); catch e; @debug "couldn't precompile statement 1033" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("##request#4")), Base.Dict{String, String}, Nothing, Nothing, Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.request), String, String, Base.Dict{String, String}, Nothing}); catch e; @debug "couldn't precompile statement 1034" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), String, String, Base.Dict{String, String}, Nothing}); catch e; @debug "couldn't precompile statement 1035" exception = e; end
-try;precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:reuse_limit,), Tuple{Int64}}}, Type{NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}}); catch e; @debug "couldn't precompile statement 1036" exception = e; end
-try;precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:require_ssl_verification,), Tuple{Bool}}}, Type{NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}}); catch e; @debug "couldn't precompile statement 1037" exception = e; end
-try;precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Bool, getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}); catch e; @debug "couldn't precompile statement 1038" exception = e; end
-try;precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Char, Nothing, Array{Symbol, 1}, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}}}); catch e; @debug "couldn't precompile statement 1039" exception = e; end
-try;precompile(Tuple{typeof(Base._promote_typejoin), Type{Char}, Type{Nothing}}); catch e; @debug "couldn't precompile statement 1040" exception = e; end
-try;precompile(Tuple{typeof(Base.diff_names), Tuple{Symbol, Symbol, Symbol, Symbol}, Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}}); catch e; @debug "couldn't precompile statement 1041" exception = e; end
-try;precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}, Type{NamedTuple{(:parent,), Tuple{HTTP.Messages.Response}}}}); catch e; @debug "couldn't precompile statement 1042" exception = e; end
-try;precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}, HTTP.Messages.Response}}}); catch e; @debug "couldn't precompile statement 1043" exception = e; end
-try;precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:iofunction, :parent), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}, HTTP.Messages.Response}}}, Type{NamedTuple{(:parent,), Tuple{HTTP.Messages.Response}}}}); catch e; @debug "couldn't precompile statement 1044" exception = e; end
-try;precompile(Tuple{getfield(HTTP.RedirectRequest, Symbol("##request#1")), Int64, Bool, Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.request), Type{HTTP.RedirectRequest.RedirectLayer{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Nothing}); catch e; @debug "couldn't precompile statement 1045" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), Type{HTTP.RedirectRequest.RedirectLayer{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Nothing}); catch e; @debug "couldn't precompile statement 1046" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), Type{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Nothing}); catch e; @debug "couldn't precompile statement 1047" exception = e; end
-try;precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol}, Type{NamedTuple{(:reuse_limit,), Tuple{Int64}}}, Type{NamedTuple{(), Tuple{}}}}); catch e; @debug "couldn't precompile statement 1048" exception = e; end
-try;precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol}, Type{NamedTuple{(:require_ssl_verification,), Tuple{Bool}}}, Type{NamedTuple{(), Tuple{}}}}); catch e; @debug "couldn't precompile statement 1049" exception = e; end
-try;precompile(Tuple{getfield(HTTP.MessageRequest, Symbol("##request#1")), Base.VersionNumber, String, Nothing, Function, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), Type{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Nothing}); catch e; @debug "couldn't precompile statement 1050" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), Type{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Nothing}); catch e; @debug "couldn't precompile statement 1051" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#50#51#53")){Base.ExponentialBackOff, getfield(HTTP.RetryRequest, Symbol("#2#3")){Bool, HTTP.Messages.Request}, typeof(HTTP.request)}, Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}, getfield(Base, Symbol("#50#52")){getfield(Base, Symbol("#50#51#53")){Base.ExponentialBackOff, getfield(HTTP.RetryRequest, Symbol("#2#3")){Bool, HTTP.Messages.Request}, typeof(HTTP.request)}}, Type{T} where T, Vararg{Any, N} where N}); catch e; @debug "couldn't precompile statement 1052" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), Type{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Nothing}); catch e; @debug "couldn't precompile statement 1053" exception = e; end
-try;precompile(Tuple{getfield(HTTP.ExceptionRequest, Symbol("##request#1")), Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.request), Type{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}, HTTP.URIs.URI, Vararg{Any, N} where N}); catch e; @debug "couldn't precompile statement 1054" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), Type{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Nothing}); catch e; @debug "couldn't precompile statement 1055" exception = e; end
-try;precompile(Tuple{getfield(HTTP.ConnectionRequest, Symbol("##request#1")), Nothing, Type{T} where T, Int64, Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.request), Type{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Nothing}); catch e; @debug "couldn't precompile statement 1056" exception = e; end
-try;precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("##getconnection#14")), Bool, Int64, Base.Iterators.Pairs{Symbol, Any, Tuple{Symbol, Symbol}, NamedTuple{(:require_ssl_verification, :iofunction), Tuple{Bool, getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.ConnectionPool.getconnection), Type{Sockets.TCPSocket}, Base.SubString{String}, Base.SubString{String}}); catch e; @debug "couldn't precompile statement 1057" exception = e; end
-try;precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("##getconnection#11")), Int64, Int64, Int64, Int64, Bool, Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.ConnectionPool.getconnection), Type{HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Base.SubString{String}, Base.SubString{String}}); catch e; @debug "couldn't precompile statement 1058" exception = e; end
-try;precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("#kw##getconnection")), NamedTuple{(:reuse_limit, :iofunction), Tuple{Int64, getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}, typeof(HTTP.ConnectionPool.getconnection), Type{HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Base.SubString{String}, Base.SubString{String}}); catch e; @debug "couldn't precompile statement 1059" exception = e; end
-try;precompile(Tuple{typeof(Base.readbytes!), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Base.SubArray{UInt8, 1, Array{UInt8, 1}, Tuple{Base.UnitRange{Int64}}, true}, Int64}); catch e; @debug "couldn't precompile statement 1060" exception = e; end
-try;precompile(Tuple{typeof(BufferedStreams.fillbuffer!), BufferedStreams.BufferedInputStream{HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}}}); catch e; @debug "couldn't precompile statement 1061" exception = e; end
-try;precompile(Tuple{typeof(Base.readbytes!), BufferedStreams.BufferedInputStream{HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}}, Array{UInt8, 1}, Int64}); catch e; @debug "couldn't precompile statement 1062" exception = e; end
-try;precompile(Tuple{typeof(CSV.slurp), BufferedStreams.BufferedInputStream{HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}}}); catch e; @debug "couldn't precompile statement 1063" exception = e; end
-try;precompile(Tuple{typeof(CSV.detectheaderdatapos), Array{UInt8, 1}, Int64, Int64, UInt8, UInt8, UInt8, Nothing, Bool, Array{Symbol, 1}, Int64}); catch e; @debug "couldn't precompile statement 1064" exception = e; end
-try;precompile(Tuple{typeof(CSV.detectdelimandguessrows), Array{UInt8, 1}, Int64, Int64, Int64, UInt8, UInt8, UInt8, Char, Nothing, Bool}); catch e; @debug "couldn't precompile statement 1065" exception = e; end
-try;precompile(Tuple{Type{Parsers.Options{ignorerepeated, Q, debug, S, D, DF} where DF where D where S where debug where Q where ignorerepeated}, Base.Missing, UInt8, UInt8, UInt8, UInt8, UInt8, Char, UInt8, Nothing, Nothing, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Bool, Bool, Bool, Bool, Bool}); catch e; @debug "couldn't precompile statement 1066" exception = e; end
-try;precompile(Tuple{Type{Parsers.Options{ignorerepeated, Q, debug, S, D, DF} where DF where D where S where debug where Q where ignorerepeated}, Array{String, 1}, UInt8, UInt8, UInt8, UInt8, UInt8, Char, UInt8, Nothing, Nothing, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Bool, Bool, Bool, Bool, Bool}); catch e; @debug "couldn't precompile statement 1067" exception = e; end
-try;precompile(Tuple{Type{Parsers.Options{ignorerepeated, Q, debug, S, D, DF} where DF where D where S where debug where Q where ignorerepeated}, Base.Missing, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, Nothing, Nothing, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Bool, Bool, Bool, Bool, Bool}); catch e; @debug "couldn't precompile statement 1068" exception = e; end
-try;precompile(Tuple{Type{Parsers.Options{ignorerepeated, Q, debug, S, D, DF} where DF where D where S where debug where Q where ignorerepeated}, Array{String, 1}, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, Nothing, Nothing, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Bool, Bool, Bool, Bool, Bool}); catch e; @debug "couldn't precompile statement 1069" exception = e; end
-try;precompile(Tuple{typeof(CSV.file), BufferedStreams.BufferedInputStream{HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}}, Array{Symbol, 1}, Bool, Int64, Nothing, Int64, Int64, Bool, Nothing, Bool, Bool, Array{String, 1}, String, Char, Bool, Char, Nothing, Nothing, Char, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, UInt8, Nothing, Nothing, Nothing, Nothing, Base.Dict{Int8, Int8}, Bool, Float64, Bool, Bool, Nothing, Bool, Bool, Nothing}); catch e; @debug "couldn't precompile statement 1070" exception = e; end
-try;precompile(Tuple{getfield(Core, Symbol("#kw#Type")), NamedTuple{(:delim, :types, :header, :dateformat), Tuple{Char, Nothing, Array{Symbol, 1}, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}}, Type{CSV.File{threaded} where threaded}, BufferedStreams.BufferedInputStream{HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}}}); catch e; @debug "couldn't precompile statement 1071" exception = e; end
-try;precompile(Tuple{getfield(HTTP.StreamRequest, Symbol("##request#1")), Nothing, getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}, Int64, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), Type{HTTP.StreamRequest.StreamLayer{Union{}}}, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, Nothing}); catch e; @debug "couldn't precompile statement 1072" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), Type{HTTP.StreamRequest.StreamLayer{Union{}}}, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, Nothing}); catch e; @debug "couldn't precompile statement 1073" exception = e; end
-try;precompile(Tuple{Type{Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}}, Array{String, 1}, Base.Missing, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, Nothing, Nothing, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Bool, Bool}); catch e; @debug "couldn't precompile statement 1074" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Symbol, 1}, Base.Generator{Base.UnitRange{Int64}, getfield(CSV, Symbol("#7#10"))}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1075" exception = e; end
-try;precompile(Tuple{typeof(Base.collect), Base.Generator{Base.UnitRange{Int64}, getfield(CSV, Symbol("#7#10"))}}); catch e; @debug "couldn't precompile statement 1076" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Symbol, 1}, Symbol, Base.Generator{Array{Symbol, 1}, getfield(CSV, Symbol("#9#12")){Bool}}, Int64}); catch e; @debug "couldn't precompile statement 1077" exception = e; end
-try;precompile(Tuple{typeof(CSV.columnname), Array{UInt8, 1}, Int64, Int64, Int16, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}, Int64}); catch e; @debug "couldn't precompile statement 1078" exception = e; end
-try;precompile(Tuple{typeof(CSV.detectcolumnnames), Array{UInt8, 1}, Int64, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}, Array{Symbol, 1}, Bool}); catch e; @debug "couldn't precompile statement 1079" exception = e; end
-try;precompile(Tuple{typeof(Dates.character_codes), Type{Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}}); catch e; @debug "couldn't precompile statement 1080" exception = e; end
-try;precompile(Tuple{typeof(Dates._directives), Type{Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}}); catch e; @debug "couldn't precompile statement 1081" exception = e; end
-try;precompile(Tuple{typeof(CSV.parsetape), Base.Val{false}, Bool, Int64, Base.Dict{Int8, Int8}, Array{Array{UInt64, 1}, 1}, Array{Array{UInt64, 1}, 1}, Array{UInt8, 1}, Int64, Int64, Int64, Nothing, Array{Int64, 1}, Float64, Array{Base.Dict{String, UInt64}, 1}, Array{UInt64, 1}, Int64, Array{Int8, 1}, Array{Int64, 1}, Bool, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}, Bool}); catch e; @debug "couldn't precompile statement 1082" exception = e; end
-try;precompile(Tuple{typeof(CSV.timetype), Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}); catch e; @debug "couldn't precompile statement 1083" exception = e; end
-try;precompile(Tuple{typeof(Parsers._typeparser), Type{Float64}, Array{UInt8, 1}, Int64, Int64, UInt8, Int16, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}, Type{Base.GMP.BigInt}}); catch e; @debug "couldn't precompile statement 1084" exception = e; end
-try;precompile(Tuple{typeof(Parsers._typeparser), Type{Float64}, Array{UInt8, 1}, Int64, Int64, UInt8, Int16, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}, Type{Int128}}); catch e; @debug "couldn't precompile statement 1085" exception = e; end
-try;precompile(Tuple{typeof(CSV.detect), Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}, Int64, Int64, Base.Dict{Int8, Int8}, Float64, Array{Base.Dict{String, UInt64}, 1}, Array{UInt64, 1}, Array{Int64, 1}, Bool, Array{Int8, 1}, Bool, Array{Array{UInt64, 1}, 1}}); catch e; @debug "couldn't precompile statement 1086" exception = e; end
-try;precompile(Tuple{typeof(Parsers.xparse), Type{Dates.DateTime}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}}); catch e; @debug "couldn't precompile statement 1087" exception = e; end
-try;precompile(Tuple{typeof(CSV.uint64), Dates.DateTime}); catch e; @debug "couldn't precompile statement 1088" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Array{UInt64, 1}, UInt64, Int64}); catch e; @debug "couldn't precompile statement 1089" exception = e; end
-try;precompile(Tuple{typeof(CSV.parseint!), Int8, Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}, Int64, Int64, Array{Int8, 1}, Array{Array{UInt64, 1}, 1}, Array{Int64, 1}}); catch e; @debug "couldn't precompile statement 1090" exception = e; end
-try;precompile(Tuple{typeof(CSV.parsevalue!), Type{Dates.DateTime}, Int8, Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}, Int64, Int64, Array{Int8, 1}, Array{Array{UInt64, 1}, 1}}); catch e; @debug "couldn't precompile statement 1091" exception = e; end
-try;precompile(Tuple{typeof(CSV.parsevalue!), Type{Bool}, Int8, Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}, Int64, Int64, Array{Int8, 1}, Array{Array{UInt64, 1}, 1}}); catch e; @debug "couldn't precompile statement 1092" exception = e; end
-try;precompile(Tuple{typeof(CSV.parsepooled!), Int8, Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}, Int64, Int64, Int64, Float64, Array{Base.Dict{String, UInt64}, 1}, Array{UInt64, 1}, Array{Int8, 1}, Bool, Array{Array{UInt64, 1}, 1}}); catch e; @debug "couldn't precompile statement 1093" exception = e; end
-try;precompile(Tuple{typeof(CSV.parsevalue!), Type{Float64}, Int8, Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}, Int64, Int64, Array{Int8, 1}, Array{Array{UInt64, 1}, 1}}); catch e; @debug "couldn't precompile statement 1094" exception = e; end
-try;precompile(Tuple{typeof(Base.:(/)), Int64, Float64}); catch e; @debug "couldn't precompile statement 1095" exception = e; end
-try;precompile(Tuple{typeof(Base.ceil), Type{Int64}, Float64}); catch e; @debug "couldn't precompile statement 1096" exception = e; end
-try;precompile(Tuple{typeof(Mmap.mmap), Type{Array{UInt64, 1}}, Int64}); catch e; @debug "couldn't precompile statement 1097" exception = e; end
-try;precompile(Tuple{typeof(CSV._eltype), Type{Dates.DateTime}}); catch e; @debug "couldn't precompile statement 1098" exception = e; end
-try;precompile(Tuple{typeof(Base.nonmissingtype), Type{Dates.DateTime}}); catch e; @debug "couldn't precompile statement 1099" exception = e; end
-try;precompile(Tuple{Type{CSV.Column{Dates.DateTime, Dates.DateTime}}, Array{UInt64, 1}, Int64, UInt8, Bool, Nothing, Array{UInt8, 1}, UInt64}); catch e; @debug "couldn't precompile statement 1100" exception = e; end
-try;precompile(Tuple{getfield(CSV, Symbol("#23#31")), Tuple{Symbol, CSV.Column{Dates.DateTime, Dates.DateTime}}}); catch e; @debug "couldn't precompile statement 1101" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, CSV.Column{T, P} where P where T}, CSV.Column{Dates.DateTime, Dates.DateTime}, Symbol}); catch e; @debug "couldn't precompile statement 1102" exception = e; end
-try;precompile(Tuple{typeof(Base.show), Base.GenericIOBuffer{Array{UInt8, 1}}, Type}); catch e; @debug "couldn't precompile statement 1103" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, AbstractArray{T, 1} where T}, CSV.Column{Dates.DateTime, Dates.DateTime}, Symbol}); catch e; @debug "couldn't precompile statement 1104" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, CSV.Column{Dates.DateTime, Dates.DateTime}, Int64}); catch e; @debug "couldn't precompile statement 1105" exception = e; end
-try;precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), CSV.Column{Dates.DateTime, Dates.DateTime}}); catch e; @debug "couldn't precompile statement 1106" exception = e; end
-try;precompile(Tuple{typeof(DataFrames.nrow), DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 1107" exception = e; end
-try;precompile(Tuple{typeof(Base.length), CSV.Column{Int64, Int64}}); catch e; @debug "couldn't precompile statement 1108" exception = e; end
-try;precompile(Tuple{typeof(DataFrames.ncol), DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 1109" exception = e; end
-try;precompile(Tuple{typeof(Base.names), DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 1110" exception = e; end
-try;precompile(Tuple{typeof(Base.:(==)), Symbol, Symbol}); catch e; @debug "couldn't precompile statement 1111" exception = e; end
-try;precompile(Tuple{typeof(Base.lastindex), Array{Symbol, 1}}); catch e; @debug "couldn't precompile statement 1112" exception = e; end
-try;precompile(Tuple{typeof(Base.eltype), CSV.Column{Int64, Int64}}); catch e; @debug "couldn't precompile statement 1113" exception = e; end
-try;precompile(Tuple{typeof(Base.eltype), CSV.Column{Dates.DateTime, Dates.DateTime}}); catch e; @debug "couldn't precompile statement 1114" exception = e; end
-try;precompile(Tuple{typeof(Base.eltype), CSV.Column{Bool, Bool}}); catch e; @debug "couldn't precompile statement 1115" exception = e; end
-try;precompile(Tuple{typeof(Base.eltype), CSV.Column{String, CSV.PooledString}}); catch e; @debug "couldn't precompile statement 1116" exception = e; end
-try;precompile(Tuple{typeof(Base.eltype), CSV.Column{Float64, Float64}}); catch e; @debug "couldn't precompile statement 1117" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), Array{DataType, 1}, Int64}); catch e; @debug "couldn't precompile statement 1118" exception = e; end
-try;precompile(Tuple{typeof(Base.lastindex), Array{DataType, 1}}); catch e; @debug "couldn't precompile statement 1119" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), DataFrames.DataFrame, Int64}); catch e; @debug "couldn't precompile statement 1120" exception = e; end
-try;precompile(Tuple{typeof(Base.throw_boundserror), CSV.Column{Int64, Int64}, Tuple{Int64}}); catch e; @debug "couldn't precompile statement 1121" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), CSV.Column{Int64, Int64}, Int64}); catch e; @debug "couldn't precompile statement 1122" exception = e; end
-try;precompile(Tuple{typeof(Base.throw_boundserror), CSV.Column{Dates.DateTime, Dates.DateTime}, Tuple{Int64}}); catch e; @debug "couldn't precompile statement 1123" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), CSV.Column{Dates.DateTime, Dates.DateTime}, Int64}); catch e; @debug "couldn't precompile statement 1124" exception = e; end
-try;precompile(Tuple{typeof(Base.:(==)), Dates.DateTime, Dates.DateTime}); catch e; @debug "couldn't precompile statement 1125" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), CSV.Column{Bool, Bool}, Int64}); catch e; @debug "couldn't precompile statement 1126" exception = e; end
-try;precompile(Tuple{typeof(Base.throw_boundserror), CSV.Column{String, CSV.PooledString}, Tuple{Int64}}); catch e; @debug "couldn't precompile statement 1127" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), CSV.Column{String, CSV.PooledString}, Int64}); catch e; @debug "couldn't precompile statement 1128" exception = e; end
-try;precompile(Tuple{typeof(Base.lastindex), DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 1129" exception = e; end
-try;precompile(Tuple{typeof(Base.throw_boundserror), CSV.Column{Float64, Float64}, Tuple{Int64}}); catch e; @debug "couldn't precompile statement 1130" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), CSV.Column{Float64, Float64}, Int64}); catch e; @debug "couldn't precompile statement 1131" exception = e; end
-try;precompile(Tuple{typeof(Base.lastindex), CSV.Column{Int64, Int64}}); catch e; @debug "couldn't precompile statement 1132" exception = e; end
-try;precompile(Tuple{typeof(Base.lastindex), CSV.Column{Dates.DateTime, Dates.DateTime}}); catch e; @debug "couldn't precompile statement 1133" exception = e; end
-try;precompile(Tuple{typeof(Base.lastindex), CSV.Column{Bool, Bool}}); catch e; @debug "couldn't precompile statement 1134" exception = e; end
-try;precompile(Tuple{typeof(Base.lastindex), CSV.Column{String, CSV.PooledString}}); catch e; @debug "couldn't precompile statement 1135" exception = e; end
-try;precompile(Tuple{typeof(Base.lastindex), CSV.Column{Float64, Float64}}); catch e; @debug "couldn't precompile statement 1136" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.iter_rows), Dataiku.DSSDataset}); catch e; @debug "couldn't precompile statement 1137" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##Channel#637")), Type{T} where T, Nothing, Nothing, Nothing, Type{Base.Channel{T} where T}, Function}); catch e; @debug "couldn't precompile statement 1138" exception = e; end
-try;precompile(Tuple{getfield(Core, Symbol("#kw#Type")), NamedTuple{(:taskref, :spawn), Tuple{Nothing, Bool}}, Type{Base.Channel{DataFrames.DataFrameRow{D, S} where S<:DataFrames.AbstractIndex where D<:DataFrames.AbstractDataFrame}}, Function, Int64}); catch e; @debug "couldn't precompile statement 1139" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##🐃#633")), Nothing, Bool, Type{Base.Channel{DataFrames.DataFrameRow{D, S} where S<:DataFrames.AbstractIndex where D<:DataFrames.AbstractDataFrame}}, getfield(Dataiku, Symbol("#31#32")){Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, Dataiku.DSSDataset, Array{Any, 1}}, Int64}); catch e; @debug "couldn't precompile statement 1140" exception = e; end
-try;precompile(Tuple{typeof(Base.register_taskdone_hook), Task, Function}); catch e; @debug "couldn't precompile statement 1141" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("#31#32")){Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, Dataiku.DSSDataset, Array{Any, 1}}, Base.Channel{DataFrames.DataFrameRow{D, S} where S<:DataFrames.AbstractIndex where D<:DataFrames.AbstractDataFrame}}); catch e; @debug "couldn't precompile statement 1142" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#634#635")){getfield(Dataiku, Symbol("#31#32")){Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, Dataiku.DSSDataset, Array{Any, 1}}, Base.Channel{DataFrames.DataFrameRow{D, S} where S<:DataFrames.AbstractIndex where D<:DataFrames.AbstractDataFrame}}}); catch e; @debug "couldn't precompile statement 1143" exception = e; end
-try;precompile(Tuple{getfield(Mmap, Symbol("#3#5")){Int64, Ptr{Nothing}}, Array{UInt64, 1}}); catch e; @debug "couldn't precompile statement 1144" exception = e; end
-try;precompile(Tuple{typeof(Base.take_buffered), Base.Channel{DataFrames.DataFrameRow{D, S} where S<:DataFrames.AbstractIndex where D<:DataFrames.AbstractDataFrame}}); catch e; @debug "couldn't precompile statement 1145" exception = e; end
-try;precompile(Tuple{typeof(Base.take_unbuffered), Base.Channel{DataFrames.DataFrameRow{D, S} where S<:DataFrames.AbstractIndex where D<:DataFrames.AbstractDataFrame}}); catch e; @debug "couldn't precompile statement 1146" exception = e; end
-try;precompile(Tuple{typeof(Base.take!), Base.Channel{DataFrames.DataFrameRow{D, S} where S<:DataFrames.AbstractIndex where D<:DataFrames.AbstractDataFrame}}); catch e; @debug "couldn't precompile statement 1147" exception = e; end
-try;precompile(Tuple{getfield(Core, Symbol("#kw#Type")), NamedTuple{(:taskref, :spawn), Tuple{Nothing, Bool}}, Type{Base.Channel{Any}}, Function, Int64}); catch e; @debug "couldn't precompile statement 1148" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##🐃#633")), Nothing, Bool, Type{Base.Channel{Any}}, getfield(Dataiku, Symbol("#24#26")){Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, Dataiku.DSSDataset, Array{Symbol, 1}, Nothing}, Int64}); catch e; @debug "couldn't precompile statement 1149" exception = e; end
-try;precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol}, Type{NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}, Type{NamedTuple{(), Tuple{}}}}); catch e; @debug "couldn't precompile statement 1150" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("#24#26")){Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, Dataiku.DSSDataset, Array{Symbol, 1}, Nothing}, Base.Channel{Any}}); catch e; @debug "couldn't precompile statement 1151" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#634#635")){getfield(Dataiku, Symbol("#24#26")){Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, Dataiku.DSSDataset, Array{Symbol, 1}, Nothing}, Base.Channel{Any}}}); catch e; @debug "couldn't precompile statement 1152" exception = e; end
-try;precompile(Tuple{Type{NamedTuple{(:iofunction,), T} where T<:Tuple}, Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}); catch e; @debug "couldn't precompile statement 1153" exception = e; end
-try;precompile(Tuple{typeof(Base.merge), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}}); catch e; @debug "couldn't precompile statement 1154" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("##stack#18")), Bool, Bool, Bool, Bool, Bool, Bool, Bool, Int64, Bool, Int64, Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.stack)}); catch e; @debug "couldn't precompile statement 1155" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("##request#4")), Base.Dict{String, String}, Nothing, Nothing, Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.request), String, String, Base.Dict{String, String}, Nothing}); catch e; @debug "couldn't precompile statement 1156" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), String, String, Base.Dict{String, String}, Nothing}); catch e; @debug "couldn't precompile statement 1157" exception = e; end
-try;precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:reuse_limit,), Tuple{Int64}}}, Type{NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}}); catch e; @debug "couldn't precompile statement 1158" exception = e; end
-try;precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:require_ssl_verification,), Tuple{Bool}}}, Type{NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}}); catch e; @debug "couldn't precompile statement 1159" exception = e; end
-try;precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Bool, getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}); catch e; @debug "couldn't precompile statement 1160" exception = e; end
-try;precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol}, Type{NamedTuple{(:copycols,), Tuple{Bool}}}, Type{NamedTuple{(), Tuple{}}}}); catch e; @debug "couldn't precompile statement 1161" exception = e; end
-try;precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}, Type{NamedTuple{(:parent,), Tuple{HTTP.Messages.Response}}}}); catch e; @debug "couldn't precompile statement 1162" exception = e; end
-try;precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}, HTTP.Messages.Response}}}); catch e; @debug "couldn't precompile statement 1163" exception = e; end
-try;precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:iofunction, :parent), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}, HTTP.Messages.Response}}}, Type{NamedTuple{(:parent,), Tuple{HTTP.Messages.Response}}}}); catch e; @debug "couldn't precompile statement 1164" exception = e; end
-try;precompile(Tuple{getfield(HTTP.RedirectRequest, Symbol("##request#1")), Int64, Bool, Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.request), Type{HTTP.RedirectRequest.RedirectLayer{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Nothing}); catch e; @debug "couldn't precompile statement 1165" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), Type{HTTP.RedirectRequest.RedirectLayer{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Nothing}); catch e; @debug "couldn't precompile statement 1166" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), Type{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Nothing}); catch e; @debug "couldn't precompile statement 1167" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), Type{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Nothing}); catch e; @debug "couldn't precompile statement 1168" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#50#51#53")){Base.ExponentialBackOff, getfield(HTTP.RetryRequest, Symbol("#2#3")){Bool, HTTP.Messages.Request}, typeof(HTTP.request)}, Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}, getfield(Base, Symbol("#50#52")){getfield(Base, Symbol("#50#51#53")){Base.ExponentialBackOff, getfield(HTTP.RetryRequest, Symbol("#2#3")){Bool, HTTP.Messages.Request}, typeof(HTTP.request)}}, Type{T} where T, Vararg{Any, N} where N}); catch e; @debug "couldn't precompile statement 1169" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), Type{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Nothing}); catch e; @debug "couldn't precompile statement 1170" exception = e; end
-try;precompile(Tuple{getfield(HTTP.ExceptionRequest, Symbol("##request#1")), Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.request), Type{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}, HTTP.URIs.URI, Vararg{Any, N} where N}); catch e; @debug "couldn't precompile statement 1171" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), Type{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Nothing}); catch e; @debug "couldn't precompile statement 1172" exception = e; end
-try;precompile(Tuple{getfield(HTTP.ConnectionRequest, Symbol("##request#1")), Nothing, Type{T} where T, Int64, Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.request), Type{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Nothing}); catch e; @debug "couldn't precompile statement 1173" exception = e; end
-try;precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("##getconnection#14")), Bool, Int64, Base.Iterators.Pairs{Symbol, Any, Tuple{Symbol, Symbol}, NamedTuple{(:require_ssl_verification, :iofunction), Tuple{Bool, getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.ConnectionPool.getconnection), Type{Sockets.TCPSocket}, Base.SubString{String}, Base.SubString{String}}); catch e; @debug "couldn't precompile statement 1174" exception = e; end
-try;precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("##getconnection#11")), Int64, Int64, Int64, Int64, Bool, Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.ConnectionPool.getconnection), Type{HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Base.SubString{String}, Base.SubString{String}}); catch e; @debug "couldn't precompile statement 1175" exception = e; end
-try;precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("#kw##getconnection")), NamedTuple{(:reuse_limit, :iofunction), Tuple{Int64, getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}, typeof(HTTP.ConnectionPool.getconnection), Type{HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Base.SubString{String}, Base.SubString{String}}); catch e; @debug "couldn't precompile statement 1176" exception = e; end
-try;precompile(Tuple{typeof(Base.count), getfield(Dataiku, Symbol("#28#29")){Char}, String}); catch e; @debug "couldn't precompile statement 1177" exception = e; end
-try;precompile(Tuple{typeof(Dataiku._split_last_line), String, Bool, Char}); catch e; @debug "couldn't precompile statement 1178" exception = e; end
-try;precompile(Tuple{typeof(CSV.slurp), Base.GenericIOBuffer{Array{UInt8, 1}}}); catch e; @debug "couldn't precompile statement 1179" exception = e; end
-try;precompile(Tuple{typeof(CSV.file), Base.GenericIOBuffer{Array{UInt8, 1}}, Array{Symbol, 1}, Bool, Int64, Nothing, Int64, Int64, Bool, Nothing, Bool, Bool, Array{String, 1}, String, Char, Bool, Char, Nothing, Nothing, Char, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, UInt8, Nothing, Nothing, Nothing, Nothing, Base.Dict{Int8, Int8}, Bool, Float64, Bool, Bool, Nothing, Bool, Bool, Nothing}); catch e; @debug "couldn't precompile statement 1180" exception = e; end
-try;precompile(Tuple{getfield(Core, Symbol("#kw#Type")), NamedTuple{(:delim, :types, :header, :dateformat), Tuple{Char, Nothing, Array{Symbol, 1}, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}}, Type{CSV.File{threaded} where threaded}, Base.GenericIOBuffer{Array{UInt8, 1}}}); catch e; @debug "couldn't precompile statement 1181" exception = e; end
-try;precompile(Tuple{typeof(Base.put_buffered), Base.Channel{Any}, DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 1182" exception = e; end
-try;precompile(Tuple{typeof(Base.put_unbuffered), Base.Channel{Any}, DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 1183" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}, HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}}); catch e; @debug "couldn't precompile statement 1184" exception = e; end
-try;precompile(Tuple{getfield(HTTP.StreamRequest, Symbol("##request#1")), Nothing, getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}, Int64, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), Type{HTTP.StreamRequest.StreamLayer{Union{}}}, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, Nothing}); catch e; @debug "couldn't precompile statement 1185" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), Type{HTTP.StreamRequest.StreamLayer{Union{}}}, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, Nothing}); catch e; @debug "couldn't precompile statement 1186" exception = e; end
-try;precompile(Tuple{typeof(Base.show), Base.GenericIOBuffer{Array{UInt8, 1}}, Int64}); catch e; @debug "couldn't precompile statement 1187" exception = e; end
-try;precompile(Tuple{typeof(Base.eachrow), DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 1188" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), DataFrames.DataFrameRows{DataFrames.DataFrame, DataFrames.Index}}); catch e; @debug "couldn't precompile statement 1189" exception = e; end
-try;precompile(Tuple{typeof(Base.put_buffered), Base.Channel{DataFrames.DataFrameRow{D, S} where S<:DataFrames.AbstractIndex where D<:DataFrames.AbstractDataFrame}, DataFrames.DataFrameRow{DataFrames.DataFrame, DataFrames.Index}}); catch e; @debug "couldn't precompile statement 1190" exception = e; end
-try;precompile(Tuple{typeof(Base.put_unbuffered), Base.Channel{DataFrames.DataFrameRow{D, S} where S<:DataFrames.AbstractIndex where D<:DataFrames.AbstractDataFrame}, DataFrames.DataFrameRow{DataFrames.DataFrame, DataFrames.Index}}); catch e; @debug "couldn't precompile statement 1191" exception = e; end
-try;precompile(Tuple{typeof(Base.put!), Base.Channel{DataFrames.DataFrameRow{D, S} where S<:DataFrames.AbstractIndex where D<:DataFrames.AbstractDataFrame}, DataFrames.DataFrameRow{DataFrames.DataFrame, DataFrames.Index}}); catch e; @debug "couldn't precompile statement 1192" exception = e; end
-try;precompile(Tuple{typeof(CSV.parsestring!), Int8, Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}, Int64, Int64, Array{Int8, 1}}); catch e; @debug "couldn't precompile statement 1193" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), DataFrames.DataFrameRow{DataFrames.DataFrame, DataFrames.Index}, Int64}); catch e; @debug "couldn't precompile statement 1194" exception = e; end
-try;precompile(Tuple{typeof(Base.lastindex), DataFrames.DataFrameRow{DataFrames.DataFrame, DataFrames.Index}}); catch e; @debug "couldn't precompile statement 1195" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.iter_tuples), Dataiku.DSSDataset}); catch e; @debug "couldn't precompile statement 1196" exception = e; end
-try;precompile(Tuple{getfield(Core, Symbol("#kw#Type")), NamedTuple{(:taskref, :spawn), Tuple{Nothing, Bool}}, Type{Base.Channel{Tuple}}, Function, Int64}); catch e; @debug "couldn't precompile statement 1197" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##🐃#633")), Nothing, Bool, Type{Base.Channel{Tuple}}, getfield(Dataiku, Symbol("#37#39")){Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, Dataiku.DSSDataset, Array{Any, 1}}, Int64}); catch e; @debug "couldn't precompile statement 1198" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("#37#39")){Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, Dataiku.DSSDataset, Array{Any, 1}}, Base.Channel{Tuple}}); catch e; @debug "couldn't precompile statement 1199" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#634#635")){getfield(Dataiku, Symbol("#37#39")){Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, Dataiku.DSSDataset, Array{Any, 1}}, Base.Channel{Tuple}}}); catch e; @debug "couldn't precompile statement 1200" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), DataFrames.DataFrameRows{DataFrames.DataFrame, DataFrames.Index}, Tuple{Base.OneTo{Int64}, Int64}}); catch e; @debug "couldn't precompile statement 1201" exception = e; end
-try;precompile(Tuple{typeof(Base.take_buffered), Base.Channel{Tuple}}); catch e; @debug "couldn't precompile statement 1202" exception = e; end
-try;precompile(Tuple{typeof(Base.take_unbuffered), Base.Channel{Tuple}}); catch e; @debug "couldn't precompile statement 1203" exception = e; end
-try;precompile(Tuple{typeof(Base.take!), Base.Channel{Tuple}}); catch e; @debug "couldn't precompile statement 1204" exception = e; end
-try;precompile(Tuple{Type{Base.Generator{I, F} where F where I}, getfield(Dataiku, Symbol("#38#40")){DataFrames.DataFrame, Int64}, Base.UnitRange{Int64}}); catch e; @debug "couldn't precompile statement 1205" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("#38#40")){DataFrames.DataFrame, Int64}, Int64}); catch e; @debug "couldn't precompile statement 1206" exception = e; end
-try;precompile(Tuple{typeof(Base.collect), Base.Generator{Base.UnitRange{Int64}, getfield(Dataiku, Symbol("#38#40")){DataFrames.DataFrame, Int64}}}); catch e; @debug "couldn't precompile statement 1207" exception = e; end
-try;precompile(Tuple{Type{Tuple}, Base.Generator{Base.UnitRange{Int64}, getfield(Dataiku, Symbol("#38#40")){DataFrames.DataFrame, Int64}}}); catch e; @debug "couldn't precompile statement 1208" exception = e; end
-try;precompile(Tuple{typeof(Base._array_for), Type{Int64}, Base.UnitRange{Int64}, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 1209" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Base.UnitRange{Int64}, getfield(Dataiku, Symbol("#38#40")){DataFrames.DataFrame, Int64}}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1210" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Base.UnitRange{Int64}, getfield(Dataiku, Symbol("#38#40")){DataFrames.DataFrame, Int64}}, Int64}); catch e; @debug "couldn't precompile statement 1211" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex_widen_up_to), Array{Int64, 1}, Dates.DateTime, Int64}); catch e; @debug "couldn't precompile statement 1212" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Any, 1}, Base.Generator{Base.UnitRange{Int64}, getfield(Dataiku, Symbol("#38#40")){DataFrames.DataFrame, Int64}}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1213" exception = e; end
-try;precompile(Tuple{typeof(Base.put_buffered), Base.Channel{Tuple}, Tuple{Int64, Dates.DateTime, Dates.DateTime, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}); catch e; @debug "couldn't precompile statement 1214" exception = e; end
-try;precompile(Tuple{typeof(Base.put_unbuffered), Base.Channel{Tuple}, Tuple{Int64, Dates.DateTime, Dates.DateTime, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}); catch e; @debug "couldn't precompile statement 1215" exception = e; end
-try;precompile(Tuple{typeof(Base.put!), Base.Channel{Tuple}, Tuple{Int64, Dates.DateTime, Dates.DateTime, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}); catch e; @debug "couldn't precompile statement 1216" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##write_dataframe#44")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.write_dataframe), Function, Dataiku.DSSDataset}); catch e; @debug "couldn't precompile statement 1217" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.write_dataframe), Function, Dataiku.DSSDataset}); catch e; @debug "couldn't precompile statement 1218" exception = e; end
-try;precompile(Tuple{getfield(Core, Symbol("#kw#Type")), NamedTuple{(:taskref, :spawn), Tuple{Nothing, Bool}}, Type{Base.Channel{DataFrames.AbstractDataFrame}}, Function, Int64}); catch e; @debug "couldn't precompile statement 1219" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##🐃#633")), Nothing, Bool, Type{Base.Channel{DataFrames.AbstractDataFrame}}, getfield(Main, Symbol("#3#4")), Int64}); catch e; @debug "couldn't precompile statement 1220" exception = e; end
-try;precompile(Tuple{getfield(Main, Symbol("#3#4")), Base.Channel{DataFrames.AbstractDataFrame}}); catch e; @debug "couldn't precompile statement 1221" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#634#635")){getfield(Main, Symbol("#3#4")), Base.Channel{DataFrames.AbstractDataFrame}}}); catch e; @debug "couldn't precompile statement 1222" exception = e; end
-try;precompile(Tuple{getfield(Core, Symbol("#kw#Type")), NamedTuple{(:taskref, :spawn), Tuple{Nothing, Bool}}, Type{Base.Channel{DataFrames.DataFrame}}, Function, Int64}); catch e; @debug "couldn't precompile statement 1223" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##🐃#633")), Nothing, Bool, Type{Base.Channel{DataFrames.DataFrame}}, getfield(Dataiku, Symbol("#34#35")){Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, Dataiku.DSSDataset, Int64, Array{Any, 1}}, Int64}); catch e; @debug "couldn't precompile statement 1224" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("#34#35")){Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, Dataiku.DSSDataset, Int64, Array{Any, 1}}, Base.Channel{DataFrames.DataFrame}}); catch e; @debug "couldn't precompile statement 1225" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#634#635")){getfield(Dataiku, Symbol("#34#35")){Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, Dataiku.DSSDataset, Int64, Array{Any, 1}}, Base.Channel{DataFrames.DataFrame}}}); catch e; @debug "couldn't precompile statement 1226" exception = e; end
-try;precompile(Tuple{typeof(Base.take_buffered), Base.Channel{DataFrames.AbstractDataFrame}}); catch e; @debug "couldn't precompile statement 1227" exception = e; end
-try;precompile(Tuple{typeof(Base.take_unbuffered), Base.Channel{DataFrames.AbstractDataFrame}}); catch e; @debug "couldn't precompile statement 1228" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##write_chnl#50")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.write_chnl), Dataiku.DSSDataset, Base.Channel{DataFrames.AbstractDataFrame}}); catch e; @debug "couldn't precompile statement 1229" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.write_chnl), Dataiku.DSSDataset, Base.Channel{DataFrames.AbstractDataFrame}}); catch e; @debug "couldn't precompile statement 1230" exception = e; end
-try;precompile(Tuple{typeof(Base.take_buffered), Base.Channel{DataFrames.DataFrame}}); catch e; @debug "couldn't precompile statement 1231" exception = e; end
-try;precompile(Tuple{typeof(Base.take_unbuffered), Base.Channel{DataFrames.DataFrame}}); catch e; @debug "couldn't precompile statement 1232" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), Base.Channel{DataFrames.DataFrame}, Nothing}); catch e; @debug "couldn't precompile statement 1233" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), Base.Channel{DataFrames.DataFrame}}); catch e; @debug "couldn't precompile statement 1234" exception = e; end
-try;precompile(Tuple{typeof(Core.Compiler.eltype), Type{Array{Array{Symbol, 1}, 1}}}); catch e; @debug "couldn't precompile statement 1235" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Array{DataFrames.DataFrame, 1}, Base.Generator{Base.Iterators.Filter{getfield(DataFrames, Symbol("#66#68")), Tuple{DataFrames.DataFrame, DataFrames.DataFrame}}, getfield(DataFrames, Symbol("#65#67"))}, Int64}); catch e; @debug "couldn't precompile statement 1236" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Array{DataFrames.DataFrame, 1}, Base.Generator{Base.Iterators.Filter{getfield(DataFrames, Symbol("#66#68")), Tuple{DataFrames.DataFrame, DataFrames.DataFrame}}, getfield(DataFrames, Symbol("#65#67"))}}); catch e; @debug "couldn't precompile statement 1237" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Array{Symbol, 1}, 1}, Array{Symbol, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, typeof(Base.names)}, Int64}); catch e; @debug "couldn't precompile statement 1238" exception = e; end
-try;precompile(Tuple{typeof(Base._collect), Array{DataFrames.DataFrame, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, typeof(Base.names)}, Base.EltypeUnknown, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 1239" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{Array{Symbol, 1}, Nothing}}}); catch e; @debug "couldn't precompile statement 1240" exception = e; end
-try;precompile(Tuple{typeof(Base.hash), Array{Symbol, 1}, UInt64}); catch e; @debug "couldn't precompile statement 1241" exception = e; end
-try;precompile(Tuple{typeof(Base.rehash!), Base.Dict{Array{Symbol, 1}, Nothing}, Int64}); catch e; @debug "couldn't precompile statement 1242" exception = e; end
-try;precompile(Tuple{typeof(Base.isequal), Array{Symbol, 1}, Array{Symbol, 1}}); catch e; @debug "couldn't precompile statement 1243" exception = e; end
-try;precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{Array{Symbol, 1}, Nothing}, Array{Symbol, 1}}); catch e; @debug "couldn't precompile statement 1244" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{Array{Symbol, 1}, Nothing}, Nothing, Array{Symbol, 1}}); catch e; @debug "couldn't precompile statement 1245" exception = e; end
-try;precompile(Tuple{typeof(Base.ht_keyindex), Base.Dict{Array{Symbol, 1}, Nothing}, Array{Symbol, 1}}); catch e; @debug "couldn't precompile statement 1246" exception = e; end
-try;precompile(Tuple{typeof(Base.unique), Array{Array{Symbol, 1}, 1}}); catch e; @debug "couldn't precompile statement 1247" exception = e; end
-try;precompile(Tuple{typeof(Base.throw_boundserror), Array{Symbol, 1}, Tuple{Int64}}); catch e; @debug "couldn't precompile statement 1248" exception = e; end
-try;precompile(Tuple{typeof(Base.setdiff!), Base.Set{Symbol}, Array{Symbol, 1}}); catch e; @debug "couldn't precompile statement 1249" exception = e; end
-try;precompile(Tuple{typeof(Base.pop!), Base.Dict{Symbol, Nothing}, Symbol}); catch e; @debug "couldn't precompile statement 1250" exception = e; end
-try;precompile(Tuple{typeof(Base.filter), getfield(Base, Symbol("#83#84")){typeof(Base.in), typeof(Base.pop!), Base.Set{Symbol}}, Array{Symbol, 1}}); catch e; @debug "couldn't precompile statement 1251" exception = e; end
-try;precompile(Tuple{getfield(DataFrames, Symbol("#70#74")), Array{Symbol, 1}}); catch e; @debug "couldn't precompile statement 1252" exception = e; end
-try;precompile(Tuple{typeof(Base.filter!), getfield(DataFrames, Symbol("#70#74")), Array{Array{Symbol, 1}, 1}}); catch e; @debug "couldn't precompile statement 1253" exception = e; end
-try;precompile(Tuple{typeof(Base.:(==)), Array{Symbol, 1}, Array{Symbol, 1}}); catch e; @debug "couldn't precompile statement 1254" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Array{Int64, 1}, Base.Generator{Base.Iterators.Filter{getfield(Base, Symbol("#77#78")){getfield(DataFrames, Symbol("#72#76")){Array{Symbol, 1}}}, Base.Iterators.Pairs{Int64, Array{Symbol, 1}, Base.LinearIndices{1, Tuple{Base.OneTo{Int64}}}, Array{Array{Symbol, 1}, 1}}}, typeof(Base.first)}, Int64}); catch e; @debug "couldn't precompile statement 1255" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Array{Int64, 1}, Base.Generator{Base.Iterators.Filter{getfield(Base, Symbol("#77#78")){getfield(DataFrames, Symbol("#72#76")){Array{Symbol, 1}}}, Base.Iterators.Pairs{Int64, Array{Symbol, 1}, Base.LinearIndices{1, Tuple{Base.OneTo{Int64}}}, Array{Array{Symbol, 1}, 1}}}, typeof(Base.first)}}); catch e; @debug "couldn't precompile statement 1256" exception = e; end
-try;precompile(Tuple{getfield(DataFrames, Symbol("#71#75")){Array{Array{Symbol, 1}, 1}, Array{Symbol, 1}}, Tuple{Int64, Array{Symbol, 1}}}); catch e; @debug "couldn't precompile statement 1257" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{String, 1}, String, Base.Generator{Base.Iterators.Enumerate{Array{Array{Symbol, 1}, 1}}, getfield(DataFrames, Symbol("#71#75")){Array{Array{Symbol, 1}, 1}, Array{Symbol, 1}}}, Tuple{Int64, Int64}}); catch e; @debug "couldn't precompile statement 1258" exception = e; end
-try;precompile(Tuple{typeof(Base.collect), Base.Generator{Base.Iterators.Enumerate{Array{Array{Symbol, 1}, 1}}, getfield(DataFrames, Symbol("#71#75")){Array{Array{Symbol, 1}, 1}, Array{Symbol, 1}}}}); catch e; @debug "couldn't precompile statement 1259" exception = e; end
-try;precompile(Tuple{getfield(DataFrames, Symbol("##_vcat#69")), Symbol, typeof(DataFrames._vcat), Array{DataFrames.DataFrame, 1}}); catch e; @debug "couldn't precompile statement 1260" exception = e; end
-try;precompile(Tuple{typeof(Base.vcat), DataFrames.DataFrame, DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 1261" exception = e; end
-try;precompile(Tuple{typeof(Base.filter!), getfield(Base, Symbol("#83#84")){typeof(Base.:(∉)), typeof(Base.push!), Base.Set{Symbol}}, Array{Symbol, 1}}); catch e; @debug "couldn't precompile statement 1262" exception = e; end
-try;precompile(Tuple{typeof(Base.mapfilter), getfield(Base, Symbol("#83#84")){typeof(Base.:(∉)), typeof(Base.push!), Base.Set{Symbol}}, typeof(Base.push!), Array{Symbol, 1}, Array{Symbol, 1}}); catch e; @debug "couldn't precompile statement 1263" exception = e; end
-try;precompile(Tuple{typeof(Base.union!), Array{Symbol, 1}, Array{Symbol, 1}}); catch e; @debug "couldn't precompile statement 1264" exception = e; end
-try;precompile(Tuple{typeof(Base.union), Array{Symbol, 1}}); catch e; @debug "couldn't precompile statement 1265" exception = e; end
-try;precompile(Tuple{typeof(Base.intersect), Array{Symbol, 1}}); catch e; @debug "couldn't precompile statement 1266" exception = e; end
-try;precompile(Tuple{typeof(Base.Iterators.enumerate), Array{Symbol, 1}}); catch e; @debug "couldn't precompile statement 1267" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), Base.Iterators.Enumerate{Array{Symbol, 1}}, Tuple{Int64}}); catch e; @debug "couldn't precompile statement 1268" exception = e; end
-try;precompile(Tuple{typeof(Base.map), Function, Array{DataFrames.DataFrame, 1}}); catch e; @debug "couldn't precompile statement 1269" exception = e; end
-try;precompile(Tuple{Type{Base.Generator{I, F} where F where I}, getfield(DataFrames, Symbol("#73#77")){Symbol}, Array{DataFrames.DataFrame, 1}}); catch e; @debug "couldn't precompile statement 1270" exception = e; end
-try;precompile(Tuple{typeof(Base._collect), Array{DataFrames.DataFrame, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Base.EltypeUnknown, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 1271" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_similar), Array{DataFrames.DataFrame, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}}); catch e; @debug "couldn't precompile statement 1272" exception = e; end
-try;precompile(Tuple{typeof(Base._similar_for), Array{DataFrames.DataFrame, 1}, Type{CSV.Column{Int64, Int64}}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 1273" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{CSV.Column{Int64, Int64}, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1274" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{CSV.Column{Int64, Int64}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1275" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{CSV.Column{Int64, Int64}, 1}, CSV.Column{Int64, Int64}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64}); catch e; @debug "couldn't precompile statement 1276" exception = e; end
-try;precompile(Tuple{typeof(Base.map), Function, Array{CSV.Column{Int64, Int64}, 1}}); catch e; @debug "couldn't precompile statement 1277" exception = e; end
-try;precompile(Tuple{Type{Base.Generator{I, F} where F where I}, typeof(Base.length), Array{CSV.Column{Int64, Int64}, 1}}); catch e; @debug "couldn't precompile statement 1278" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{CSV.Column{Int64, Int64}, 1}, typeof(Base.length)}, Int64}); catch e; @debug "couldn't precompile statement 1279" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_similar), Array{CSV.Column{Int64, Int64}, 1}, Base.Generator{Array{CSV.Column{Int64, Int64}, 1}, typeof(Base.length)}}); catch e; @debug "couldn't precompile statement 1280" exception = e; end
-try;precompile(Tuple{typeof(Base._mapreduce_dim), Function, Function, NamedTuple{(), Tuple{}}, Array{CSV.Column{Int64, Int64}, 1}, Base.Colon}); catch e; @debug "couldn't precompile statement 1281" exception = e; end
-try;precompile(Tuple{typeof(Base.mapreduce), Function, Function, Array{CSV.Column{Int64, Int64}, 1}}); catch e; @debug "couldn't precompile statement 1282" exception = e; end
-try;precompile(Tuple{typeof(Base.mapreduce_impl), typeof(Base.eltype), typeof(Base.promote_type), Array{CSV.Column{Int64, Int64}, 1}, Int64, Int64, Int64}); catch e; @debug "couldn't precompile statement 1283" exception = e; end
-try;precompile(Tuple{typeof(Base._mapreduce), typeof(Base.eltype), typeof(Base.promote_type), Base.IndexLinear, Array{CSV.Column{Int64, Int64}, 1}}); catch e; @debug "couldn't precompile statement 1284" exception = e; end
-try;precompile(Tuple{typeof(Base.sum), Array{Int64, 1}}); catch e; @debug "couldn't precompile statement 1285" exception = e; end
-try;precompile(Tuple{typeof(Tables.allocatecolumn), Type{T} where T, Int64}); catch e; @debug "couldn't precompile statement 1286" exception = e; end
-try;precompile(Tuple{typeof(DataAPI.defaultarray), Type{Int64}, Int64}); catch e; @debug "couldn't precompile statement 1287" exception = e; end
-try;precompile(Tuple{typeof(Base.length), Array{CSV.Column{Int64, Int64}, 1}}); catch e; @debug "couldn't precompile statement 1288" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), Array{CSV.Column{Int64, Int64}, 1}, Int64}); catch e; @debug "couldn't precompile statement 1289" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Int64, 1}, Int64, CSV.Column{Int64, Int64}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1290" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Int64, 1}, Int64, CSV.Column{Int64, Int64}}); catch e; @debug "couldn't precompile statement 1291" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), Base.Iterators.Enumerate{Array{Symbol, 1}}, Tuple{Int64, Int64}}); catch e; @debug "couldn't precompile statement 1292" exception = e; end
-try;precompile(Tuple{typeof(Base._similar_for), Array{DataFrames.DataFrame, 1}, Type{CSV.Column{Dates.DateTime, Dates.DateTime}}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 1293" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1294" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1295" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}, CSV.Column{Dates.DateTime, Dates.DateTime}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64}); catch e; @debug "couldn't precompile statement 1296" exception = e; end
-try;precompile(Tuple{typeof(Base.map), Function, Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}}); catch e; @debug "couldn't precompile statement 1297" exception = e; end
-try;precompile(Tuple{Type{Base.Generator{I, F} where F where I}, typeof(Base.length), Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}}); catch e; @debug "couldn't precompile statement 1298" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}, typeof(Base.length)}, Int64}); catch e; @debug "couldn't precompile statement 1299" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_similar), Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}, Base.Generator{Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}, typeof(Base.length)}}); catch e; @debug "couldn't precompile statement 1300" exception = e; end
-try;precompile(Tuple{typeof(Base._mapreduce_dim), Function, Function, NamedTuple{(), Tuple{}}, Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}, Base.Colon}); catch e; @debug "couldn't precompile statement 1301" exception = e; end
-try;precompile(Tuple{typeof(Base.mapreduce), Function, Function, Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}}); catch e; @debug "couldn't precompile statement 1302" exception = e; end
-try;precompile(Tuple{typeof(Base.mapreduce_impl), typeof(Base.eltype), typeof(Base.promote_type), Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}, Int64, Int64, Int64}); catch e; @debug "couldn't precompile statement 1303" exception = e; end
-try;precompile(Tuple{typeof(Base._mapreduce), typeof(Base.eltype), typeof(Base.promote_type), Base.IndexLinear, Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}}); catch e; @debug "couldn't precompile statement 1304" exception = e; end
-try;precompile(Tuple{typeof(DataAPI.defaultarray), Type{Dates.DateTime}, Int64}); catch e; @debug "couldn't precompile statement 1305" exception = e; end
-try;precompile(Tuple{Type{Array{Dates.DateTime, 1}}, UndefInitializer, Int64}); catch e; @debug "couldn't precompile statement 1306" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, Array{Dates.DateTime, 1}, Int64}); catch e; @debug "couldn't precompile statement 1307" exception = e; end
-try;precompile(Tuple{typeof(Base.length), Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}}); catch e; @debug "couldn't precompile statement 1308" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}, Int64}); catch e; @debug "couldn't precompile statement 1309" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Dates.DateTime, 1}, Int64, CSV.Column{Dates.DateTime, Dates.DateTime}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1310" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Dates.DateTime, 1}, Int64, CSV.Column{Dates.DateTime, Dates.DateTime}}); catch e; @debug "couldn't precompile statement 1311" exception = e; end
-try;precompile(Tuple{typeof(Base._similar_for), Array{DataFrames.DataFrame, 1}, Type{CSV.Column{Bool, Bool}}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 1312" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{CSV.Column{Bool, Bool}, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1313" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{CSV.Column{Bool, Bool}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1314" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{CSV.Column{Bool, Bool}, 1}, CSV.Column{Bool, Bool}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64}); catch e; @debug "couldn't precompile statement 1315" exception = e; end
-try;precompile(Tuple{typeof(Base.map), Function, Array{CSV.Column{Bool, Bool}, 1}}); catch e; @debug "couldn't precompile statement 1316" exception = e; end
-try;precompile(Tuple{Type{Base.Generator{I, F} where F where I}, typeof(Base.length), Array{CSV.Column{Bool, Bool}, 1}}); catch e; @debug "couldn't precompile statement 1317" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{CSV.Column{Bool, Bool}, 1}, typeof(Base.length)}, Int64}); catch e; @debug "couldn't precompile statement 1318" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_similar), Array{CSV.Column{Bool, Bool}, 1}, Base.Generator{Array{CSV.Column{Bool, Bool}, 1}, typeof(Base.length)}}); catch e; @debug "couldn't precompile statement 1319" exception = e; end
-try;precompile(Tuple{typeof(Base._mapreduce_dim), Function, Function, NamedTuple{(), Tuple{}}, Array{CSV.Column{Bool, Bool}, 1}, Base.Colon}); catch e; @debug "couldn't precompile statement 1320" exception = e; end
-try;precompile(Tuple{typeof(Base.mapreduce), Function, Function, Array{CSV.Column{Bool, Bool}, 1}}); catch e; @debug "couldn't precompile statement 1321" exception = e; end
-try;precompile(Tuple{typeof(Base.mapreduce_impl), typeof(Base.eltype), typeof(Base.promote_type), Array{CSV.Column{Bool, Bool}, 1}, Int64, Int64, Int64}); catch e; @debug "couldn't precompile statement 1322" exception = e; end
-try;precompile(Tuple{typeof(Base._mapreduce), typeof(Base.eltype), typeof(Base.promote_type), Base.IndexLinear, Array{CSV.Column{Bool, Bool}, 1}}); catch e; @debug "couldn't precompile statement 1323" exception = e; end
-try;precompile(Tuple{typeof(DataAPI.defaultarray), Type{Bool}, Int64}); catch e; @debug "couldn't precompile statement 1324" exception = e; end
-try;precompile(Tuple{typeof(Base.length), Array{CSV.Column{Bool, Bool}, 1}}); catch e; @debug "couldn't precompile statement 1325" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), Array{CSV.Column{Bool, Bool}, 1}, Int64}); catch e; @debug "couldn't precompile statement 1326" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Bool, 1}, Int64, CSV.Column{Bool, Bool}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1327" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Bool, 1}, Int64, CSV.Column{Bool, Bool}}); catch e; @debug "couldn't precompile statement 1328" exception = e; end
-try;precompile(Tuple{typeof(Base._similar_for), Array{DataFrames.DataFrame, 1}, Type{CSV.Column{String, CSV.PooledString}}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 1329" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{CSV.Column{String, CSV.PooledString}, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1330" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{CSV.Column{String, CSV.PooledString}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1331" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{CSV.Column{String, CSV.PooledString}, 1}, CSV.Column{String, CSV.PooledString}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64}); catch e; @debug "couldn't precompile statement 1332" exception = e; end
-try;precompile(Tuple{typeof(Base.map), Function, Array{CSV.Column{String, CSV.PooledString}, 1}}); catch e; @debug "couldn't precompile statement 1333" exception = e; end
-try;precompile(Tuple{Type{Base.Generator{I, F} where F where I}, typeof(Base.length), Array{CSV.Column{String, CSV.PooledString}, 1}}); catch e; @debug "couldn't precompile statement 1334" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{CSV.Column{String, CSV.PooledString}, 1}, typeof(Base.length)}, Int64}); catch e; @debug "couldn't precompile statement 1335" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_similar), Array{CSV.Column{String, CSV.PooledString}, 1}, Base.Generator{Array{CSV.Column{String, CSV.PooledString}, 1}, typeof(Base.length)}}); catch e; @debug "couldn't precompile statement 1336" exception = e; end
-try;precompile(Tuple{typeof(Base._mapreduce_dim), Function, Function, NamedTuple{(), Tuple{}}, Array{CSV.Column{String, CSV.PooledString}, 1}, Base.Colon}); catch e; @debug "couldn't precompile statement 1337" exception = e; end
-try;precompile(Tuple{typeof(Base.mapreduce), Function, Function, Array{CSV.Column{String, CSV.PooledString}, 1}}); catch e; @debug "couldn't precompile statement 1338" exception = e; end
-try;precompile(Tuple{typeof(Base.mapreduce_impl), typeof(Base.eltype), typeof(Base.promote_type), Array{CSV.Column{String, CSV.PooledString}, 1}, Int64, Int64, Int64}); catch e; @debug "couldn't precompile statement 1339" exception = e; end
-try;precompile(Tuple{typeof(Base._mapreduce), typeof(Base.eltype), typeof(Base.promote_type), Base.IndexLinear, Array{CSV.Column{String, CSV.PooledString}, 1}}); catch e; @debug "couldn't precompile statement 1340" exception = e; end
-try;precompile(Tuple{typeof(DataAPI.defaultarray), Type{String}, Int64}); catch e; @debug "couldn't precompile statement 1341" exception = e; end
-try;precompile(Tuple{Type{Array{String, 1}}, UndefInitializer, Int64}); catch e; @debug "couldn't precompile statement 1342" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, Array{String, 1}, Int64}); catch e; @debug "couldn't precompile statement 1343" exception = e; end
-try;precompile(Tuple{typeof(Base.length), Array{CSV.Column{String, CSV.PooledString}, 1}}); catch e; @debug "couldn't precompile statement 1344" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), Array{CSV.Column{String, CSV.PooledString}, 1}, Int64}); catch e; @debug "couldn't precompile statement 1345" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{String, 1}, Int64, CSV.Column{String, CSV.PooledString}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1346" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{String, 1}, Int64, CSV.Column{String, CSV.PooledString}}); catch e; @debug "couldn't precompile statement 1347" exception = e; end
-try;precompile(Tuple{typeof(Base._similar_for), Array{DataFrames.DataFrame, 1}, Type{CSV.Column{Float64, Float64}}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 1348" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{CSV.Column{Float64, Float64}, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1349" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{CSV.Column{Float64, Float64}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1350" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{CSV.Column{Float64, Float64}, 1}, CSV.Column{Float64, Float64}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64}); catch e; @debug "couldn't precompile statement 1351" exception = e; end
-try;precompile(Tuple{typeof(Base.map), Function, Array{CSV.Column{Float64, Float64}, 1}}); catch e; @debug "couldn't precompile statement 1352" exception = e; end
-try;precompile(Tuple{Type{Base.Generator{I, F} where F where I}, typeof(Base.length), Array{CSV.Column{Float64, Float64}, 1}}); catch e; @debug "couldn't precompile statement 1353" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{CSV.Column{Float64, Float64}, 1}, typeof(Base.length)}, Int64}); catch e; @debug "couldn't precompile statement 1354" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_similar), Array{CSV.Column{Float64, Float64}, 1}, Base.Generator{Array{CSV.Column{Float64, Float64}, 1}, typeof(Base.length)}}); catch e; @debug "couldn't precompile statement 1355" exception = e; end
-try;precompile(Tuple{typeof(Base._mapreduce_dim), Function, Function, NamedTuple{(), Tuple{}}, Array{CSV.Column{Float64, Float64}, 1}, Base.Colon}); catch e; @debug "couldn't precompile statement 1356" exception = e; end
-try;precompile(Tuple{typeof(Base.mapreduce), Function, Function, Array{CSV.Column{Float64, Float64}, 1}}); catch e; @debug "couldn't precompile statement 1357" exception = e; end
-try;precompile(Tuple{typeof(Base.mapreduce_impl), typeof(Base.eltype), typeof(Base.promote_type), Array{CSV.Column{Float64, Float64}, 1}, Int64, Int64, Int64}); catch e; @debug "couldn't precompile statement 1358" exception = e; end
-try;precompile(Tuple{typeof(Base._mapreduce), typeof(Base.eltype), typeof(Base.promote_type), Base.IndexLinear, Array{CSV.Column{Float64, Float64}, 1}}); catch e; @debug "couldn't precompile statement 1359" exception = e; end
-try;precompile(Tuple{typeof(DataAPI.defaultarray), Type{Float64}, Int64}); catch e; @debug "couldn't precompile statement 1360" exception = e; end
-try;precompile(Tuple{typeof(Base.length), Array{CSV.Column{Float64, Float64}, 1}}); catch e; @debug "couldn't precompile statement 1361" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), Array{CSV.Column{Float64, Float64}, 1}, Int64}); catch e; @debug "couldn't precompile statement 1362" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Float64, 1}, Int64, CSV.Column{Float64, Float64}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1363" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Float64, 1}, Int64, CSV.Column{Float64, Float64}}); catch e; @debug "couldn't precompile statement 1364" exception = e; end
-try;precompile(Tuple{getfield(Core, Symbol("#kw#Type")), NamedTuple{(:copycols,), Tuple{Bool}}, Type{DataFrames.DataFrame}, Array{AbstractArray{T, 1} where T, 1}, Array{Symbol, 1}}); catch e; @debug "couldn't precompile statement 1365" exception = e; end
-try;precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), Array{Dates.DateTime, 1}}); catch e; @debug "couldn't precompile statement 1366" exception = e; end
-try;precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), Array{String, 1}}); catch e; @debug "couldn't precompile statement 1367" exception = e; end
-try;precompile(Tuple{typeof(Base._similar_for), Array{DataFrames.DataFrame, 1}, Type{Array{Int64, 1}}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 1368" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{Array{Int64, 1}, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1369" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Array{Int64, 1}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1370" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Array{Int64, 1}, 1}, Array{Int64, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64}); catch e; @debug "couldn't precompile statement 1371" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{AbstractArray{Int64, 1}, 1}, Int64, Array{Array{Int64, 1}, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1372" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex_widen_up_to), Array{Array{Int64, 1}, 1}, CSV.Column{Int64, Int64}, Int64}); catch e; @debug "couldn't precompile statement 1373" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{AbstractArray{Int64, 1}, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1374" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{AbstractArray{Int64, 1}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1375" exception = e; end
-try;precompile(Tuple{typeof(Base.map), Function, Array{AbstractArray{Int64, 1}, 1}}); catch e; @debug "couldn't precompile statement 1376" exception = e; end
-try;precompile(Tuple{Type{Base.Generator{I, F} where F where I}, typeof(Base.length), Array{AbstractArray{Int64, 1}, 1}}); catch e; @debug "couldn't precompile statement 1377" exception = e; end
-try;precompile(Tuple{typeof(Base._collect), Array{AbstractArray{Int64, 1}, 1}, Base.Generator{Array{AbstractArray{Int64, 1}, 1}, typeof(Base.length)}, Base.EltypeUnknown, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 1378" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_similar), Array{AbstractArray{Int64, 1}, 1}, Base.Generator{Array{AbstractArray{Int64, 1}, 1}, typeof(Base.length)}}); catch e; @debug "couldn't precompile statement 1379" exception = e; end
-try;precompile(Tuple{typeof(Base._similar_for), Array{AbstractArray{Int64, 1}, 1}, Type{Int64}, Base.Generator{Array{AbstractArray{Int64, 1}, 1}, typeof(Base.length)}, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 1380" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Array{AbstractArray{Int64, 1}, 1}, typeof(Base.length)}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1381" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{AbstractArray{Int64, 1}, 1}, typeof(Base.length)}, Int64}); catch e; @debug "couldn't precompile statement 1382" exception = e; end
-try;precompile(Tuple{typeof(Base._mapreduce_dim), Function, Function, NamedTuple{(), Tuple{}}, Array{AbstractArray{Int64, 1}, 1}, Base.Colon}); catch e; @debug "couldn't precompile statement 1383" exception = e; end
-try;precompile(Tuple{typeof(Base.mapreduce), Function, Function, Array{AbstractArray{Int64, 1}, 1}}); catch e; @debug "couldn't precompile statement 1384" exception = e; end
-try;precompile(Tuple{typeof(Base.mapreduce_impl), typeof(Base.eltype), typeof(Base.promote_type), Array{AbstractArray{Int64, 1}, 1}, Int64, Int64, Int64}); catch e; @debug "couldn't precompile statement 1385" exception = e; end
-try;precompile(Tuple{typeof(Base._mapreduce), typeof(Base.eltype), typeof(Base.promote_type), Base.IndexLinear, Array{AbstractArray{Int64, 1}, 1}}); catch e; @debug "couldn't precompile statement 1386" exception = e; end
-try;precompile(Tuple{typeof(Base.length), Array{AbstractArray{Int64, 1}, 1}}); catch e; @debug "couldn't precompile statement 1387" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), Array{AbstractArray{Int64, 1}, 1}, Int64}); catch e; @debug "couldn't precompile statement 1388" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Int64, 1}, Int64, Array{Int64, 1}}); catch e; @debug "couldn't precompile statement 1389" exception = e; end
-try;precompile(Tuple{typeof(Base._similar_for), Array{DataFrames.DataFrame, 1}, Type{Array{Dates.DateTime, 1}}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 1390" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{Array{Dates.DateTime, 1}, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1391" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Array{Dates.DateTime, 1}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1392" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Array{Dates.DateTime, 1}, 1}, Array{Dates.DateTime, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64}); catch e; @debug "couldn't precompile statement 1393" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{AbstractArray{Dates.DateTime, 1}, 1}, Int64, Array{Array{Dates.DateTime, 1}, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1394" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex_widen_up_to), Array{Array{Dates.DateTime, 1}, 1}, CSV.Column{Dates.DateTime, Dates.DateTime}, Int64}); catch e; @debug "couldn't precompile statement 1395" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{AbstractArray{Dates.DateTime, 1}, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1396" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{AbstractArray{Dates.DateTime, 1}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1397" exception = e; end
-try;precompile(Tuple{typeof(Base.map), Function, Array{AbstractArray{Dates.DateTime, 1}, 1}}); catch e; @debug "couldn't precompile statement 1398" exception = e; end
-try;precompile(Tuple{Type{Base.Generator{I, F} where F where I}, typeof(Base.length), Array{AbstractArray{Dates.DateTime, 1}, 1}}); catch e; @debug "couldn't precompile statement 1399" exception = e; end
-try;precompile(Tuple{typeof(Base._collect), Array{AbstractArray{Dates.DateTime, 1}, 1}, Base.Generator{Array{AbstractArray{Dates.DateTime, 1}, 1}, typeof(Base.length)}, Base.EltypeUnknown, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 1400" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_similar), Array{AbstractArray{Dates.DateTime, 1}, 1}, Base.Generator{Array{AbstractArray{Dates.DateTime, 1}, 1}, typeof(Base.length)}}); catch e; @debug "couldn't precompile statement 1401" exception = e; end
-try;precompile(Tuple{typeof(Base.length), Array{Dates.DateTime, 1}}); catch e; @debug "couldn't precompile statement 1402" exception = e; end
-try;precompile(Tuple{typeof(Base._similar_for), Array{AbstractArray{Dates.DateTime, 1}, 1}, Type{Int64}, Base.Generator{Array{AbstractArray{Dates.DateTime, 1}, 1}, typeof(Base.length)}, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 1403" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Array{AbstractArray{Dates.DateTime, 1}, 1}, typeof(Base.length)}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1404" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{AbstractArray{Dates.DateTime, 1}, 1}, typeof(Base.length)}, Int64}); catch e; @debug "couldn't precompile statement 1405" exception = e; end
-try;precompile(Tuple{typeof(Base.length), CSV.Column{Dates.DateTime, Dates.DateTime}}); catch e; @debug "couldn't precompile statement 1406" exception = e; end
-try;precompile(Tuple{typeof(Base._mapreduce_dim), Function, Function, NamedTuple{(), Tuple{}}, Array{AbstractArray{Dates.DateTime, 1}, 1}, Base.Colon}); catch e; @debug "couldn't precompile statement 1407" exception = e; end
-try;precompile(Tuple{typeof(Base.mapreduce), Function, Function, Array{AbstractArray{Dates.DateTime, 1}, 1}}); catch e; @debug "couldn't precompile statement 1408" exception = e; end
-try;precompile(Tuple{typeof(Base.mapreduce_impl), typeof(Base.eltype), typeof(Base.promote_type), Array{AbstractArray{Dates.DateTime, 1}, 1}, Int64, Int64, Int64}); catch e; @debug "couldn't precompile statement 1409" exception = e; end
-try;precompile(Tuple{typeof(Base._mapreduce), typeof(Base.eltype), typeof(Base.promote_type), Base.IndexLinear, Array{AbstractArray{Dates.DateTime, 1}, 1}}); catch e; @debug "couldn't precompile statement 1410" exception = e; end
-try;precompile(Tuple{typeof(Base.eltype), Array{Dates.DateTime, 1}}); catch e; @debug "couldn't precompile statement 1411" exception = e; end
-try;precompile(Tuple{typeof(Base.length), Array{AbstractArray{Dates.DateTime, 1}, 1}}); catch e; @debug "couldn't precompile statement 1412" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), Array{AbstractArray{Dates.DateTime, 1}, 1}, Int64}); catch e; @debug "couldn't precompile statement 1413" exception = e; end
-try;precompile(Tuple{typeof(Base.allocatedinline), Type{Dates.DateTime}}); catch e; @debug "couldn't precompile statement 1414" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Dates.DateTime, 1}, Int64, Array{Dates.DateTime, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1415" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Dates.DateTime, 1}, Int64, Array{Dates.DateTime, 1}}); catch e; @debug "couldn't precompile statement 1416" exception = e; end
-try;precompile(Tuple{typeof(Base._similar_for), Array{DataFrames.DataFrame, 1}, Type{Array{Bool, 1}}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 1417" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{Array{Bool, 1}, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1418" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Array{Bool, 1}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1419" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Array{Bool, 1}, 1}, Array{Bool, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64}); catch e; @debug "couldn't precompile statement 1420" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{AbstractArray{Bool, 1}, 1}, Int64, Array{Array{Bool, 1}, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1421" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex_widen_up_to), Array{Array{Bool, 1}, 1}, CSV.Column{Bool, Bool}, Int64}); catch e; @debug "couldn't precompile statement 1422" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{AbstractArray{Bool, 1}, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1423" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{AbstractArray{Bool, 1}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1424" exception = e; end
-try;precompile(Tuple{typeof(Base.map), Function, Array{AbstractArray{Bool, 1}, 1}}); catch e; @debug "couldn't precompile statement 1425" exception = e; end
-try;precompile(Tuple{Type{Base.Generator{I, F} where F where I}, typeof(Base.length), Array{AbstractArray{Bool, 1}, 1}}); catch e; @debug "couldn't precompile statement 1426" exception = e; end
-try;precompile(Tuple{typeof(Base._collect), Array{AbstractArray{Bool, 1}, 1}, Base.Generator{Array{AbstractArray{Bool, 1}, 1}, typeof(Base.length)}, Base.EltypeUnknown, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 1427" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_similar), Array{AbstractArray{Bool, 1}, 1}, Base.Generator{Array{AbstractArray{Bool, 1}, 1}, typeof(Base.length)}}); catch e; @debug "couldn't precompile statement 1428" exception = e; end
-try;precompile(Tuple{typeof(Base.length), Array{Bool, 1}}); catch e; @debug "couldn't precompile statement 1429" exception = e; end
-try;precompile(Tuple{typeof(Base._similar_for), Array{AbstractArray{Bool, 1}, 1}, Type{Int64}, Base.Generator{Array{AbstractArray{Bool, 1}, 1}, typeof(Base.length)}, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 1430" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Array{AbstractArray{Bool, 1}, 1}, typeof(Base.length)}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1431" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{AbstractArray{Bool, 1}, 1}, typeof(Base.length)}, Int64}); catch e; @debug "couldn't precompile statement 1432" exception = e; end
-try;precompile(Tuple{typeof(Base.length), CSV.Column{Bool, Bool}}); catch e; @debug "couldn't precompile statement 1433" exception = e; end
-try;precompile(Tuple{typeof(Base._mapreduce_dim), Function, Function, NamedTuple{(), Tuple{}}, Array{AbstractArray{Bool, 1}, 1}, Base.Colon}); catch e; @debug "couldn't precompile statement 1434" exception = e; end
-try;precompile(Tuple{typeof(Base.mapreduce), Function, Function, Array{AbstractArray{Bool, 1}, 1}}); catch e; @debug "couldn't precompile statement 1435" exception = e; end
-try;precompile(Tuple{typeof(Base.mapreduce_impl), typeof(Base.eltype), typeof(Base.promote_type), Array{AbstractArray{Bool, 1}, 1}, Int64, Int64, Int64}); catch e; @debug "couldn't precompile statement 1436" exception = e; end
-try;precompile(Tuple{typeof(Base._mapreduce), typeof(Base.eltype), typeof(Base.promote_type), Base.IndexLinear, Array{AbstractArray{Bool, 1}, 1}}); catch e; @debug "couldn't precompile statement 1437" exception = e; end
-try;precompile(Tuple{typeof(Base.length), Array{AbstractArray{Bool, 1}, 1}}); catch e; @debug "couldn't precompile statement 1438" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), Array{AbstractArray{Bool, 1}, 1}, Int64}); catch e; @debug "couldn't precompile statement 1439" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Bool, 1}, Int64, Array{Bool, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1440" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Bool, 1}, Int64, Array{Bool, 1}}); catch e; @debug "couldn't precompile statement 1441" exception = e; end
-try;precompile(Tuple{typeof(Base._similar_for), Array{DataFrames.DataFrame, 1}, Type{Array{String, 1}}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 1442" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{Array{String, 1}, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1443" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Array{String, 1}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1444" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Array{String, 1}, 1}, Array{String, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64}); catch e; @debug "couldn't precompile statement 1445" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{AbstractArray{String, 1}, 1}, Int64, Array{Array{String, 1}, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1446" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex_widen_up_to), Array{Array{String, 1}, 1}, CSV.Column{String, CSV.PooledString}, Int64}); catch e; @debug "couldn't precompile statement 1447" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{AbstractArray{String, 1}, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1448" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{AbstractArray{String, 1}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1449" exception = e; end
-try;precompile(Tuple{typeof(Base.map), Function, Array{AbstractArray{String, 1}, 1}}); catch e; @debug "couldn't precompile statement 1450" exception = e; end
-try;precompile(Tuple{Type{Base.Generator{I, F} where F where I}, typeof(Base.length), Array{AbstractArray{String, 1}, 1}}); catch e; @debug "couldn't precompile statement 1451" exception = e; end
-try;precompile(Tuple{typeof(Base._collect), Array{AbstractArray{String, 1}, 1}, Base.Generator{Array{AbstractArray{String, 1}, 1}, typeof(Base.length)}, Base.EltypeUnknown, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 1452" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_similar), Array{AbstractArray{String, 1}, 1}, Base.Generator{Array{AbstractArray{String, 1}, 1}, typeof(Base.length)}}); catch e; @debug "couldn't precompile statement 1453" exception = e; end
-try;precompile(Tuple{typeof(Base._similar_for), Array{AbstractArray{String, 1}, 1}, Type{Int64}, Base.Generator{Array{AbstractArray{String, 1}, 1}, typeof(Base.length)}, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 1454" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Array{AbstractArray{String, 1}, 1}, typeof(Base.length)}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1455" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{AbstractArray{String, 1}, 1}, typeof(Base.length)}, Int64}); catch e; @debug "couldn't precompile statement 1456" exception = e; end
-try;precompile(Tuple{typeof(Base.length), CSV.Column{String, CSV.PooledString}}); catch e; @debug "couldn't precompile statement 1457" exception = e; end
-try;precompile(Tuple{typeof(Base._mapreduce_dim), Function, Function, NamedTuple{(), Tuple{}}, Array{AbstractArray{String, 1}, 1}, Base.Colon}); catch e; @debug "couldn't precompile statement 1458" exception = e; end
-try;precompile(Tuple{typeof(Base.mapreduce), Function, Function, Array{AbstractArray{String, 1}, 1}}); catch e; @debug "couldn't precompile statement 1459" exception = e; end
-try;precompile(Tuple{typeof(Base.mapreduce_impl), typeof(Base.eltype), typeof(Base.promote_type), Array{AbstractArray{String, 1}, 1}, Int64, Int64, Int64}); catch e; @debug "couldn't precompile statement 1460" exception = e; end
-try;precompile(Tuple{typeof(Base._mapreduce), typeof(Base.eltype), typeof(Base.promote_type), Base.IndexLinear, Array{AbstractArray{String, 1}, 1}}); catch e; @debug "couldn't precompile statement 1461" exception = e; end
-try;precompile(Tuple{typeof(Base.length), Array{AbstractArray{String, 1}, 1}}); catch e; @debug "couldn't precompile statement 1462" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), Array{AbstractArray{String, 1}, 1}, Int64}); catch e; @debug "couldn't precompile statement 1463" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{String, 1}, Int64, Array{String, 1}}); catch e; @debug "couldn't precompile statement 1464" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex_widen_up_to), Array{Array{String, 1}, 1}, CSV.Column{String, String}, Int64}); catch e; @debug "couldn't precompile statement 1465" exception = e; end
-try;precompile(Tuple{typeof(Base.length), CSV.Column{String, String}}); catch e; @debug "couldn't precompile statement 1466" exception = e; end
-try;precompile(Tuple{typeof(Base.eltype), CSV.Column{String, String}}); catch e; @debug "couldn't precompile statement 1467" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{String, 1}, Int64, CSV.Column{String, String}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1468" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{String, 1}, Int64, CSV.Column{String, String}}); catch e; @debug "couldn't precompile statement 1469" exception = e; end
-try;precompile(Tuple{typeof(Base._similar_for), Array{DataFrames.DataFrame, 1}, Type{Array{Float64, 1}}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 1470" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{Array{Float64, 1}, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1471" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Array{Float64, 1}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1472" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Array{Float64, 1}, 1}, Array{Float64, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64}); catch e; @debug "couldn't precompile statement 1473" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{AbstractArray{Float64, 1}, 1}, Int64, Array{Array{Float64, 1}, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1474" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex_widen_up_to), Array{Array{Float64, 1}, 1}, CSV.Column{Float64, Float64}, Int64}); catch e; @debug "couldn't precompile statement 1475" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{AbstractArray{Float64, 1}, 1}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1476" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{AbstractArray{Float64, 1}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1477" exception = e; end
-try;precompile(Tuple{typeof(Base.map), Function, Array{AbstractArray{Float64, 1}, 1}}); catch e; @debug "couldn't precompile statement 1478" exception = e; end
-try;precompile(Tuple{Type{Base.Generator{I, F} where F where I}, typeof(Base.length), Array{AbstractArray{Float64, 1}, 1}}); catch e; @debug "couldn't precompile statement 1479" exception = e; end
-try;precompile(Tuple{typeof(Base._collect), Array{AbstractArray{Float64, 1}, 1}, Base.Generator{Array{AbstractArray{Float64, 1}, 1}, typeof(Base.length)}, Base.EltypeUnknown, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 1480" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_similar), Array{AbstractArray{Float64, 1}, 1}, Base.Generator{Array{AbstractArray{Float64, 1}, 1}, typeof(Base.length)}}); catch e; @debug "couldn't precompile statement 1481" exception = e; end
-try;precompile(Tuple{typeof(Base.length), Array{Float64, 1}}); catch e; @debug "couldn't precompile statement 1482" exception = e; end
-try;precompile(Tuple{typeof(Base._similar_for), Array{AbstractArray{Float64, 1}, 1}, Type{Int64}, Base.Generator{Array{AbstractArray{Float64, 1}, 1}, typeof(Base.length)}, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 1483" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Array{AbstractArray{Float64, 1}, 1}, typeof(Base.length)}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1484" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{AbstractArray{Float64, 1}, 1}, typeof(Base.length)}, Int64}); catch e; @debug "couldn't precompile statement 1485" exception = e; end
-try;precompile(Tuple{typeof(Base.length), CSV.Column{Float64, Float64}}); catch e; @debug "couldn't precompile statement 1486" exception = e; end
-try;precompile(Tuple{typeof(Base._mapreduce_dim), Function, Function, NamedTuple{(), Tuple{}}, Array{AbstractArray{Float64, 1}, 1}, Base.Colon}); catch e; @debug "couldn't precompile statement 1487" exception = e; end
-try;precompile(Tuple{typeof(Base.mapreduce), Function, Function, Array{AbstractArray{Float64, 1}, 1}}); catch e; @debug "couldn't precompile statement 1488" exception = e; end
-try;precompile(Tuple{typeof(Base.mapreduce_impl), typeof(Base.eltype), typeof(Base.promote_type), Array{AbstractArray{Float64, 1}, 1}, Int64, Int64, Int64}); catch e; @debug "couldn't precompile statement 1489" exception = e; end
-try;precompile(Tuple{typeof(Base._mapreduce), typeof(Base.eltype), typeof(Base.promote_type), Base.IndexLinear, Array{AbstractArray{Float64, 1}, 1}}); catch e; @debug "couldn't precompile statement 1490" exception = e; end
-try;precompile(Tuple{typeof(Base.length), Array{AbstractArray{Float64, 1}, 1}}); catch e; @debug "couldn't precompile statement 1491" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), Array{AbstractArray{Float64, 1}, 1}, Int64}); catch e; @debug "couldn't precompile statement 1492" exception = e; end
-try;precompile(Tuple{typeof(Base.copyto!), Array{Float64, 1}, Int64, Array{Float64, 1}}); catch e; @debug "couldn't precompile statement 1493" exception = e; end
-try;precompile(Tuple{typeof(Base._all), getfield(Base, Symbol("#240#242")), Base.Dict{Symbol, Int64}, Base.Colon}); catch e; @debug "couldn't precompile statement 1494" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Base.Dict{Symbol, Int64}}); catch e; @debug "couldn't precompile statement 1495" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), DataFrames.DataFrame, Base.UnitRange{Int64}, Base.Colon}); catch e; @debug "couldn't precompile statement 1496" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), Array{Int64, 1}, Base.UnitRange{Int64}}); catch e; @debug "couldn't precompile statement 1497" exception = e; end
-try;precompile(Tuple{typeof(Base.throw_boundserror), Array{Dates.DateTime, 1}, Tuple{Base.UnitRange{Int64}}}); catch e; @debug "couldn't precompile statement 1498" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), Array{Dates.DateTime, 1}, Base.UnitRange{Int64}}); catch e; @debug "couldn't precompile statement 1499" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), Array{Bool, 1}, Base.UnitRange{Int64}}); catch e; @debug "couldn't precompile statement 1500" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), Array{String, 1}, Base.UnitRange{Int64}}); catch e; @debug "couldn't precompile statement 1501" exception = e; end
-try;precompile(Tuple{typeof(Base.throw_boundserror), Array{Float64, 1}, Tuple{Base.UnitRange{Int64}}}); catch e; @debug "couldn't precompile statement 1502" exception = e; end
-try;precompile(Tuple{typeof(Base.getindex), Array{Float64, 1}, Base.UnitRange{Int64}}); catch e; @debug "couldn't precompile statement 1503" exception = e; end
-try;precompile(Tuple{typeof(Base.put_buffered), Base.Channel{DataFrames.DataFrame}, DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 1504" exception = e; end
-try;precompile(Tuple{typeof(Base.put_unbuffered), Base.Channel{DataFrames.DataFrame}, DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 1505" exception = e; end
-try;precompile(Tuple{typeof(Base.put!), Base.Channel{DataFrames.DataFrame}, DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 1506" exception = e; end
-try;precompile(Tuple{typeof(Base.put_buffered), Base.Channel{DataFrames.AbstractDataFrame}, DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 1507" exception = e; end
-try;precompile(Tuple{typeof(Base.put_unbuffered), Base.Channel{DataFrames.AbstractDataFrame}, DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 1508" exception = e; end
-try;precompile(Tuple{typeof(Base.put!), Base.Channel{DataFrames.AbstractDataFrame}, DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 1509" exception = e; end
-try;precompile(Tuple{typeof(Base.lastindex), DataFrames.DataFrame, Int64}); catch e; @debug "couldn't precompile statement 1510" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##🐃#633")), Nothing, Bool, Type{Base.Channel{Any}}, getfield(Dataiku, Symbol("#45#46")){Base.Channel{DataFrames.AbstractDataFrame}, DataFrames.DataFrame}, Int64}); catch e; @debug "couldn't precompile statement 1511" exception = e; end
-try;precompile(Tuple{typeof(Dataiku._dataframe_chnl_to_csv), Base.Channel{DataFrames.AbstractDataFrame}, DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 1512" exception = e; end
-try;precompile(Tuple{typeof(Base.put_buffered), Base.Channel{Any}, Base.BufferStream}); catch e; @debug "couldn't precompile statement 1513" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), Base.Channel{DataFrames.AbstractDataFrame}, Nothing}); catch e; @debug "couldn't precompile statement 1514" exception = e; end
-try;precompile(Tuple{typeof(Base.put_unbuffered), Base.Channel{Any}, Base.BufferStream}); catch e; @debug "couldn't precompile statement 1515" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("#45#46")){Base.Channel{DataFrames.AbstractDataFrame}, DataFrames.DataFrame}, Base.Channel{Any}}); catch e; @debug "couldn't precompile statement 1516" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#634#635")){getfield(Dataiku, Symbol("#45#46")){Base.Channel{DataFrames.AbstractDataFrame}, DataFrames.DataFrame}, Base.Channel{Any}}}); catch e; @debug "couldn't precompile statement 1517" exception = e; end
-try;precompile(Tuple{Type{Tables.Schema{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Int64, Dates.DateTime, Dates.DateTime, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}}}); catch e; @debug "couldn't precompile statement 1518" exception = e; end
-try;precompile(Tuple{typeof(Tables.columntable), Tables.Schema{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Int64, Dates.DateTime, Dates.DateTime, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}, DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 1519" exception = e; end
-try;precompile(Tuple{Type{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), T} where T<:Tuple}, Tuple{Array{Int64, 1}, Array{Dates.DateTime, 1}, Array{Dates.DateTime, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{String, 1}, Array{String, 1}, Array{Int64, 1}, Array{Float64, 1}}}); catch e; @debug "couldn't precompile statement 1520" exception = e; end
-try;precompile(Tuple{typeof(Tables.rows), NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{Dates.DateTime, 1}, Array{Dates.DateTime, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{String, 1}, Array{String, 1}, Array{Int64, 1}, Array{Float64, 1}}}}); catch e; @debug "couldn't precompile statement 1521" exception = e; end
-try;precompile(Tuple{typeof(Tables._types), Type{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{Dates.DateTime, 1}, Array{Dates.DateTime, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{String, 1}, Array{String, 1}, Array{Int64, 1}, Array{Float64, 1}}}}}); catch e; @debug "couldn't precompile statement 1522" exception = e; end
-try;precompile(Tuple{typeof(Tables._eltype), Type{Array{Dates.DateTime, 1}}}); catch e; @debug "couldn't precompile statement 1523" exception = e; end
-try;precompile(Tuple{typeof(Tables._eltype), Type{Array{String, 1}}}); catch e; @debug "couldn't precompile statement 1524" exception = e; end
-try;precompile(Tuple{typeof(Tables.schema), Tables.RowIterator{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{Dates.DateTime, 1}, Array{Dates.DateTime, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{String, 1}, Array{String, 1}, Array{Int64, 1}, Array{Float64, 1}}}}}); catch e; @debug "couldn't precompile statement 1525" exception = e; end
-try;precompile(Tuple{getfield(CSV, Symbol("##write#54")), Bool, Bool, Array{String, 1}, typeof(CSV.write), Tables.Schema{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Int64, Dates.DateTime, Dates.DateTime, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}, Tables.RowIterator{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{Dates.DateTime, 1}, Array{Dates.DateTime, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{String, 1}, Array{String, 1}, Array{Int64, 1}, Array{Float64, 1}}}}, Base.BufferStream, CSV.Options{UInt8, UInt8, Nothing, Tuple{}}}); catch e; @debug "couldn't precompile statement 1526" exception = e; end
-try;precompile(Tuple{getfield(CSV, Symbol("#kw##write")), NamedTuple{(:writeheader,), Tuple{Bool}}, typeof(CSV.write), Tables.Schema{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Int64, Dates.DateTime, Dates.DateTime, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}, Tables.RowIterator{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{Dates.DateTime, 1}, Array{Dates.DateTime, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{String, 1}, Array{String, 1}, Array{Int64, 1}, Array{Float64, 1}}}}, Base.BufferStream, CSV.Options{UInt8, UInt8, Nothing, Tuple{}}}); catch e; @debug "couldn't precompile statement 1527" exception = e; end
-try;precompile(Tuple{typeof(CSV.writecell), Array{UInt8, 1}, Int64, Int64, Base.BufferStream, Dates.DateTime, CSV.Options{UInt8, UInt8, Nothing, Tuple{}}}); catch e; @debug "couldn't precompile statement 1530" exception = e; end
-try;precompile(Tuple{typeof(CSV.writerow), Array{UInt8, 1}, Base.RefValue{Int64}, Int64, Base.BufferStream, Tables.Schema{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Int64, Dates.DateTime, Dates.DateTime, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}, Tables.ColumnsRow{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{Dates.DateTime, 1}, Array{Dates.DateTime, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{String, 1}, Array{String, 1}, Array{Int64, 1}, Array{Float64, 1}}}}, Int64, CSV.Options{UInt8, UInt8, Nothing, Tuple{}}}); catch e; @debug "couldn't precompile statement 1531" exception = e; end
-try;precompile(Tuple{getfield(CSV, Symbol("#55#56")){Bool, Tables.Schema{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Int64, Dates.DateTime, Dates.DateTime, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}, Tables.RowIterator{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{Dates.DateTime, 1}, Array{Dates.DateTime, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{String, 1}, Array{String, 1}, Array{Int64, 1}, Array{Float64, 1}}}}, CSV.Options{UInt8, UInt8, Nothing, Tuple{}}, Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}, Int64, Int64, Array{UInt8, 1}}, Base.BufferStream}); catch e; @debug "couldn't precompile statement 1532" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##write_data#51")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.write_data), Dataiku.DSSDataset, Base.Channel{Any}, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 1533" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.write_data), Dataiku.DSSDataset, Base.Channel{Any}, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 1534" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request), String, String, Base.Channel{Any}}); catch e; @debug "couldn't precompile statement 1535" exception = e; end
-try;precompile(Tuple{typeof(Dataiku._push_data), String, Base.Channel{Any}}); catch e; @debug "couldn't precompile statement 1536" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("##request#4")), Base.Dict{String, String}, Base.Channel{Any}, Nothing, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), String, String, Base.Dict{String, String}, Base.Channel{Any}}); catch e; @debug "couldn't precompile statement 1537" exception = e; end
-try;precompile(Tuple{typeof(HTTP.request), String, String, Base.Dict{String, String}, Base.Channel{Any}}); catch e; @debug "couldn't precompile statement 1538" exception = e; end
-try;precompile(Tuple{getfield(HTTP.MessageRequest, Symbol("##request#1")), Base.VersionNumber, String, Nothing, Nothing, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), Type{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Base.Channel{Any}}); catch e; @debug "couldn't precompile statement 1539" exception = e; end
-try;precompile(Tuple{getfield(HTTP.RedirectRequest, Symbol("##request#1")), Int64, Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), Type{HTTP.RedirectRequest.RedirectLayer{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Base.Channel{Any}}); catch e; @debug "couldn't precompile statement 1540" exception = e; end
-try;precompile(Tuple{typeof(HTTP.request), Type{HTTP.RedirectRequest.RedirectLayer{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Base.Channel{Any}}); catch e; @debug "couldn't precompile statement 1541" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{Nothing}}, typeof(HTTP.request), Type{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Base.Channel{Any}}); catch e; @debug "couldn't precompile statement 1542" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{Nothing}}, typeof(HTTP.request), Type{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Base.Channel{Any}}); catch e; @debug "couldn't precompile statement 1543" exception = e; end
-try;precompile(Tuple{getfield(HTTP.ConnectionRequest, Symbol("##request#1")), Nothing, Type{T} where T, Int64, Base.Iterators.Pairs{Symbol, Nothing, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{Nothing}}}, typeof(HTTP.request), Type{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Base.Channel{Any}}); catch e; @debug "couldn't precompile statement 1544" exception = e; end
-try;precompile(Tuple{getfield(HTTP.StreamRequest, Symbol("##request#1")), Nothing, Nothing, Int64, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), Type{HTTP.StreamRequest.StreamLayer{Union{}}}, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, Base.Channel{Any}}); catch e; @debug "couldn't precompile statement 1545" exception = e; end
-try;precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{Nothing}}, typeof(HTTP.request), Type{HTTP.StreamRequest.StreamLayer{Union{}}}, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, Base.Channel{Any}}); catch e; @debug "couldn't precompile statement 1546" exception = e; end
-try;precompile(Tuple{typeof(HTTP.StreamRequest.writebodystream), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, HTTP.Messages.Request, Base.Channel{Any}}); catch e; @debug "couldn't precompile statement 1547" exception = e; end
-try;precompile(Tuple{typeof(HTTP.StreamRequest.writebody), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, HTTP.Messages.Request, Base.Channel{Any}}); catch e; @debug "couldn't precompile statement 1548" exception = e; end
-try;precompile(Tuple{getfield(HTTP.StreamRequest, Symbol("#2#3")){HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, Base.Channel{Any}, HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}}}); catch e; @debug "couldn't precompile statement 1549" exception = e; end
-try;precompile(Tuple{typeof(HTTP.StreamRequest.writechunk), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, HTTP.Messages.Request, Base.BufferStream}); catch e; @debug "couldn't precompile statement 1550" exception = e; end
-try;precompile(Tuple{typeof(Dataiku._get_stream_write), DataFrames.DataFrame}); catch e; @debug "couldn't precompile statement 1551" exception = e; end
-try;precompile(Tuple{typeof(Base.foreach), getfield(Base, Symbol("#466#467")){Task}, Array{Any, 1}}); catch e; @debug "couldn't precompile statement 1552" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#649#651")){Task, Base.Channel{Any}}}); catch e; @debug "couldn't precompile statement 1553" exception = e; end
-try;precompile(Tuple{typeof(Base.close_chnl_on_taskdone), Task, Base.Channel{Any}}); catch e; @debug "couldn't precompile statement 1554" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#466#467")){Task}, getfield(Base, Symbol("#638#639")){Base.Channel{Any}}}); catch e; @debug "couldn't precompile statement 1555" exception = e; end
-try;precompile(Tuple{typeof(Base.delete!), Base.IdDict{Any, Any}, Any}); catch e; @debug "couldn't precompile statement 1556" exception = e; end
-try;precompile(Tuple{typeof(Base.close), Base.Channel{DataFrames.DataFrame}, Base.InvalidStateException}); catch e; @debug "couldn't precompile statement 1557" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#649#651")){Task, Base.Channel{DataFrames.DataFrame}}}); catch e; @debug "couldn't precompile statement 1558" exception = e; end
-try;precompile(Tuple{typeof(Base.close_chnl_on_taskdone), Task, Base.Channel{DataFrames.DataFrame}}); catch e; @debug "couldn't precompile statement 1559" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#466#467")){Task}, getfield(Base, Symbol("#638#639")){Base.Channel{DataFrames.DataFrame}}}); catch e; @debug "couldn't precompile statement 1560" exception = e; end
-try;precompile(Tuple{typeof(Base.close), Base.Channel{DataFrames.AbstractDataFrame}, Base.InvalidStateException}); catch e; @debug "couldn't precompile statement 1561" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#649#651")){Task, Base.Channel{DataFrames.AbstractDataFrame}}}); catch e; @debug "couldn't precompile statement 1562" exception = e; end
-try;precompile(Tuple{typeof(Base.close_chnl_on_taskdone), Task, Base.Channel{DataFrames.AbstractDataFrame}}); catch e; @debug "couldn't precompile statement 1563" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#466#467")){Task}, getfield(Base, Symbol("#638#639")){Base.Channel{DataFrames.AbstractDataFrame}}}); catch e; @debug "couldn't precompile statement 1564" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.create_analysis), Dataiku.DSSDataset}); catch e; @debug "couldn't precompile statement 1565" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.request_json), String, String, Base.Dict{String, String}}); catch e; @debug "couldn't precompile statement 1566" exception = e; end
-try;precompile(Tuple{Type{Dataiku.DSSAnalysis}, String, Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 1567" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##create_prediction_ml_task#78")), String, String, Nothing, Bool, typeof(Dataiku.create_prediction_ml_task), Dataiku.DSSDataset, Symbol}); catch e; @debug "couldn't precompile statement 1568" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.create_prediction_ml_task), Dataiku.DSSDataset, Symbol}); catch e; @debug "couldn't precompile statement 1569" exception = e; end
-try;precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Symbol}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}}}); catch e; @debug "couldn't precompile statement 1570" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Any, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Symbol}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}}); catch e; @debug "couldn't precompile statement 1571" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Symbol}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}}); catch e; @debug "couldn't precompile statement 1572" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, String}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Symbol}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}, Int64}); catch e; @debug "couldn't precompile statement 1573" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Any}, Symbol, String}); catch e; @debug "couldn't precompile statement 1574" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Symbol}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}, Int64}); catch e; @debug "couldn't precompile statement 1575" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_status), Dataiku.DSSMLTask}); catch e; @debug "couldn't precompile statement 1576" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.wait_guess_complete), Dataiku.DSSMLTask}); catch e; @debug "couldn't precompile statement 1577" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##create_ml_task#80")), Bool, typeof(Dataiku.create_ml_task), Dataiku.DSSDataset, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 1578" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("#kw##create_ml_task")), NamedTuple{(:wait_guess,), Tuple{Bool}}, typeof(Dataiku.create_ml_task), Dataiku.DSSDataset, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 1579" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String, Nothing}); catch e; @debug "couldn't precompile statement 1580" exception = e; end
-try;precompile(Tuple{typeof(Base.convert), Type{Any}, Symbol}); catch e; @debug "couldn't precompile statement 1581" exception = e; end
-try;precompile(Tuple{typeof(Base.write), JSON.Writer.StringContext{JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}}, Symbol}); catch e; @debug "couldn't precompile statement 1582" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_string), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, Symbol}); catch e; @debug "couldn't precompile statement 1583" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_json), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Symbol}); catch e; @debug "couldn't precompile statement 1584" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String, Symbol}); catch e; @debug "couldn't precompile statement 1585" exception = e; end
-try;precompile(Tuple{Type{Dataiku.DSSMLTask}, Base.Dict{String, Any}, Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 1586" exception = e; end
-try;precompile(Tuple{Type{Dataiku.DSSMLTask}, String, String, Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 1587" exception = e; end
-try;precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Base.Pair{String, String}, Base.Pair{String, Symbol}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}}}); catch e; @debug "couldn't precompile statement 1588" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Any, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, Symbol}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}}); catch e; @debug "couldn't precompile statement 1589" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Tuple{Base.Pair{String, String}, Base.Pair{String, Symbol}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}}); catch e; @debug "couldn't precompile statement 1590" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##create_prediction_ml_task#81")), String, String, Nothing, Bool, typeof(Dataiku.create_prediction_ml_task), Dataiku.DSSAnalysis, Symbol}); catch e; @debug "couldn't precompile statement 1591" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.create_prediction_ml_task), Dataiku.DSSAnalysis, Symbol}); catch e; @debug "couldn't precompile statement 1592" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, String}, Tuple{Base.Pair{String, String}, Base.Pair{String, Symbol}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}, Int64}); catch e; @debug "couldn't precompile statement 1593" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, Symbol}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}, Int64}); catch e; @debug "couldn't precompile statement 1594" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##create_ml_task#83")), Bool, typeof(Dataiku.create_ml_task), Dataiku.DSSAnalysis, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 1595" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("#kw##create_ml_task")), NamedTuple{(:wait_guess,), Tuple{Bool}}, typeof(Dataiku.create_ml_task), Dataiku.DSSAnalysis, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 1596" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##create_clustering_ml_task#79")), String, String, Bool, typeof(Dataiku.create_clustering_ml_task), Dataiku.DSSDataset}); catch e; @debug "couldn't precompile statement 1597" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.create_clustering_ml_task), Dataiku.DSSDataset}); catch e; @debug "couldn't precompile statement 1598" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##create_ml_task#80")), Bool, typeof(Dataiku.create_ml_task), Dataiku.DSSDataset, Base.Dict{String, String}}); catch e; @debug "couldn't precompile statement 1599" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("#kw##create_ml_task")), NamedTuple{(:wait_guess,), Tuple{Bool}}, typeof(Dataiku.create_ml_task), Dataiku.DSSDataset, Base.Dict{String, String}}); catch e; @debug "couldn't precompile statement 1600" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##create_ml_task#83")), Bool, typeof(Dataiku.create_ml_task), Dataiku.DSSAnalysis, Base.Dict{String, String}}); catch e; @debug "couldn't precompile statement 1601" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##create_clustering_ml_task#82")), String, String, Bool, typeof(Dataiku.create_clustering_ml_task), Dataiku.DSSAnalysis}); catch e; @debug "couldn't precompile statement 1602" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.create_clustering_ml_task), Dataiku.DSSAnalysis}); catch e; @debug "couldn't precompile statement 1603" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request), String, String, Base.Dict{String, Nothing}}); catch e; @debug "couldn't precompile statement 1604" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request_json), String, String, Base.Dict{String, Nothing}}); catch e; @debug "couldn't precompile statement 1605" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.guess), Dataiku.DSSMLTask, Nothing}); catch e; @debug "couldn't precompile statement 1606" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.guess), Dataiku.DSSMLTask}); catch e; @debug "couldn't precompile statement 1607" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##sprint#339")), Nothing, Int64, typeof(Base.sprint), Function, Base.Dict{String, Nothing}}); catch e; @debug "couldn't precompile statement 1608" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_json), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Base.Dict{String, Nothing}}); catch e; @debug "couldn't precompile statement 1609" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.print), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.Dict{String, Nothing}}); catch e; @debug "couldn't precompile statement 1610" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.list_analysis), Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 1611" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.list_analysis)}); catch e; @debug "couldn't precompile statement 1612" exception = e; end
-try;precompile(Tuple{typeof(Base.:(|>)), Array{Any, 1}, typeof(Base.length)}); catch e; @debug "couldn't precompile statement 1613" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.list_ml_tasks), Dataiku.DSSAnalysis}); catch e; @debug "couldn't precompile statement 1614" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.list_ml_tasks), Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 1615" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.list_ml_tasks)}); catch e; @debug "couldn't precompile statement 1616" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request), String, String, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}}); catch e; @debug "couldn't precompile statement 1617" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request_json), String, String, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}}); catch e; @debug "couldn't precompile statement 1618" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##start_train#85")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.start_train), Dataiku.DSSMLTask}); catch e; @debug "couldn't precompile statement 1619" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("#Timer#505#506")), Float64, Type{Base.Timer}, Int64}); catch e; @debug "couldn't precompile statement 1620" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.wait_train_complete), Dataiku.DSSMLTask}); catch e; @debug "couldn't precompile statement 1621" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##train#84")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.train), Dataiku.DSSMLTask}); catch e; @debug "couldn't precompile statement 1622" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.train), Dataiku.DSSMLTask}); catch e; @debug "couldn't precompile statement 1623" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##sprint#339")), Nothing, Int64, typeof(Base.sprint), Function, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}}); catch e; @debug "couldn't precompile statement 1624" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_json), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}}); catch e; @debug "couldn't precompile statement 1625" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.print), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}}); catch e; @debug "couldn't precompile statement 1626" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_trained_models_ids), Dataiku.DSSMLTask, String, Nothing}); catch e; @debug "couldn't precompile statement 1627" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_trained_models_ids), Dataiku.DSSMLTask, String}); catch e; @debug "couldn't precompile statement 1628" exception = e; end
-try;precompile(Tuple{Type{Base.Iterators.Filter{F, I} where I where F}, getfield(Dataiku, Symbol("#87#92")){String}, Array{Any, 1}}); catch e; @debug "couldn't precompile statement 1629" exception = e; end
-try;precompile(Tuple{Type{Base.Generator{I, F} where F where I}, getfield(Dataiku, Symbol("#86#91")), Base.Iterators.Filter{getfield(Dataiku, Symbol("#87#92")){String}, Array{Any, 1}}}); catch e; @debug "couldn't precompile statement 1630" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), Base.Iterators.Filter{getfield(Dataiku, Symbol("#87#92")){String}, Array{Any, 1}}}); catch e; @debug "couldn't precompile statement 1631" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Array{Any, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#87#92")){String}, Array{Any, 1}}, getfield(Dataiku, Symbol("#86#91"))}}); catch e; @debug "couldn't precompile statement 1632" exception = e; end
-try;precompile(Tuple{typeof(Base.collect), Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#87#92")){String}, Array{Any, 1}}, getfield(Dataiku, Symbol("#86#91"))}}); catch e; @debug "couldn't precompile statement 1633" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("#87#92")){String}, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 1634" exception = e; end
-try;precompile(Tuple{typeof(Base.empty), Array{Any, 1}, Type{Base.Dict{String, Any}}}); catch e; @debug "couldn't precompile statement 1635" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), Base.Iterators.Filter{getfield(Dataiku, Symbol("#87#92")){String}, Array{Any, 1}}, Int64}); catch e; @debug "couldn't precompile statement 1636" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Array{Base.Dict{String, Any}, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#87#92")){String}, Array{Any, 1}}, getfield(Dataiku, Symbol("#86#91"))}, Int64}); catch e; @debug "couldn't precompile statement 1637" exception = e; end
-try;precompile(Tuple{Type{Base.Generator{I, F} where F where I}, getfield(Dataiku, Symbol("#88#93")), Array{Base.Dict{String, Any}, 1}}); catch e; @debug "couldn't precompile statement 1638" exception = e; end
-try;precompile(Tuple{typeof(Base.collect), Base.Generator{Array{Base.Dict{String, Any}, 1}, getfield(Dataiku, Symbol("#88#93"))}}); catch e; @debug "couldn't precompile statement 1639" exception = e; end
-try;precompile(Tuple{typeof(Base._array_for), Type{String}, Array{Base.Dict{String, Any}, 1}, Base.HasShape{1}}); catch e; @debug "couldn't precompile statement 1640" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{String, 1}, Base.Generator{Array{Base.Dict{String, Any}, 1}, getfield(Dataiku, Symbol("#88#93"))}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1641" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to_with_first!), Array{String, 1}, String, Base.Generator{Array{Base.Dict{String, Any}, 1}, getfield(Dataiku, Symbol("#88#93"))}, Int64}); catch e; @debug "couldn't precompile statement 1642" exception = e; end
-try;precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Base.Pair{String, String}, Base.Pair{String, Array{String, 1}}}}}); catch e; @debug "couldn't precompile statement 1643" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Any, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, Array{String, 1}}}}); catch e; @debug "couldn't precompile statement 1644" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Tuple{Base.Pair{String, String}, Base.Pair{String, Array{String, 1}}}}); catch e; @debug "couldn't precompile statement 1645" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.start_ensembling), Dataiku.DSSMLTask, Array{String, 1}, String}); catch e; @debug "couldn't precompile statement 1646" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_trained_models_ids), Dataiku.DSSMLTask, Nothing, Nothing}); catch e; @debug "couldn't precompile statement 1647" exception = e; end
-try;precompile(Tuple{Type{Dataiku.DSSTrainedModel}, Dataiku.DSSMLTask, Nothing, Nothing}); catch e; @debug "couldn't precompile statement 1648" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.ensemble), Dataiku.DSSMLTask, Array{String, 1}, String}); catch e; @debug "couldn't precompile statement 1649" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, String}, String, Array{String, 1}}); catch e; @debug "couldn't precompile statement 1650" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, String}, Tuple{Base.Pair{String, String}, Base.Pair{String, Array{String, 1}}}, Int64}); catch e; @debug "couldn't precompile statement 1651" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Any}, Array{String, 1}, Array{String, 1}}); catch e; @debug "couldn't precompile statement 1652" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Any}, String, Array{String, 1}}); catch e; @debug "couldn't precompile statement 1653" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, Array{String, 1}}}, Int64}); catch e; @debug "couldn't precompile statement 1654" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.request_json), String, String, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 1655" exception = e; end
-try;precompile(Tuple{Type{Dataiku.DSSTrainedModel}, String}); catch e; @debug "couldn't precompile statement 1656" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_snippet), Dataiku.DSSTrainedModel}); catch e; @debug "couldn't precompile statement 1657" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_user_meta), Dataiku.DSSTrainedModel}); catch e; @debug "couldn't precompile statement 1658" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request), String, String, Base.Dict{String, Array{String, 1}}}); catch e; @debug "couldn't precompile statement 1659" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request_json), String, String, Base.Dict{String, Array{String, 1}}}); catch e; @debug "couldn't precompile statement 1660" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_trained_model_snippet), Dataiku.DSSMLTask, Array{String, 1}}); catch e; @debug "couldn't precompile statement 1661" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_trained_model_snippet), Dataiku.DSSMLTask, String}); catch e; @debug "couldn't precompile statement 1662" exception = e; end
-try;precompile(Tuple{typeof(Base.string), String, Base.SubString{String}, String, Base.SubString{String}, Vararg{Union{Char, Base.SubString{String}, String}, N} where N}); catch e; @debug "couldn't precompile statement 1663" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##sprint#339")), Nothing, Int64, typeof(Base.sprint), Function, Base.Dict{String, Array{String, 1}}}); catch e; @debug "couldn't precompile statement 1664" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_json), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Base.Dict{String, Array{String, 1}}}); catch e; @debug "couldn't precompile statement 1665" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.print), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.Dict{String, Array{String, 1}}}); catch e; @debug "couldn't precompile statement 1666" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.set_user_meta), Dataiku.DSSTrainedModel, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 1667" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_settings), Dataiku.DSSMLTask}); catch e; @debug "couldn't precompile statement 1668" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.set_settings), Dataiku.DSSMLTask, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 1669" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_element), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Float64}); catch e; @debug "couldn't precompile statement 1670" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_element), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Int64}); catch e; @debug "couldn't precompile statement 1671" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_trained_models_ids), Dataiku.DSSMLTask, String, String}); catch e; @debug "couldn't precompile statement 1672" exception = e; end
-try;precompile(Tuple{Type{Dataiku.DSSTrainedModel}, Dataiku.DSSMLTask, String, String}); catch e; @debug "couldn't precompile statement 1673" exception = e; end
-try;precompile(Tuple{Type{Base.Iterators.Filter{F, I} where I where F}, getfield(Dataiku, Symbol("#90#95")){String}, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 1674" exception = e; end
-try;precompile(Tuple{Type{Base.Generator{I, F} where F where I}, getfield(Dataiku, Symbol("#89#94")), Base.Iterators.Filter{getfield(Dataiku, Symbol("#90#95")){String}, Base.Dict{String, Any}}}); catch e; @debug "couldn't precompile statement 1675" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("#90#95")){String}, Base.Pair{String, Any}}); catch e; @debug "couldn't precompile statement 1676" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), Base.Iterators.Filter{getfield(Dataiku, Symbol("#90#95")){String}, Base.Dict{String, Any}}}); catch e; @debug "couldn't precompile statement 1677" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), Base.Iterators.Filter{getfield(Dataiku, Symbol("#90#95")){String}, Base.Dict{String, Any}}, Int64}); catch e; @debug "couldn't precompile statement 1678" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Array{String, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#90#95")){String}, Base.Dict{String, Any}}, getfield(Dataiku, Symbol("#89#94"))}, Int64}); catch e; @debug "couldn't precompile statement 1679" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Array{String, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#90#95")){String}, Base.Dict{String, Any}}, getfield(Dataiku, Symbol("#89#94"))}}); catch e; @debug "couldn't precompile statement 1680" exception = e; end
-try;precompile(Tuple{typeof(Base.collect), Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#90#95")){String}, Base.Dict{String, Any}}, getfield(Dataiku, Symbol("#89#94"))}}); catch e; @debug "couldn't precompile statement 1681" exception = e; end
-try;precompile(Tuple{typeof(Base.convert), Type{AbstractString}, String}); catch e; @debug "couldn't precompile statement 1682" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request), String, String, Base.Dict{Any, Any}}); catch e; @debug "couldn't precompile statement 1683" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request_json), String, String, Base.Dict{Any, Any}}); catch e; @debug "couldn't precompile statement 1684" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##deploy_to_flow#96")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.deploy_to_flow), Dataiku.DSSTrainedModel}); catch e; @debug "couldn't precompile statement 1685" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.deploy_to_flow), Dataiku.DSSTrainedModel}); catch e; @debug "couldn't precompile statement 1686" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}}); catch e; @debug "couldn't precompile statement 1687" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.find_field), Array{Any, 1}, String, Base.SubString{String}}); catch e; @debug "couldn't precompile statement 1688" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##sprint#339")), Nothing, Int64, typeof(Base.sprint), Function, Base.Dict{Any, Any}}); catch e; @debug "couldn't precompile statement 1689" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Base.Pair{Any, Any}}); catch e; @debug "couldn't precompile statement 1690" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_json), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Base.Dict{Any, Any}}); catch e; @debug "couldn't precompile statement 1691" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.print), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.Dict{Any, Any}}); catch e; @debug "couldn't precompile statement 1692" exception = e; end
-try;precompile(Tuple{Type{Dataiku.DSSSavedModel}, String, Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 1693" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.find_field), Array{Any, 1}, String, String}); catch e; @debug "couldn't precompile statement 1694" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.redeploy_to_flow), Dataiku.DSSTrainedModel, Dataiku.DSSSavedModel, Bool}); catch e; @debug "couldn't precompile statement 1695" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.redeploy_to_flow), Dataiku.DSSTrainedModel, Dataiku.DSSSavedModel}); catch e; @debug "couldn't precompile statement 1696" exception = e; end
-try;precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Base.Pair{String, String}, Base.Pair{String, Bool}}}}); catch e; @debug "couldn't precompile statement 1697" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Any, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, Bool}}}); catch e; @debug "couldn't precompile statement 1698" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Tuple{Base.Pair{String, String}, Base.Pair{String, Bool}}}); catch e; @debug "couldn't precompile statement 1699" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, String}, String, Bool}); catch e; @debug "couldn't precompile statement 1700" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, String}, Tuple{Base.Pair{String, String}, Base.Pair{String, Bool}}, Int64}); catch e; @debug "couldn't precompile statement 1701" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Any}, Bool, Bool}); catch e; @debug "couldn't precompile statement 1702" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Any}, String, Bool}); catch e; @debug "couldn't precompile statement 1703" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, Bool}}, Int64}); catch e; @debug "couldn't precompile statement 1704" exception = e; end
-try;precompile(Tuple{Type{Base.Pair{A, B} where B where A}, String, Bool}); catch e; @debug "couldn't precompile statement 1705" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Base.Pair{String, Bool}}); catch e; @debug "couldn't precompile statement 1706" exception = e; end
-try;precompile(Tuple{typeof(Base.in), Base.Pair{String, Any}, Base.Dict{String, Bool}, typeof(Base.:(==))}); catch e; @debug "couldn't precompile statement 1707" exception = e; end
-try;precompile(Tuple{typeof(Base.:(==)), Base.Dict{String, Any}, Base.Dict{String, Bool}}); catch e; @debug "couldn't precompile statement 1708" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.list_versions), Dataiku.DSSSavedModel}); catch e; @debug "couldn't precompile statement 1709" exception = e; end
-try;precompile(Tuple{Type{Dataiku.DSSModelVersion}, Dataiku.DSSSavedModel, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 1710" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.set_active), Dataiku.DSSModelVersion}); catch e; @debug "couldn't precompile statement 1711" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_snippet), Dataiku.DSSModelVersion}); catch e; @debug "couldn't precompile statement 1712" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_user_meta), Dataiku.DSSModelVersion}); catch e; @debug "couldn't precompile statement 1713" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.set_user_meta), Dataiku.DSSModelVersion, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 1714" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.delete), Dataiku.DSSSavedModel}); catch e; @debug "couldn't precompile statement 1715" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.delete), Dataiku.DSSMLTask}); catch e; @debug "couldn't precompile statement 1716" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.delete), Dataiku.DSSAnalysis}); catch e; @debug "couldn't precompile statement 1717" exception = e; end
-try;precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Base.Dict{Any, Any}}}}}); catch e; @debug "couldn't precompile statement 1718" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Any, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Base.Dict{Any, Any}}}}); catch e; @debug "couldn't precompile statement 1719" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Base.Dict{Any, Any}}}}); catch e; @debug "couldn't precompile statement 1720" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##create_scenario#75")), Base.Dict{Any, Any}, String, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.create_scenario), String, String, Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 1721" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.create_scenario), String, String}); catch e; @debug "couldn't precompile statement 1722" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, String}, String, Base.Dict{Any, Any}}); catch e; @debug "couldn't precompile statement 1723" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, String}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Base.Dict{Any, Any}}}, Int64}); catch e; @debug "couldn't precompile statement 1724" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Any}, Base.Dict{Any, Any}, String}); catch e; @debug "couldn't precompile statement 1725" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Any}, Base.Dict{Any, Any}, Base.Dict{Any, Any}}); catch e; @debug "couldn't precompile statement 1726" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Any}, String, Base.Dict{Any, Any}}); catch e; @debug "couldn't precompile statement 1727" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Base.Dict{Any, Any}}}, Int64}); catch e; @debug "couldn't precompile statement 1728" exception = e; end
-try;precompile(Tuple{typeof(Base.merge), Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 1729" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.create_scenario), Base.Dict{String, Any}, Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 1730" exception = e; end
-try;precompile(Tuple{typeof(Base.convert), Type{Any}, Base.Dict{Any, Any}}); catch e; @debug "couldn't precompile statement 1731" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String, Base.Dict{Any, Any}}); catch e; @debug "couldn't precompile statement 1732" exception = e; end
-try;precompile(Tuple{Type{Dataiku.DSSScenario}, String, Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 1733" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.list_scenarios), Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 1734" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.list_scenarios)}); catch e; @debug "couldn't precompile statement 1735" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_status), Dataiku.DSSScenario}); catch e; @debug "couldn't precompile statement 1736" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.set_status), Dataiku.DSSScenario, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 1737" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_settings), Dataiku.DSSScenario}); catch e; @debug "couldn't precompile statement 1738" exception = e; end
-try;precompile(Tuple{typeof(Base.in), Base.Pair{String, Any}, Base.Dict{Any, Any}, typeof(Base.:(==))}); catch e; @debug "couldn't precompile statement 1739" exception = e; end
-try;precompile(Tuple{typeof(Base.:(==)), Base.Dict{String, Any}, Base.Dict{Any, Any}}); catch e; @debug "couldn't precompile statement 1740" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.set_settings), Dataiku.DSSScenario, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 1741" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.set_payload), Dataiku.DSSScenario, String}); catch e; @debug "couldn't precompile statement 1742" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_payload), Dataiku.DSSScenario}); catch e; @debug "couldn't precompile statement 1743" exception = e; end
-try;precompile(Tuple{typeof(Base.get), Base.Dict{String, Any}, String, String}); catch e; @debug "couldn't precompile statement 1744" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.run), Dataiku.DSSScenario, Base.Dict{Any, Any}}); catch e; @debug "couldn't precompile statement 1745" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.is_cancelled), Dataiku.DSSTriggerFire}); catch e; @debug "couldn't precompile statement 1746" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_scenario_run), Dataiku.DSSTriggerFire}); catch e; @debug "couldn't precompile statement 1747" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##wait_for_scenario_run#77")), Bool, typeof(Dataiku.wait_for_scenario_run), Dataiku.DSSTriggerFire}); catch e; @debug "couldn't precompile statement 1748" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_details), Dataiku.DSSScenarioRun}); catch e; @debug "couldn't precompile statement 1749" exception = e; end
-try;precompile(Tuple{typeof(Base.collect_to!), Array{Char, 1}, Base.Generator{Base.CodeUnits{UInt8, String}, Type{Char}}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1750" exception = e; end
-try;precompile(Tuple{typeof(Base.collect), Base.Generator{Base.CodeUnits{UInt8, String}, Type{Char}}}); catch e; @debug "couldn't precompile statement 1751" exception = e; end
-try;precompile(Tuple{typeof(Base.filter), typeof(HTTP.Cookies.validcookievaluebyte), Array{Char, 1}}); catch e; @debug "couldn't precompile statement 1752" exception = e; end
-try;precompile(Tuple{typeof(Base.string), Char, String, Char}); catch e; @debug "couldn't precompile statement 1753" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Cookies.sanitizeCookieValue), String}); catch e; @debug "couldn't precompile statement 1754" exception = e; end
-try;precompile(Tuple{typeof(Base.write), Base.GenericIOBuffer{Array{UInt8, 1}}, String, Char, String}); catch e; @debug "couldn't precompile statement 1755" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Cookies.isCookieDomainName), String}); catch e; @debug "couldn't precompile statement 1756" exception = e; end
-try;precompile(Tuple{typeof(Dates.dayofweek), Dates.DateTime}); catch e; @debug "couldn't precompile statement 1757" exception = e; end
-try;precompile(Tuple{typeof(Dates.format), Base.GenericIOBuffer{Array{UInt8, 1}}, Dates.DatePart{Char(0x75000000)}, Dates.DateTime, Dates.DateLocale}); catch e; @debug "couldn't precompile statement 1758" exception = e; end
-try;precompile(Tuple{typeof(Dates.format), Base.GenericIOBuffer{Array{UInt8, 1}}, Dates.DateTime, Dates.DateFormat{Symbol("e, dd u yyyy HH:MM:SS"), Tuple{Dates.DatePart{Char(0x65000000)}, Dates.Delim{String, 2}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x75000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}}}}); catch e; @debug "couldn't precompile statement 1759" exception = e; end
-try;precompile(Tuple{typeof(Dates.format), Dates.DateTime, Dates.DateFormat{Symbol("e, dd u yyyy HH:MM:SS"), Tuple{Dates.DatePart{Char(0x65000000)}, Dates.Delim{String, 2}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x75000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}}}, Int64}); catch e; @debug "couldn't precompile statement 1760" exception = e; end
-try;precompile(Tuple{typeof(Base.write), Base.GenericIOBuffer{Array{UInt8, 1}}, String, String, String}); catch e; @debug "couldn't precompile statement 1761" exception = e; end
-try;precompile(Tuple{typeof(HTTP.Cookies.isIP), String}); catch e; @debug "couldn't precompile statement 1762" exception = e; end
-try;precompile(Tuple{Type{String}, HTTP.Cookies.Cookie, Bool}); catch e; @debug "couldn't precompile statement 1763" exception = e; end
-try;precompile(Tuple{typeof(Base.string), String, Array{HTTP.Cookies.Cookie, 1}, Bool}); catch e; @debug "couldn't precompile statement 1764" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##wait#76")), Bool, typeof(Dataiku.wait), Dataiku.DSSScenarioRun}); catch e; @debug "couldn't precompile statement 1765" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##run_and_wait#72")), Bool, typeof(Dataiku.run_and_wait), Dataiku.DSSScenario, Base.Dict{Any, Any}}); catch e; @debug "couldn't precompile statement 1766" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.run_and_wait), Dataiku.DSSScenario}); catch e; @debug "couldn't precompile statement 1767" exception = e; end
-try;precompile(Tuple{Type{Dataiku.DSSTriggerFire}, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 1768" exception = e; end
-try;precompile(Tuple{Type{NamedTuple{(:params,), T} where T<:Tuple}, Tuple{Base.Dict{String, String}}}); catch e; @debug "couldn't precompile statement 1769" exception = e; end
-try;precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:intern_call,), Tuple{Bool}}}, Type{NamedTuple{(:params,), Tuple{Base.Dict{String, String}}}}}); catch e; @debug "couldn't precompile statement 1770" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, String}}}); catch e; @debug "couldn't precompile statement 1771" exception = e; end
-try;precompile(Tuple{typeof(Base.iterate), Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, String}}, Int64}); catch e; @debug "couldn't precompile statement 1772" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Array{String, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, String}}, getfield(Dataiku, Symbol("#1#3"))}, Int64}); catch e; @debug "couldn't precompile statement 1773" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Array{String, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, String}}, getfield(Dataiku, Symbol("#1#3"))}}); catch e; @debug "couldn't precompile statement 1774" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##get_url_and_header#5")), Bool, Base.Dict{String, String}, Bool, typeof(Dataiku.get_url_and_header), String}); catch e; @debug "couldn't precompile statement 1775" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Symbol, Base.Dict{String, String}, Tuple{Symbol}, NamedTuple{(:params,), Tuple{Base.Dict{String, String}}}}, typeof(Dataiku.request), String, String, String}); catch e; @debug "couldn't precompile statement 1776" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Symbol, Base.Dict{String, String}, Tuple{Symbol}, NamedTuple{(:params,), Tuple{Base.Dict{String, String}}}}, typeof(Dataiku.request_json), String, String, String}); catch e; @debug "couldn't precompile statement 1777" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("#kw##request_json")), NamedTuple{(:params,), Tuple{Base.Dict{String, String}}}, typeof(Dataiku.request_json), String, String}); catch e; @debug "couldn't precompile statement 1778" exception = e; end
-try;precompile(Tuple{Type{Dataiku.DSSScenarioRun}, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 1779" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.run), Dataiku.DSSScenario}); catch e; @debug "couldn't precompile statement 1780" exception = e; end
-try;precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Base.Pair{String, Int64}, Base.Pair{String, Bool}}}}); catch e; @debug "couldn't precompile statement 1781" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Any, Any}, Tuple{Base.Pair{String, Int64}, Base.Pair{String, Bool}}}); catch e; @debug "couldn't precompile statement 1782" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Tuple{Base.Pair{String, Int64}, Base.Pair{String, Bool}}}); catch e; @debug "couldn't precompile statement 1783" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_last_runs), Dataiku.DSSScenario, Int64, Bool}); catch e; @debug "couldn't precompile statement 1784" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_current_run), Dataiku.DSSScenario}); catch e; @debug "couldn't precompile statement 1785" exception = e; end
-try;precompile(Tuple{typeof(Base.empty), Base.Dict{Any, Any}, Type{String}, Type{Int64}}); catch e; @debug "couldn't precompile statement 1786" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Int64}, Int64, Bool}); catch e; @debug "couldn't precompile statement 1787" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Int64}, Int64, Int64}); catch e; @debug "couldn't precompile statement 1788" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Int64}, Tuple{Base.Pair{String, Int64}, Base.Pair{String, Bool}}, Int64}); catch e; @debug "couldn't precompile statement 1789" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{String, Integer}}}); catch e; @debug "couldn't precompile statement 1790" exception = e; end
-try;precompile(Tuple{typeof(Base.empty), Base.Dict{String, Int64}, Type{String}, Type{Integer}}); catch e; @debug "couldn't precompile statement 1791" exception = e; end
-try;precompile(Tuple{typeof(Base.rehash!), Base.Dict{String, Integer}, Int64}); catch e; @debug "couldn't precompile statement 1792" exception = e; end
-try;precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{String, Integer}, String}); catch e; @debug "couldn't precompile statement 1793" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Integer}, Int64, String}); catch e; @debug "couldn't precompile statement 1794" exception = e; end
-try;precompile(Tuple{typeof(Base.merge!), Base.Dict{String, Integer}, Base.Dict{String, Int64}}); catch e; @debug "couldn't precompile statement 1795" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Integer}, Bool, String}); catch e; @debug "couldn't precompile statement 1796" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Integer}, Tuple{Base.Pair{String, Int64}, Base.Pair{String, Bool}}, Int64}); catch e; @debug "couldn't precompile statement 1797" exception = e; end
-try;precompile(Tuple{Type{NamedTuple{(:params,), T} where T<:Tuple}, Tuple{Base.Dict{String, Integer}}}); catch e; @debug "couldn't precompile statement 1798" exception = e; end
-try;precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:intern_call,), Tuple{Bool}}}, Type{NamedTuple{(:params,), Tuple{Base.Dict{String, Integer}}}}}); catch e; @debug "couldn't precompile statement 1799" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Array{String, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, Integer}}, getfield(Dataiku, Symbol("#1#3"))}, Int64}); catch e; @debug "couldn't precompile statement 1800" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Array{String, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, Integer}}, getfield(Dataiku, Symbol("#1#3"))}}); catch e; @debug "couldn't precompile statement 1801" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##get_url_and_header#5")), Bool, Base.Dict{String, Integer}, Bool, typeof(Dataiku.get_url_and_header), String}); catch e; @debug "couldn't precompile statement 1802" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Symbol, Base.Dict{String, Integer}, Tuple{Symbol}, NamedTuple{(:params,), Tuple{Base.Dict{String, Integer}}}}, typeof(Dataiku.request), String, String, String}); catch e; @debug "couldn't precompile statement 1803" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Symbol, Base.Dict{String, Integer}, Tuple{Symbol}, NamedTuple{(:params,), Tuple{Base.Dict{String, Integer}}}}, typeof(Dataiku.request_json), String, String, String}); catch e; @debug "couldn't precompile statement 1804" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("#kw##request_json")), NamedTuple{(:params,), Tuple{Base.Dict{String, Integer}}}, typeof(Dataiku.request_json), String, String}); catch e; @debug "couldn't precompile statement 1805" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.abort), Dataiku.DSSScenario}); catch e; @debug "couldn't precompile statement 1806" exception = e; end
-try;precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Base.Pair{String, Base.Dict{String, String}}, Base.Pair{String, Base.Dict{Any, Any}}}}}); catch e; @debug "couldn't precompile statement 1807" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Any, Any}, Tuple{Base.Pair{String, Base.Dict{String, String}}, Base.Pair{String, Base.Dict{Any, Any}}}}); catch e; @debug "couldn't precompile statement 1808" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Tuple{Base.Pair{String, Base.Dict{String, String}}, Base.Pair{String, Base.Dict{Any, Any}}}}); catch e; @debug "couldn't precompile statement 1809" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##create_recipe#69")), Base.Dict{Any, Any}, typeof(Dataiku.create_recipe), Base.Dict{String, String}, Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 1810" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##create_recipe#68")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.create_recipe), String, String, Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 1811" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.create_recipe), String, String, Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 1812" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{String, Base.Dict{String, String}}}}); catch e; @debug "couldn't precompile statement 1813" exception = e; end
-try;precompile(Tuple{typeof(Base.empty), Base.Dict{Any, Any}, Type{String}, Type{Base.Dict{String, String}}}); catch e; @debug "couldn't precompile statement 1814" exception = e; end
-try;precompile(Tuple{typeof(Base.rehash!), Base.Dict{String, Base.Dict{String, String}}, Int64}); catch e; @debug "couldn't precompile statement 1815" exception = e; end
-try;precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{String, Base.Dict{String, String}}, String}); catch e; @debug "couldn't precompile statement 1816" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Base.Dict{String, String}}, Base.Dict{String, String}, String}); catch e; @debug "couldn't precompile statement 1817" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Base.Dict{String, String}}, Tuple{Base.Pair{String, Base.Dict{String, String}}, Base.Pair{String, Base.Dict{Any, Any}}}, Int64}); catch e; @debug "couldn't precompile statement 1818" exception = e; end
-try;precompile(Tuple{Type{Base.Dict{String, Base.Dict{K, V} where V where K}}}); catch e; @debug "couldn't precompile statement 1819" exception = e; end
-try;precompile(Tuple{typeof(Base.empty), Base.Dict{String, Base.Dict{String, String}}, Type{String}, Type{Base.Dict{K, V} where V where K}}); catch e; @debug "couldn't precompile statement 1820" exception = e; end
-try;precompile(Tuple{typeof(Base.rehash!), Base.Dict{String, Base.Dict{K, V} where V where K}, Int64}); catch e; @debug "couldn't precompile statement 1821" exception = e; end
-try;precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{String, Base.Dict{K, V} where V where K}, String}); catch e; @debug "couldn't precompile statement 1822" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Base.Dict{K, V} where V where K}, Base.Dict{String, String}, String}); catch e; @debug "couldn't precompile statement 1823" exception = e; end
-try;precompile(Tuple{typeof(Base.merge!), Base.Dict{String, Base.Dict{K, V} where V where K}, Base.Dict{String, Base.Dict{String, String}}}); catch e; @debug "couldn't precompile statement 1824" exception = e; end
-try;precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Base.Dict{K, V} where V where K}, Base.Dict{Any, Any}, String}); catch e; @debug "couldn't precompile statement 1825" exception = e; end
-try;precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Base.Dict{K, V} where V where K}, Tuple{Base.Pair{String, Base.Dict{String, String}}, Base.Pair{String, Base.Dict{Any, Any}}}, Int64}); catch e; @debug "couldn't precompile statement 1826" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request), String, String, Base.Dict{String, Base.Dict{K, V} where V where K}}); catch e; @debug "couldn't precompile statement 1827" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request_json), String, String, Base.Dict{String, Base.Dict{K, V} where V where K}}); catch e; @debug "couldn't precompile statement 1828" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.request_json), String, String, Base.Dict{String, Base.Dict{K, V} where V where K}}); catch e; @debug "couldn't precompile statement 1829" exception = e; end
-try;precompile(Tuple{getfield(Base, Symbol("##sprint#339")), Nothing, Int64, typeof(Base.sprint), Function, Base.Dict{String, Base.Dict{K, V} where V where K}}); catch e; @debug "couldn't precompile statement 1830" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Base.Pair{String, Base.Dict{K, V} where V where K}}); catch e; @debug "couldn't precompile statement 1831" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.show_json), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Base.Dict{String, Base.Dict{K, V} where V where K}}); catch e; @debug "couldn't precompile statement 1832" exception = e; end
-try;precompile(Tuple{typeof(JSON.Writer.print), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.Dict{String, Base.Dict{K, V} where V where K}}); catch e; @debug "couldn't precompile statement 1833" exception = e; end
-try;precompile(Tuple{Type{Dataiku.DSSRecipe}, String, Dataiku.DSSProject}); catch e; @debug "couldn't precompile statement 1834" exception = e; end
-try;precompile(Tuple{typeof(Base.:(==)), Dataiku.DSSRecipe, Dataiku.DSSRecipe}); catch e; @debug "couldn't precompile statement 1835" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_definition_and_payload), Dataiku.DSSRecipe}); catch e; @debug "couldn't precompile statement 1836" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_metadata), Dataiku.DSSRecipe}); catch e; @debug "couldn't precompile statement 1837" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.set_metadata), Dataiku.DSSRecipe, Base.Dict{String, Any}}); catch e; @debug "couldn't precompile statement 1838" exception = e; end
-try;precompile(Tuple{typeof(Base.getproperty), Dataiku.DSSRecipe, Symbol}); catch e; @debug "couldn't precompile statement 1839" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_name_or_id), Dataiku.DSSRecipe}); catch e; @debug "couldn't precompile statement 1840" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.full_name), Dataiku.DSSRecipe}); catch e; @debug "couldn't precompile statement 1841" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.get_status), Dataiku.DSSRecipe}); catch e; @debug "couldn't precompile statement 1842" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.delete), Dataiku.DSSRecipe}); catch e; @debug "couldn't precompile statement 1843" exception = e; end
-try;precompile(Tuple{getfield(Dataiku, Symbol("##delete#63")), Bool, typeof(Dataiku.delete), Dataiku.DSSDataset}); catch e; @debug "couldn't precompile statement 1844" exception = e; end
-try;precompile(Tuple{typeof(Dataiku.delete), Dataiku.DSSDataset}); catch e; @debug "couldn't precompile statement 1845" exception = e; end
-try;precompile(Tuple{typeof(Base.uvfinalize), Sockets.TCPSocket}); catch e; @debug "couldn't precompile statement 1846" exception = e; end
+precompile(Tuple{typeof(Parsers.__init__)})
+precompile(Tuple{typeof(Base.GMP.MPZ.set), Base.GMP.BigInt})
+precompile(Tuple{typeof(Base.deepcopy), Base.GMP.BigInt})
+precompile(Tuple{typeof(Base.Threads.resize_nthreads!), Array{Base.GMP.BigInt, 1}, Base.GMP.BigInt})
+precompile(Tuple{typeof(Base.foreach), getfield(Parsers, Symbol("#33#38")), Array{Base.GMP.BigInt, 1}})
+precompile(Tuple{typeof(Base.foreach), getfield(Parsers, Symbol("#34#39")), Array{Base.GMP.BigInt, 1}})
+precompile(Tuple{typeof(Base.foreach), getfield(Parsers, Symbol("#35#40")), Array{Base.GMP.BigInt, 1}})
+precompile(Tuple{typeof(Base.foreach), getfield(Parsers, Symbol("#36#41")), Array{Base.GMP.BigInt, 1}})
+precompile(Tuple{typeof(Base.foreach), getfield(Parsers, Symbol("#37#42")), Array{Base.GMP.BigInt, 1}})
+precompile(Tuple{typeof(Compat.Sys.__init__)})
+precompile(Tuple{typeof(FilePathsBase.__init__)})
+precompile(Tuple{typeof(CSV.__init__)})
+precompile(Tuple{typeof(MbedTLS.f_send), Ptr{Nothing}, Ptr{UInt8}, UInt64})
+precompile(Tuple{typeof(MbedTLS.f_recv), Ptr{Nothing}, Ptr{UInt8}, UInt64})
+precompile(Tuple{typeof(MbedTLS.__init__)})
+precompile(Tuple{typeof(HTTP.URIs.__init__)})
+precompile(Tuple{typeof(HTTP.Parsers.__init__)})
+precompile(Tuple{typeof(Base.active_project), Bool})
+precompile(Tuple{typeof(Base.load_path_expand), String})
+precompile(Tuple{typeof(Base.load_path)})
+precompile(Tuple{getfield(Base, Symbol("#681#682")){String}, Base.IOStream})
+precompile(Tuple{getfield(Base, Symbol("##open#271")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Base.open), getfield(Base, Symbol("#681#682")){String}, String})
+precompile(Tuple{typeof(Base.project_deps_get), String, String})
+precompile(Tuple{typeof(Base.identify_package), String})
+precompile(Tuple{typeof(Base.ht_keyindex), Base.Dict{Any, Int64}, Symbol})
+precompile(Tuple{getfield(Base, Symbol("#689#690")){Base.UUID, String}, Base.IOStream})
+precompile(Tuple{getfield(Base, Symbol("##open#271")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Base.open), getfield(Base, Symbol("#689#690")){Base.UUID, String}, String})
+precompile(Tuple{typeof(Base.manifest_deps_get), String, Base.PkgId, String})
+precompile(Tuple{typeof(Base.identify_package), Base.PkgId, String})
+precompile(Tuple{typeof(Base.manifest_uuid_path), String, Base.PkgId})
+precompile(Tuple{typeof(Base.locate_package), Base.PkgId})
+precompile(Tuple{typeof(Base.stat), Base.Libc.RawFD})
+precompile(Tuple{typeof(Base.isvalid_file_crc), Base.IOStream})
+precompile(Tuple{typeof(Base.stale_cachefile), String, String})
+precompile(Tuple{typeof(Base.register_root_module), Module})
+precompile(Tuple{typeof(Base._include_from_serialized), String, Array{Any, 1}})
+precompile(Tuple{typeof(Base._tryrequire_from_serialized), Base.PkgId, UInt64, String})
+precompile(Tuple{typeof(Base._require_search_from_serialized), Base.PkgId, String})
+precompile(Tuple{typeof(Base.compilecache_path), Base.PkgId})
+precompile(Tuple{typeof(Base.load_path_setup_code), Bool})
+precompile(Tuple{typeof(Base.create_expr_cache), String, String, Array{Base.Pair{Base.PkgId, UInt64}, 1}, Nothing})
+precompile(Tuple{typeof(Base.compilecache), Base.PkgId, String})
+precompile(Tuple{typeof(Base._include_dependency), Module, String})
+precompile(Tuple{typeof(Base.include_relative), Module, String})
+precompile(Tuple{typeof(Base._tryrequire_from_serialized), Base.PkgId, UInt64, Nothing})
+precompile(Tuple{typeof(Base._require_from_serialized), String})
+precompile(Tuple{typeof(Base._require), Base.PkgId})
+precompile(Tuple{typeof(Base.require), Base.PkgId})
+precompile(Tuple{typeof(Base.require), Module, Symbol})
+precompile(Tuple{getfield(Dataiku, Symbol("#10#12")), Char})
+precompile(Tuple{typeof(Base.iterate), Base.Iterators.Filter{getfield(Dataiku, Symbol("#10#12")), String}})
+precompile(Tuple{typeof(Base.iterate), Base.Iterators.Filter{getfield(Dataiku, Symbol("#10#12")), String}, Int64})
+precompile(Tuple{typeof(Base.grow_to!), Array{Char, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#10#12")), String}, getfield(Dataiku, Symbol("#9#11"))}, Int64})
+precompile(Tuple{typeof(Base.grow_to!), Array{Char, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#10#12")), String}, getfield(Dataiku, Symbol("#9#11"))}})
+precompile(Tuple{typeof(Base.map), typeof(Base.Unicode.uppercase), String})
+precompile(Tuple{typeof(Dataiku.create_projectKey), String})
+precompile(Tuple{getfield(Base, Symbol("##sprint#339")), Nothing, Int64, typeof(Base.sprint), Function, Array{Char, 1}})
+precompile(Tuple{typeof(Base.join), Base.GenericIOBuffer{Array{UInt8, 1}}, Array{Char, 1}, String})
+precompile(Tuple{typeof(Base.join), Base.GenericIOBuffer{Array{UInt8, 1}}, Array{Char, 1}})
+precompile(Tuple{Type{Dataiku.DSSProject}, String})
+precompile(Tuple{getfield(Base, Symbol("##s66#142")), Any, Any, Any, Any, Any})
+precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:intern_call,), Tuple{Bool}}}, Type{NamedTuple{(:params,), Tuple{Base.Dict{String, Bool}}}}})
+precompile(Tuple{typeof(Core.Compiler.zero), Type{Int128}})
+precompile(Tuple{typeof(Core.Compiler.eltype), Type{Array{Base.OneTo{Int64}, 1}}})
+precompile(Tuple{getfield(Base.Cartesian, Symbol("#@nloops")), LineNumberNode, Module, Any, Any, Any, Vararg{Any, N} where N})
+precompile(Tuple{typeof(Base.Cartesian.exprresolve_arith), Expr})
+precompile(Tuple{typeof(Base.Cartesian.exprresolve_conditional), Expr})
+precompile(Tuple{typeof(Base.Cartesian.exprresolve), Expr})
+precompile(Tuple{typeof(Base.Cartesian.inlineanonymous), Expr, Int64})
+precompile(Tuple{typeof(Base.Cartesian._nloops), Int64, Symbol, Expr, Expr})
+precompile(Tuple{typeof(Base.Cartesian.lreplace!), Expr, Base.Cartesian.LReplace{String}})
+precompile(Tuple{typeof(Base.Cartesian.lreplace), Expr, Symbol, Int64})
+precompile(Tuple{Type{Base.Val{x} where x}, Bool})
+precompile(Tuple{Type{Base.Val{true}}})
+precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol}, Type{NamedTuple{(:dims,), Tuple{Int64}}}, Type{NamedTuple{(), Tuple{}}}})
+precompile(Tuple{typeof(Core.Compiler.eltype), Type{Array{DataFrames.RowIndexMap, 1}}})
+precompile(Tuple{typeof(Core.Compiler.eltype), Type{Array{Base.SubString{String}, 1}}})
+precompile(Tuple{typeof(Base.diff_names), Tuple{Symbol, Symbol}, Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}})
+precompile(Tuple{typeof(Base.diff_names), Tuple{Symbol, Symbol}, Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}})
+precompile(Tuple{typeof(Base.typeintersect), Any, Any})
+precompile(Tuple{typeof(Mmap.grow!), Base.IOStream, Int64, Int64})
+precompile(Tuple{getfield(Mmap, Symbol("##mmap#1")), Bool, Bool, typeof(Mmap.mmap), Base.IOStream, Type{Array{UInt8, 1}}, Tuple{Int64}, Int64})
+precompile(Tuple{getfield(JSON.Parser, Symbol("#kw##parse")), NamedTuple{(:dicttype, :inttype, :allownan, :null), Tuple{DataType, DataType, Bool, Nothing}}, typeof(JSON.Parser.parse), String})
+precompile(Tuple{typeof(Base.read), Base.IOStream})
+precompile(Tuple{getfield(JSON.Parser, Symbol("#4#5")){DataType, DataType, Nothing, Bool, Bool, Int64}, Base.IOStream})
+precompile(Tuple{getfield(Base, Symbol("##open#271")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Base.open), getfield(JSON.Parser, Symbol("#4#5")){DataType, DataType, Nothing, Bool, Bool, Int64}, String})
+precompile(Tuple{typeof(Dataiku.init_context)})
+precompile(Tuple{typeof(Dataiku.get_context)})
+precompile(Tuple{typeof(Dataiku.get_auth_header)})
+precompile(Tuple{typeof(Base.grow_to!), Array{String, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, Bool}}, getfield(Dataiku, Symbol("#1#3"))}, Int64})
+precompile(Tuple{typeof(Base.grow_to!), Array{String, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, Bool}}, getfield(Dataiku, Symbol("#1#3"))}})
+precompile(Tuple{getfield(Dataiku, Symbol("##get_url_and_header#5")), Bool, Base.Dict{String, Bool}, Bool, typeof(Dataiku.get_url_and_header), String})
+precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Symbol, Base.Dict{String, Bool}, Tuple{Symbol}, NamedTuple{(:params,), Tuple{Base.Dict{String, Bool}}}}, typeof(Dataiku.request), String, String, String})
+precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Symbol, Base.Dict{String, Bool}, Tuple{Symbol}, NamedTuple{(:params,), Tuple{Base.Dict{String, Bool}}}}, typeof(Dataiku.request_json), String, String, String})
+precompile(Tuple{typeof(Dataiku.delete), Dataiku.DSSProject, Bool})
+precompile(Tuple{typeof(Dataiku.delete), Dataiku.DSSProject})
+precompile(Tuple{typeof(JSON.Parser._count_before), String, Char, Int64})
+precompile(Tuple{typeof(JSON.Parser._error), String, JSON.Parser.MemoryParserState})
+precompile(Tuple{getfield(JSON.Parser, Symbol("##parse#1")), Type{T} where T, Type{Int64}, Bool, Nothing, typeof(JSON.Parser.parse), String})
+precompile(Tuple{typeof(JSON.Parser.read_four_hex_digits!), JSON.Parser.MemoryParserState})
+precompile(Tuple{typeof(JSON.Parser._error_expected_char), UInt8, JSON.Parser.MemoryParserState})
+precompile(Tuple{typeof(JSON.Parser.read_unicode_escape!), JSON.Parser.MemoryParserState})
+precompile(Tuple{typeof(JSON.Parser.predict_string), JSON.Parser.MemoryParserState})
+precompile(Tuple{typeof(Base.ht_keyindex), Base.Dict{UInt8, UInt8}, UInt8})
+precompile(Tuple{typeof(JSON.Parser.parse_string), JSON.Parser.MemoryParserState, Base.GenericIOBuffer{Array{UInt8, 1}}})
+precompile(Tuple{typeof(JSON.Parser.parse_string), JSON.Parser.MemoryParserState})
+precompile(Tuple{typeof(JSON.Parser.skip!), JSON.Parser.MemoryParserState, UInt8, UInt8})
+precompile(Tuple{typeof(JSON.Parser.parse_jsconstant), JSON.Parser.ParserContext{Base.Dict{String, Any}, Int64, true, nothing}, JSON.Parser.MemoryParserState})
+precompile(Tuple{typeof(JSON.Parser.hasleadingzero), JSON.Parser.MemoryParserState, Int64, Int64})
+precompile(Tuple{typeof(JSON.Parser.int_from_bytes), JSON.Parser.ParserContext{Base.Dict{String, Any}, Int64, true, nothing}, JSON.Parser.MemoryParserState, JSON.Parser.MemoryParserState, Int64, Int64})
+precompile(Tuple{typeof(Parsers.pow10), Type{Float64}, Int64})
+precompile(Tuple{Type{Float64}, Base.GMP.BigInt, Base.Rounding.RoundingMode{:Nearest}})
+precompile(Tuple{typeof(Parsers.roundQuotient), Base.GMP.BigInt, Base.GMP.BigInt})
+precompile(Tuple{typeof(Base.Math.ldexp), Base.MPFR.BigFloat, Int64})
+precompile(Tuple{typeof(Parsers.scale), Type{Float64}, Int64, Int64})
+precompile(Tuple{typeof(Core.throw_inexacterror), Symbol, Type{Int32}, Int128})
+precompile(Tuple{typeof(Parsers.BigInt!), Base.GMP.BigInt, Int128})
+precompile(Tuple{typeof(Parsers.scale), Type{Float64}, Int128, Int64})
+precompile(Tuple{typeof(Parsers.pow10), Type{Float64}, Int128})
+precompile(Tuple{typeof(Base.Math.ldexp), Float64, Int128})
+precompile(Tuple{typeof(Base.GMP.MPZ.realloc2), Int64})
+precompile(Tuple{Type{Base.GMP.BigInt}, Int128})
+precompile(Tuple{typeof(Base.exp2), Base.MPFR.BigFloat})
+precompile(Tuple{typeof(Base.:(*)), Base.MPFR.BigFloat, Base.MPFR.BigFloat})
+precompile(Tuple{typeof(Parsers.scale), Type{Float64}, Int128, Int128})
+precompile(Tuple{typeof(Base.GMP.MPZ.add_ui), Base.GMP.BigInt, UInt8})
+precompile(Tuple{typeof(Parsers.scale), Type{Float64}, Base.GMP.BigInt, Int64})
+precompile(Tuple{typeof(Parsers.pow10), Type{Float64}, Base.GMP.BigInt})
+precompile(Tuple{typeof(Base.Math.ldexp), Float64, Base.GMP.BigInt})
+precompile(Tuple{typeof(Parsers.scale), Type{Float64}, Base.GMP.BigInt, Base.GMP.BigInt})
+precompile(Tuple{typeof(Parsers._typeparser), Type{Float64}, Base.CodeUnits{UInt8, String}, Int64, Int64, UInt8, Int16, Parsers.Options{false, false, false, Nothing, Nothing, Nothing}, Type{Base.GMP.BigInt}})
+precompile(Tuple{typeof(Parsers._typeparser), Type{Float64}, Base.CodeUnits{UInt8, String}, Int64, Int64, UInt8, Int16, Parsers.Options{false, false, false, Nothing, Nothing, Nothing}, Type{Int128}})
+precompile(Tuple{typeof(Parsers.xparse), Type{Float64}, String, Int64, Int64, Parsers.Options{false, false, false, Nothing, Nothing, Nothing}})
+precompile(Tuple{typeof(JSON.Parser.number_from_bytes), JSON.Parser.ParserContext{Base.Dict{String, Any}, Int64, true, nothing}, JSON.Parser.MemoryParserState, Bool, JSON.Parser.MemoryParserState, Int64, Int64})
+precompile(Tuple{typeof(JSON.Parser.parse_number), JSON.Parser.ParserContext{Base.Dict{String, Any}, Int64, true, nothing}, JSON.Parser.MemoryParserState})
+precompile(Tuple{typeof(JSON.Parser.parse_object), JSON.Parser.ParserContext{Base.Dict{String, Any}, Int64, true, nothing}, JSON.Parser.MemoryParserState})
+precompile(Tuple{typeof(JSON.Parser.parse_array), JSON.Parser.ParserContext{Base.Dict{String, Any}, Int64, true, nothing}, JSON.Parser.MemoryParserState})
+precompile(Tuple{typeof(JSON.Parser.parse_value), JSON.Parser.ParserContext{Base.Dict{String, Any}, Int64, true, nothing}, JSON.Parser.MemoryParserState})
+precompile(Tuple{Type{Dataiku.DSSContext}, String, String})
+precompile(Tuple{typeof(Base.getproperty), Dataiku.DSSContext, Symbol})
+precompile(Tuple{typeof(Base64.base64encode), String})
+precompile(Tuple{typeof(Base64.encode), UInt8})
+precompile(Tuple{typeof(Base.close), Base64.Base64EncodePipe})
+precompile(Tuple{getfield(Base64, Symbol("##base64encode#3")), Nothing, typeof(Base64.base64encode), Function, String})
+precompile(Tuple{typeof(Base.unsafe_write), Base64.Base64EncodePipe, Ptr{UInt8}, UInt64})
+precompile(Tuple{typeof(Base.write), Base64.Base64EncodePipe, String})
+precompile(Tuple{typeof(Base.unsafe_write), Base.GenericIOBuffer{Array{UInt8, 1}}, Ptr{UInt8}, Int64})
+precompile(Tuple{typeof(Base.isnothing), Dataiku.DSSContext})
+precompile(Tuple{typeof(Base.:(*)), String, String, String, String})
+precompile(Tuple{getfield(HTTP, Symbol("##stack#18")), Bool, Bool, Bool, Bool, Bool, Bool, Bool, Int64, Bool, Int64, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.stack)})
+precompile(Tuple{typeof(HTTP.URIs.group), Int64, HTTP.URIs.RegexAndMatchData, String, Base.SubString{String}})
+precompile(Tuple{typeof(HTTP.URIs.ensurevalid), HTTP.URIs.URI})
+precompile(Tuple{typeof(Base.print), Base.GenericIOBuffer{Array{UInt8, 1}}, String, Base.SubString{String}})
+precompile(Tuple{typeof(Base.print), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.SubString{String}, String})
+precompile(Tuple{typeof(HTTP.URIs.formaturi), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.SubString{String}, Base.SubString{String}, Base.SubString{String}, Base.SubString{String}, Base.SubString{String}, Base.SubString{String}, Base.SubString{String}})
+precompile(Tuple{typeof(Base.backtrace)})
+precompile(Tuple{typeof(Base.StackTraces.lookup), Base.InterpreterIP})
+precompile(Tuple{typeof(Base.StackTraces.lookup), Ptr{Nothing}})
+precompile(Tuple{typeof(HTTP.method_name), Array{Union{Ptr{Nothing}, Base.InterpreterIP}, 1}})
+precompile(Tuple{typeof(HTTP.postcondition_error), String, Array{Union{Ptr{Nothing}, Base.InterpreterIP}, 1}, String, String, String, String})
+precompile(Tuple{getfield(HTTP.URIs, Symbol("##parse_uri_reference#6")), Bool, typeof(HTTP.URIs.parse_uri_reference), String})
+precompile(Tuple{typeof(HTTP.Messages.mkheaders), Base.Dict{String, String}})
+precompile(Tuple{getfield(HTTP, Symbol("##request#4")), Base.Dict{String, String}, String, Nothing, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), String, String, Base.Dict{String, String}, String})
+precompile(Tuple{typeof(HTTP.request), String, String, Base.Dict{String, String}, String})
+precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol}, Type{NamedTuple{(:iofunction,), Tuple{Nothing}}}, Type{NamedTuple{(), Tuple{}}}})
+precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:reuse_limit,), Tuple{Int64}}}, Type{NamedTuple{(:iofunction,), Tuple{Nothing}}}})
+precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:require_ssl_verification,), Tuple{Bool}}}, Type{NamedTuple{(:iofunction,), Tuple{Nothing}}}})
+precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Bool, Nothing}}})
+precompile(Tuple{typeof(Base.diff_names), Tuple{}, Tuple{Symbol, Symbol, Symbol, Symbol}})
+precompile(Tuple{typeof(Base.diff_names), Tuple{}, Tuple{Symbol, Symbol, Symbol}})
+precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol}, Type{NamedTuple{(:parent,), Tuple{HTTP.Messages.Response}}}, Type{NamedTuple{(:parent,), Tuple{HTTP.Messages.Response}}}})
+precompile(Tuple{typeof(HTTP.URIs.resource), HTTP.URIs.URI})
+precompile(Tuple{Type{Base.SubString{T} where T<:AbstractString}, Base.SubString{String}})
+precompile(Tuple{typeof(HTTP.Messages.ascii_lc_isequal), Base.SubString{String}, Base.SubString{String}})
+precompile(Tuple{typeof(HTTP.Pairs.setbyfirst), Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Base.Pair{Base.SubString{String}, Base.SubString{String}}, typeof(HTTP.Messages.field_name_isequal)})
+precompile(Tuple{typeof(HTTP.Messages.ascii_lc_isequal), Base.SubString{String}, String})
+precompile(Tuple{typeof(HTTP.Messages.defaultheader!), Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Base.Pair{String, Base.SubString{String}}})
+precompile(Tuple{typeof(HTTP.Messages.defaultheader!), Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Base.Pair{String, String}})
+precompile(Tuple{typeof(HTTP.Messages.hasheader), Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, String})
+precompile(Tuple{typeof(HTTP.Messages.mkheaders), Array{Any, 1}})
+precompile(Tuple{getfield(HTTP.Messages, Symbol("##Request#3")), Base.VersionNumber, Nothing, Type{HTTP.Messages.Request}, String, String, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Base.CodeUnits{UInt8, String}})
+precompile(Tuple{getfield(HTTP.MessageRequest, Symbol("##request#1")), Base.VersionNumber, String, Nothing, Nothing, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), Type{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, String})
+precompile(Tuple{getfield(HTTP.RedirectRequest, Symbol("##request#1")), Int64, Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), Type{HTTP.RedirectRequest.RedirectLayer{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, String})
+precompile(Tuple{typeof(HTTP.request), Type{HTTP.RedirectRequest.RedirectLayer{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, String})
+precompile(Tuple{getfield(Base64, Symbol("#1#2")){Base64.Base64EncodePipe}, Base64.Buffer})
+precompile(Tuple{getfield(Mmap, Symbol("#3#5")){Int64, Ptr{Nothing}}, Array{UInt8, 1}})
+precompile(Tuple{typeof(Base.string), Base.SubString{String}, String, Base.SubString{String}, String, Vararg{Union{Char, Base.SubString{String}, String}, N} where N})
+precompile(Tuple{getfield(Base, Symbol("#Timer#505#506")), Float64, Type{Base.Timer}, Float64})
+precompile(Tuple{typeof(Random.make_seed)})
+precompile(Tuple{Type{Random.MersenneTwister}, Nothing})
+precompile(Tuple{typeof(Random.default_rng), Int64})
+precompile(Tuple{getfield(Base, Symbol("#50#51#53")){Base.ExponentialBackOff, getfield(HTTP.RetryRequest, Symbol("#2#3")){Bool, HTTP.Messages.Request}, typeof(HTTP.request)}, Base.Iterators.Pairs{Symbol, Nothing, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{Nothing}}}, getfield(Base, Symbol("#50#52")){getfield(Base, Symbol("#50#51#53")){Base.ExponentialBackOff, getfield(HTTP.RetryRequest, Symbol("#2#3")){Bool, HTTP.Messages.Request}, typeof(HTTP.request)}}, Type{T} where T, Vararg{Any, N} where N})
+precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{Nothing}}, typeof(HTTP.request), Type{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}, HTTP.URIs.URI, HTTP.Messages.Request, String})
+precompile(Tuple{getfield(HTTP.ExceptionRequest, Symbol("##request#1")), Base.Iterators.Pairs{Symbol, Nothing, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{Nothing}}}, typeof(HTTP.request), Type{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}, HTTP.URIs.URI, Vararg{Any, N} where N})
+precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{Nothing}}, typeof(HTTP.request), Type{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}, HTTP.URIs.URI, HTTP.Messages.Request, String})
+precompile(Tuple{typeof(HTTP.Messages.defaultheader!), HTTP.Messages.Request, Base.Pair{String, String}})
+precompile(Tuple{getfield(HTTP.ConnectionRequest, Symbol("##request#1")), Nothing, Type{T} where T, Int64, Base.Iterators.Pairs{Symbol, Nothing, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{Nothing}}}, typeof(HTTP.request), Type{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}, HTTP.URIs.URI, HTTP.Messages.Request, String})
+precompile(Tuple{typeof(Base.filter), getfield(HTTP.ConnectionPool, Symbol("#6#7")){DataType, Base.SubString{String}, Base.SubString{String}, Int64}, Array{HTTP.ConnectionPool.Connection{T} where T<:IO, 1}})
+precompile(Tuple{typeof(Base.collect_to!), Array{Bool, 1}, Base.Generator{Array{HTTP.ConnectionPool.Connection{T} where T<:IO, 1}, getfield(HTTP.ConnectionPool, Symbol("#isdeletable#10"))}, Int64, Int64})
+precompile(Tuple{typeof(Base._collect), Array{HTTP.ConnectionPool.Connection{T} where T<:IO, 1}, Base.Generator{Array{HTTP.ConnectionPool.Connection{T} where T<:IO, 1}, getfield(HTTP.ConnectionPool, Symbol("#isdeletable#10"))}, Base.EltypeUnknown, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.deleteat!), Array{HTTP.ConnectionPool.Connection{T} where T<:IO, 1}, Array{Bool, 1}})
+precompile(Tuple{typeof(HTTP.ConnectionPool.purge)})
+precompile(Tuple{typeof(Base.filter), getfield(HTTP.ConnectionPool, Symbol("#4#5")){DataType, Base.SubString{String}, Base.SubString{String}, Int64, Bool, Int64}, Array{HTTP.ConnectionPool.Connection{T} where T<:IO, 1}})
+precompile(Tuple{typeof(Base.filter), getfield(HTTP.ConnectionPool, Symbol("#12#13")), Array{HTTP.ConnectionPool.Connection{T} where T<:IO, 1}})
+precompile(Tuple{typeof(Base.filter), getfield(HTTP.ConnectionPool, Symbol("#8#9")){DataType, Base.SubString{String}, Base.SubString{String}, Int64, Bool}, Array{HTTP.ConnectionPool.Connection{T} where T<:IO, 1}})
+precompile(Tuple{typeof(Sockets.connect!), Sockets.TCPSocket, Sockets.IPv4, UInt64})
+precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("##getconnection#14")), Bool, Int64, Base.Iterators.Pairs{Symbol, Union{Nothing, Bool}, Tuple{Symbol, Symbol}, NamedTuple{(:require_ssl_verification, :iofunction), Tuple{Bool, Nothing}}}, typeof(HTTP.ConnectionPool.getconnection), Type{Sockets.TCPSocket}, Base.SubString{String}, Base.SubString{String}})
+precompile(Tuple{typeof(HTTP.IOExtras.peerport), Sockets.TCPSocket})
+precompile(Tuple{typeof(HTTP.IOExtras.localport), Sockets.TCPSocket})
+precompile(Tuple{Type{HTTP.ConnectionPool.Connection{Sockets.TCPSocket}}, Base.SubString{String}, Base.SubString{String}, Int64, Int64, Bool, Int64, Int64, Sockets.TCPSocket, Base.GenericIOBuffer{Array{UInt8, 1}}, Int64, Int64, Bool, Base.GenericCondition{Base.AlwaysLockedST}, Int64, Bool, Base.GenericCondition{Base.AlwaysLockedST}, Float64})
+precompile(Tuple{Type{HTTP.ConnectionPool.Connection{Sockets.TCPSocket}}, Base.SubString{String}, Base.SubString{String}, Int64, Int64, Bool, UInt16, Int64, Sockets.TCPSocket, Base.GenericIOBuffer{Array{UInt8, 1}}, Int64, Int64, Bool, Base.GenericCondition{Base.AlwaysLockedST}, Int64, Bool, Base.GenericCondition{Base.AlwaysLockedST}, Float64})
+precompile(Tuple{Type{HTTP.ConnectionPool.Connection{Sockets.TCPSocket}}, Base.SubString{String}, Base.SubString{String}, Int64, Int64, Bool, Int64, UInt16, Sockets.TCPSocket, Base.GenericIOBuffer{Array{UInt8, 1}}, Int64, Int64, Bool, Base.GenericCondition{Base.AlwaysLockedST}, Int64, Bool, Base.GenericCondition{Base.AlwaysLockedST}, Float64})
+precompile(Tuple{Type{HTTP.ConnectionPool.Connection{Sockets.TCPSocket}}, Base.SubString{String}, Base.SubString{String}, Int64, Int64, Bool, UInt16, UInt16, Sockets.TCPSocket, Base.GenericIOBuffer{Array{UInt8, 1}}, Int64, Int64, Bool, Base.GenericCondition{Base.AlwaysLockedST}, Int64, Bool, Base.GenericCondition{Base.AlwaysLockedST}, Float64})
+precompile(Tuple{Type{HTTP.ConnectionPool.Connection{T} where T<:IO}, Base.SubString{String}, Base.SubString{String}, Int64, Int64, Bool, Sockets.TCPSocket})
+precompile(Tuple{typeof(HTTP.precondition_error), String, Array{Union{Ptr{Nothing}, Base.InterpreterIP}, 1}})
+precompile(Tuple{typeof(HTTP.postcondition_error), String, Array{Union{Ptr{Nothing}, Base.InterpreterIP}, 1}})
+precompile(Tuple{typeof(HTTP.IOExtras.startwrite), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}})
+precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("##getconnection#11")), Int64, Int64, Int64, Int64, Bool, Base.Iterators.Pairs{Symbol, Nothing, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{Nothing}}}, typeof(HTTP.ConnectionPool.getconnection), Type{HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Base.SubString{String}, Base.SubString{String}})
+precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("#kw##getconnection")), NamedTuple{(:reuse_limit, :iofunction), Tuple{Int64, Nothing}}, typeof(HTTP.ConnectionPool.getconnection), Type{HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Base.SubString{String}, Base.SubString{String}})
+precompile(Tuple{typeof(Base.catch_backtrace)})
+precompile(Tuple{typeof(Distributed.flush_gc_msgs)})
+precompile(Tuple{getfield(Distributed, Symbol("#135#136"))})
+precompile(Tuple{typeof(Base.notify), Base.GenericCondition{Base.Threads.SpinLock}})
+precompile(Tuple{typeof(Base._any), getfield(HTTP.Messages, Symbol("#4#5")), Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Base.Colon})
+precompile(Tuple{typeof(HTTP.Messages.bodylength), HTTP.Messages.Request})
+precompile(Tuple{typeof(HTTP.Messages.bodylength), HTTP.Messages.Response})
+precompile(Tuple{typeof(HTTP.IOExtras.startwrite), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}})
+precompile(Tuple{typeof(Base.println), HTTP.Messages.Request})
+precompile(Tuple{typeof(HTTP.Messages.issafe), String})
+precompile(Tuple{typeof(HTTP.Messages.isidempotent), String})
+precompile(Tuple{typeof(HTTP.IOExtras.startread), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}})
+precompile(Tuple{typeof(Base.unalias), Array{UInt8, 1}, Base.SubArray{UInt8, 1, Array{UInt8, 1}, Tuple{Base.UnitRange{Int64}}, true}})
+precompile(Tuple{typeof(Base.copyto!), Array{UInt8, 1}, Base.SubArray{UInt8, 1, Array{UInt8, 1}, Tuple{Base.UnitRange{Int64}}, true}})
+precompile(Tuple{typeof(HTTP.Parsers.group), Int64, HTTP.Parsers.RegexAndMatchData, String})
+precompile(Tuple{typeof(Base.ntuple), getfield(Base, Symbol("#457#458")){Array{Base.SubString{String}, 1}}, Int64})
+precompile(Tuple{Type{Base.VersionNumber}, Base.SubString{String}})
+precompile(Tuple{typeof(HTTP.Parsers.nextbytes), HTTP.Parsers.RegexAndMatchData, String})
+precompile(Tuple{typeof(HTTP.Parsers.parse_status_line!), String, HTTP.Messages.Response})
+precompile(Tuple{typeof(HTTP.Parsers.group), Int64, HTTP.Parsers.RegexAndMatchData, Base.SubString{String}})
+precompile(Tuple{typeof(HTTP.Parsers.nextbytes), HTTP.Parsers.RegexAndMatchData, Base.SubString{String}})
+precompile(Tuple{typeof(HTTP.Messages.appendheader), HTTP.Messages.Response, Base.Pair{Base.SubString{String}, Base.SubString{String}}})
+precompile(Tuple{typeof(HTTP.Messages.parse_header_fields!), Base.SubString{String}, HTTP.Messages.Response})
+precompile(Tuple{typeof(HTTP.Messages.readheaders), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Response})
+precompile(Tuple{typeof(HTTP.IOExtras.startread), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}})
+precompile(Tuple{Type{HTTP.Parsers.ParseError}, Symbol, Base.SubArray{UInt8, 1, Array{UInt8, 1}, Tuple{Base.UnitRange{Int64}}, true}})
+precompile(Tuple{typeof(HTTP.Parsers.parse_chunk_size), Base.SubArray{UInt8, 1, Array{UInt8, 1}, Tuple{Base.UnitRange{Int64}}, true}})
+precompile(Tuple{typeof(HTTP.Messages.readchunksize), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Response})
+precompile(Tuple{typeof(Base.unsafe_read), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, Ptr{UInt8}, UInt64})
+precompile(Tuple{typeof(HTTP.postcondition_error), String, Array{Union{Ptr{Nothing}, Base.InterpreterIP}, 1}, String, Int64, String, Int64})
+precompile(Tuple{typeof(HTTP.Streams.http_unsafe_read), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Ptr{UInt8}, UInt64})
+precompile(Tuple{typeof(Base.eof), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}})
+precompile(Tuple{typeof(Base.unsafe_read), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Ptr{UInt8}, UInt64})
+precompile(Tuple{typeof(Base.readbytes!), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Base.GenericIOBuffer{Array{UInt8, 1}}, Int64})
+precompile(Tuple{typeof(Base.read), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}})
+precompile(Tuple{typeof(HTTP.Messages.ascii_lc_isequal), String, String})
+precompile(Tuple{typeof(HTTP.Messages.hasheader), HTTP.Messages.Response, String, String})
+precompile(Tuple{typeof(HTTP.ConnectionPool.purge), HTTP.ConnectionPool.Connection{Sockets.TCPSocket}})
+precompile(Tuple{typeof(HTTP.IOExtras.closewrite), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}})
+precompile(Tuple{typeof(HTTP.IOExtras.closeread), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}})
+precompile(Tuple{typeof(Base.close), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}})
+precompile(Tuple{typeof(Base.readavailable), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Int64})
+precompile(Tuple{typeof(HTTP.IOExtras.closeread), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}})
+precompile(Tuple{typeof(Base.println), HTTP.Messages.Response})
+precompile(Tuple{getfield(HTTP.StreamRequest, Symbol("##request#1")), Nothing, Nothing, Int64, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), Type{HTTP.StreamRequest.StreamLayer{Union{}}}, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, String})
+precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{Nothing}}, typeof(HTTP.request), Type{HTTP.StreamRequest.StreamLayer{Union{}}}, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, String})
+precompile(Tuple{typeof(HTTP.Messages.hasheader), HTTP.Messages.Request, String})
+precompile(Tuple{typeof(HTTP.Messages.ischunked), HTTP.Messages.Request})
+precompile(Tuple{typeof(Base.string), Base.SubString{String}, String, Base.SubString{String}, String})
+precompile(Tuple{typeof(HTTP.Messages.writeheaders), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request})
+precompile(Tuple{typeof(Base.string), String, String, String, String, Vararg{String, N} where N})
+precompile(Tuple{typeof(Base.write), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, UInt8})
+precompile(Tuple{typeof(Base.write), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Char})
+precompile(Tuple{typeof(HTTP.StreamRequest.writechunk), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, HTTP.Messages.Request, Char})
+precompile(Tuple{typeof(Base.write), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, String, String})
+precompile(Tuple{typeof(Base.unsafe_write), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Ptr{UInt8}, UInt64})
+precompile(Tuple{typeof(HTTP.StreamRequest.writebody), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, HTTP.Messages.Request, String})
+precompile(Tuple{getfield(HTTP.StreamRequest, Symbol("#2#3")){HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, String, HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}}})
+precompile(Tuple{typeof(Base.task_done_hook), Task})
+precompile(Tuple{typeof(HTTP.ConnectionPool.read_to_buffer), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, Int64})
+precompile(Tuple{typeof(Base.readuntil), HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, Function, Int64})
+precompile(Tuple{typeof(Base.alloc_buf_hook), Sockets.TCPSocket, UInt64})
+precompile(Tuple{getfield(Base, Symbol("#readcb_specialized#517")), Sockets.TCPSocket, Int64, UInt64})
+precompile(Tuple{getfield(HTTP.Parsers, Symbol("##find_end_of_header#1")), Bool, typeof(HTTP.Parsers.find_end_of_header), Base.SubArray{UInt8, 1, Array{UInt8, 1}, Tuple{Base.UnitRange{Int64}}, true}})
+precompile(Tuple{typeof(Base.readuntil), Base.GenericIOBuffer{Array{UInt8, 1}}, typeof(HTTP.Parsers.find_end_of_header)})
+precompile(Tuple{typeof(Base.readuntil), Base.GenericIOBuffer{Array{UInt8, 1}}, typeof(HTTP.Parsers.find_end_of_chunk_size)})
+precompile(Tuple{typeof(Base.readuntil), Base.GenericIOBuffer{Array{UInt8, 1}}, typeof(HTTP.Parsers.find_end_of_trailer)})
+precompile(Tuple{getfield(HTTP.RetryRequest, Symbol("#2#3")){Bool, HTTP.Messages.Request}, Tuple{Int64, Float64}, HTTP.ExceptionRequest.StatusError})
+precompile(Tuple{typeof(HTTP.ConnectionPool.monitor_idle_connection), HTTP.ConnectionPool.Connection{Sockets.TCPSocket}})
+precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("#2#3")){HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}})
+precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("#isdeletable#10")), HTTP.ConnectionPool.Connection{Sockets.TCPSocket}})
+precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("#4#5")){DataType, Base.SubString{String}, Base.SubString{String}, Int64, Bool, Int64}, HTTP.ConnectionPool.Connection{Sockets.TCPSocket}})
+precompile(Tuple{typeof(HTTP.ConnectionPool.client_transaction), HTTP.ConnectionPool.Connection{Sockets.TCPSocket}})
+precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol}, Type{NamedTuple{(:intern_call,), Tuple{Bool}}}, Type{NamedTuple{(), Tuple{}}}})
+precompile(Tuple{getfield(Dataiku, Symbol("##get_url_and_header#5")), Bool, Nothing, Bool, typeof(Dataiku.get_url_and_header), String})
+precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request), String, String, Base.Dict{String, String}})
+precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request_json), String, String, Base.Dict{String, String}})
+precompile(Tuple{typeof(Dataiku.create_project), String, String, String})
+precompile(Tuple{typeof(Dataiku.create_project), String})
+precompile(Tuple{getfield(Base, Symbol("##sprint#339")), Nothing, Int64, typeof(Base.sprint), Function, Base.Dict{String, String}})
+precompile(Tuple{typeof(Base.unsafe_write), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, Ptr{UInt8}, UInt64})
+precompile(Tuple{typeof(Base.write), JSON.Writer.StringContext{JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}}, UInt8})
+precompile(Tuple{typeof(Base.write), JSON.Writer.StringContext{JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}}, String})
+precompile(Tuple{typeof(JSON.Writer.show_string), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, String})
+precompile(Tuple{typeof(JSON.Writer.show_key), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, String})
+precompile(Tuple{typeof(JSON.Writer.show_json), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String})
+precompile(Tuple{typeof(JSON.Writer.show_json), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Base.Dict{String, String}})
+precompile(Tuple{typeof(JSON.Writer.print), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.Dict{String, String}})
+precompile(Tuple{typeof(Base.pathof), Module})
+precompile(Tuple{getfield(Base.Cartesian, Symbol("#@nexprs")), LineNumberNode, Module, Int64, Expr})
+precompile(Tuple{getfield(Base.Cartesian, Symbol("#@ncall")), LineNumberNode, Module, Int64, Any, Vararg{Any, N} where N})
+precompile(Tuple{typeof(Core.Compiler.zero), Type{UInt8}})
+precompile(Tuple{typeof(Mmap.mmap), String, Type{Array{UInt8, 1}}})
+precompile(Tuple{getfield(Mmap, Symbol("##mmap#1")), Bool, Bool, typeof(Mmap.mmap), Mmap.Anonymous, Type{Array{UInt8, 1}}, Tuple{Int64}, Int64})
+precompile(Tuple{typeof(CSV.getsource), String, Bool})
+precompile(Tuple{typeof(CSV.skiptorow), CSV.ReversedBuf, Int64, Int64, UInt8, UInt8, UInt8, Int64, Int64})
+precompile(Tuple{typeof(CSV.skiptorow), Array{UInt8, 1}, Int64, Int64, UInt8, UInt8, UInt8, Int64, Int64})
+precompile(Tuple{typeof(CSV.checkcommentandemptyline), Array{UInt8, 1}, Int64, Int64, Nothing, Bool})
+precompile(Tuple{typeof(CSV.detectheaderdatapos), Array{UInt8, 1}, Int64, Int64, UInt8, UInt8, UInt8, Nothing, Bool, Int64, Int64})
+precompile(Tuple{typeof(CSV.detectdelimandguessrows), Array{UInt8, 1}, Int64, Int64, Int64, UInt8, UInt8, UInt8, UInt8, Nothing, Bool})
+precompile(Tuple{Type{Parsers.Options{ignorerepeated, Q, debug, S, D, DF} where DF where D where S where debug where Q where ignorerepeated}, Base.Missing, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, Nothing, Nothing, Nothing, Bool, Bool, Bool, Bool, Bool})
+precompile(Tuple{typeof(Base.ht_keyindex), Base.Dict{Int8, Type}, Int8})
+precompile(Tuple{typeof(Base.copyto!), Array{Base.Pair{String, UInt64}, 1}, Base.Dict{String, UInt64}})
+precompile(Tuple{typeof(Base.sort!), Array{Base.Pair{String, UInt64}, 1}, Int64, Int64, Base.Sort.InsertionSortAlg, Base.Order.By{getfield(CSV, Symbol("#21#29"))}})
+precompile(Tuple{typeof(Base.sort!), Array{Base.Pair{String, UInt64}, 1}, Int64, Int64, Base.Sort.MergeSortAlg, Base.Order.By{getfield(CSV, Symbol("#21#29"))}, Array{Base.Pair{String, UInt64}, 1}})
+precompile(Tuple{typeof(Base.rand), Type{Bool}})
+precompile(Tuple{getfield(CSV, Symbol("#22#30")){Array{UInt8, 1}, UInt8, Array{Type, 1}, Array{Union{Nothing, Array{String, 1}}, 1}, Int64}, Int64})
+precompile(Tuple{typeof(Base.collect), Base.Generator{Base.UnitRange{Int64}, getfield(CSV, Symbol("#22#30")){Array{UInt8, 1}, UInt8, Array{Type, 1}, Array{Union{Nothing, Array{String, 1}}, 1}, Int64}}})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Any, Any}, Base.Generator{Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Array{Union{CSV.Column{T, P} where P where T, CSV.Column2{T, P} where P where T}, 1}}}, getfield(CSV, Symbol("#23#31"))}})
+precompile(Tuple{typeof(Base._all), getfield(Base, Symbol("#240#242")), Base.Generator{Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Array{Union{CSV.Column{T, P} where P where T, CSV.Column2{T, P} where P where T}, 1}}}, getfield(CSV, Symbol("#23#31"))}, Base.Colon})
+precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Base.Generator{Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Array{Union{CSV.Column{T, P} where P where T, CSV.Column2{T, P} where P where T}, 1}}}, getfield(CSV, Symbol("#23#31"))}})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{String, 1}, String, Base.Generator{Array{Base.Pair{String, UInt64}, 1}, getfield(CSV, Symbol("#20#28"))}, Int64})
+precompile(Tuple{typeof(Base.setindex!), Array{String, 1}, Array{String, 1}, Int64})
+precompile(Tuple{typeof(Base.fill!), Array{Union{Nothing, Array{String, 1}}, 1}, Nothing})
+precompile(Tuple{typeof(Base.collect_to!), Array{Tuple{Ptr{UInt8}, Int64}, 1}, Base.Generator{Array{String, 1}, typeof(Parsers.ptrlen)}, Int64, Int64})
+precompile(Tuple{typeof(Base._collect), Array{String, 1}, Base.Generator{Array{String, 1}, typeof(Parsers.ptrlen)}, Base.EltypeUnknown, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.sort!), Array{Tuple{Ptr{UInt8}, Int64}, 1}, Int64, Int64, Base.Sort.InsertionSortAlg, Base.Order.By{getfield(Parsers, Symbol("#1#2"))}})
+precompile(Tuple{typeof(Base.sort!), Array{Tuple{Ptr{UInt8}, Int64}, 1}, Int64, Int64, Base.Sort.MergeSortAlg, Base.Order.By{getfield(Parsers, Symbol("#1#2"))}, Array{Tuple{Ptr{UInt8}, Int64}, 1}})
+precompile(Tuple{typeof(Base.sort!), Array{Tuple{Ptr{UInt8}, Int64}, 1}, Int64, Int64, Base.Sort.InsertionSortAlg, Base.Order.ReverseOrdering{Base.Order.By{getfield(Parsers, Symbol("#1#2"))}}})
+precompile(Tuple{typeof(Base.sort!), Array{Tuple{Ptr{UInt8}, Int64}, 1}, Int64, Int64, Base.Sort.MergeSortAlg, Base.Order.ReverseOrdering{Base.Order.By{getfield(Parsers, Symbol("#1#2"))}}, Array{Tuple{Ptr{UInt8}, Int64}, 1}})
+precompile(Tuple{typeof(Parsers.prepare), Array{String, 1}})
+precompile(Tuple{Type{Parsers.Options{ignorerepeated, Q, debug, S, D, DF} where DF where D where S where debug where Q where ignorerepeated}, Array{String, 1}, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, Nothing, Nothing, Nothing, Bool, Bool, Bool, Bool, Bool})
+precompile(Tuple{typeof(CSV.file), String, Int64, Bool, Int64, Nothing, Int64, Int64, Bool, Nothing, Bool, Bool, Array{String, 1}, String, Nothing, Bool, Char, Nothing, Nothing, Char, Nothing, UInt8, Nothing, Nothing, Nothing, Nothing, Base.Dict{Int8, Int8}, Bool, Float64, Bool, Bool, Nothing, Bool, Bool, Nothing})
+precompile(Tuple{typeof(Base.copyto!), Base.IndexLinear, Array{AbstractArray{T, 1} where T, 1}, Base.IndexLinear, Array{Union{CSV.Column{T, P} where P where T, CSV.Column2{T, P} where P where T}, 1}})
+precompile(Tuple{typeof(Base.throw_checksize_error), Array{Symbol, 1}, Tuple{Base.OneTo{Int64}}})
+precompile(Tuple{typeof(Base._unsafe_getindex), Base.IndexLinear, Array{Symbol, 1}, Array{Int64, 1}})
+precompile(Tuple{typeof(Base.throw_boundserror), Base.Broadcast.Broadcasted{Nothing, Tuple{Base.OneTo{Int64}}, typeof(Base.string), Tuple{Base.Broadcast.Extruded{Array{Char, 0}, Tuple{}, Tuple{}}, Base.Broadcast.Extruded{Array{Symbol, 1}, Tuple{Bool}, Tuple{Int64}}}}, Tuple{Int64}})
+precompile(Tuple{typeof(Base.throw_boundserror), Array{Symbol, 1}, Tuple{Array{Int64, 1}}})
+precompile(Tuple{getfield(DataFrames, Symbol("##make_unique!#1")), Bool, typeof(DataFrames.make_unique!), Array{Symbol, 1}, Array{Symbol, 1}})
+precompile(Tuple{Type{Base.Dict{Symbol, Int64}}})
+precompile(Tuple{typeof(Base.rehash!), Base.Dict{Symbol, Int64}, Int64})
+precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{Symbol, Int64}, Symbol})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, Int64}, Int64, Symbol})
+precompile(Tuple{Type{Base.Dict{Symbol, Int64}}, Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Base.UnitRange{Int64}}}})
+precompile(Tuple{typeof(Base.collect), Base.Generator{Array{AbstractArray{T, 1} where T, 1}, getfield(DataFrames, Symbol("#84#87"))}})
+precompile(Tuple{typeof(Base.throw_boundserror), Base.Broadcast.Broadcasted{Nothing, Tuple{Base.OneTo{Int64}}, typeof(Base.string), Tuple{Base.Broadcast.Extruded{Array{Symbol, 1}, Tuple{Bool}, Tuple{Int64}}}}, Tuple{Int64}})
+precompile(Tuple{getfield(DataFrames, Symbol("#DataFrame#83#86")), Bool, Type{DataFrames.DataFrame}, Array{AbstractArray{T, 1} where T, 1}, DataFrames.Index})
+precompile(Tuple{getfield(DataFrames, Symbol("##DataFrame#98")), Bool, Bool, Type{DataFrames.DataFrame}, Array{Union{CSV.Column{T, P} where P where T, CSV.Column2{T, P} where P where T}, 1}, Array{Symbol, 1}})
+precompile(Tuple{typeof(CSV.read), String})
+precompile(Tuple{getfield(Base, Symbol("##open#271")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Base.open), getfield(Mmap, Symbol("#7#8")){Array{UInt8, 1}, Bool, Bool, Tuple{Int64}, Int64}, String, Vararg{String, N} where N})
+precompile(Tuple{Type{Parsers.Options{false, true, false, Base.Missing, UInt8, Nothing}}, Array{String, 1}, Base.Missing, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, Nothing, Nothing, Nothing, Bool, Bool})
+precompile(Tuple{typeof(Base.collect_to!), Array{Symbol, 1}, Base.Generator{Base.UnitRange{Int64}, getfield(CSV, Symbol("#8#11"))}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect), Base.Generator{Base.UnitRange{Int64}, getfield(CSV, Symbol("#8#11"))}})
+precompile(Tuple{typeof(CSV.unescape), CSV.PointerString, UInt8})
+precompile(Tuple{typeof(CSV.columnname), Array{UInt8, 1}, Int64, Int64, Int16, Parsers.Options{false, true, false, Base.Missing, UInt8, Nothing}, Int64})
+precompile(Tuple{typeof(Base.ht_keyindex), Base.Dict{String, Nothing}, Base.SubString{String}})
+precompile(Tuple{typeof(Base.map), getfield(CSV, Symbol("#4#5")), Base.SubString{String}})
+precompile(Tuple{typeof(CSV.normalizename), String})
+precompile(Tuple{typeof(Base.collect_to!), Array{Symbol, 1}, Base.Generator{Array{String, 1}, getfield(CSV, Symbol("#9#12")){Bool}}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect), Base.Generator{Array{String, 1}, getfield(CSV, Symbol("#9#12")){Bool}}})
+precompile(Tuple{typeof(CSV.makeunique), Array{Symbol, 1}})
+precompile(Tuple{typeof(CSV.detectcolumnnames), Array{UInt8, 1}, Int64, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Nothing}, Int64, Bool})
+precompile(Tuple{Type{Base.Val{false}}})
+precompile(Tuple{typeof(Dates.character_codes), Core.SimpleVector})
+precompile(Tuple{getfield(Parsers, Symbol("##s52#15")), Any, Any, Any, Any, Any, Any, Any})
+precompile(Tuple{typeof(Dates.character_codes), Type{Dates.DateFormat{Symbol("yyyy-mm-dd"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}}}}})
+precompile(Tuple{typeof(Base.first), Core.SimpleVector})
+precompile(Tuple{typeof(Dates.genvar), DataType})
+precompile(Tuple{Type{Base.IteratorSize}, Tuple{DataType, DataType, DataType}})
+precompile(Tuple{typeof(Base._array_for), Type{Symbol}, Tuple{DataType, DataType, DataType}, Base.HasLength})
+precompile(Tuple{Type{Base.LinearIndices{N, R} where R<:Tuple{Vararg{Base.AbstractUnitRange{Int64}, N}} where N}, Array{Symbol, 1}})
+precompile(Tuple{Type{Base.Generator{I, F} where F where I}, getfield(Parsers, Symbol("#16#17")), Tuple{DataType, DataType, DataType}})
+precompile(Tuple{typeof(Base.collect), Base.Generator{Tuple{DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}})
+precompile(Tuple{Type{Tuple}, Base.Generator{Tuple{DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}})
+precompile(Tuple{typeof(Base._array_for), Type{Int64}, Tuple{DataType, DataType, DataType}, Base.HasLength})
+precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Tuple{DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Tuple{DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}, Int64})
+precompile(Tuple{typeof(Base.Iterators.zip), Array{Symbol, 1}, Vararg{Any, N} where N})
+precompile(Tuple{Type{Base.Iterators.Zip{Is} where Is<:Tuple}, Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64}}})
+precompile(Tuple{Type{Base.IteratorSize}, Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64}}}})
+precompile(Tuple{typeof(Base._array_for), Type{Expr}, Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64}}}, Base.HasLength})
+precompile(Tuple{Type{Base.LinearIndices{N, R} where R<:Tuple{Vararg{Base.AbstractUnitRange{Int64}, N}} where N}, Array{Expr, 1}})
+precompile(Tuple{typeof(Base.map), getfield(Base.Iterators, Symbol("#3#4")), Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64}}})
+precompile(Tuple{typeof(Base.Iterators._zip_iterate_all), Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64}}, Tuple{Tuple{}, Tuple{}}})
+precompile(Tuple{typeof(Base.iterate), Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64}}}, Tuple{Int64, Int64}})
+precompile(Tuple{typeof(Base.collect), Base.Generator{Array{Type, 1}, getfield(Parsers, Symbol("#19#20"))}})
+precompile(Tuple{getfield(Parsers, Symbol("##s52#18")), Any, Any, Any, Any, Any})
+precompile(Tuple{typeof(Dates._directives), Type{Dates.DateFormat{Symbol("yyyy-mm-dd"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}}}}})
+precompile(Tuple{typeof(Base._array_for), Type{Int64}, Array{Type, 1}, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Array{Type, 1}, getfield(Parsers, Symbol("#19#20"))}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{Type, 1}, getfield(Parsers, Symbol("#19#20"))}, Int64})
+precompile(Tuple{typeof(Dates.character_codes), Type{Dates.DateFormat{Symbol("yyyy-mm-dd\THH:MM:SS.s"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}}}}})
+precompile(Tuple{Type{Base.IteratorSize}, Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType, DataType}})
+precompile(Tuple{typeof(Base._array_for), Type{Symbol}, Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType, DataType}, Base.HasLength})
+precompile(Tuple{Type{Base.Generator{I, F} where F where I}, getfield(Parsers, Symbol("#16#17")), Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType, DataType}})
+precompile(Tuple{typeof(Base.collect), Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}})
+precompile(Tuple{Type{Tuple}, Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}})
+precompile(Tuple{typeof(Base._array_for), Type{Int64}, Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType, DataType}, Base.HasLength})
+precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{Int64, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.setindex_widen_up_to), Array{Int64, 1}, Dates.AMPM, Int64})
+precompile(Tuple{typeof(Base.collect_to!), Array{Any, 1}, Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}, Int64, Int64})
+precompile(Tuple{Type{Base.Iterators.Zip{Is} where Is<:Tuple}, Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}}})
+precompile(Tuple{Type{Base.IteratorSize}, Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}}}})
+precompile(Tuple{typeof(Base._array_for), Type{Expr}, Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}}}, Base.HasLength})
+precompile(Tuple{typeof(Base.map), getfield(Base.Iterators, Symbol("#3#4")), Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}}})
+precompile(Tuple{typeof(Base.Iterators._zip_iterate_all), Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}}, Tuple{Tuple{}, Tuple{}}})
+precompile(Tuple{typeof(Base.iterate), Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}}}, Tuple{Int64, Int64}})
+precompile(Tuple{typeof(Base.indexed_iterate), Tuple{Symbol, Dates.AMPM}, Int64})
+precompile(Tuple{typeof(Base.indexed_iterate), Tuple{Symbol, Dates.AMPM}, Int64, Int64})
+precompile(Tuple{typeof(Dates._directives), Type{Dates.DateFormat{Symbol("yyyy-mm-dd\THH:MM:SS.s"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}}}}})
+precompile(Tuple{Type{Base.Iterators.Zip{Is} where Is<:Tuple}, Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Int64}}})
+precompile(Tuple{typeof(Base.map), getfield(Base.Iterators, Symbol("#3#4")), Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Int64}}})
+precompile(Tuple{typeof(Base.Iterators._zip_iterate_all), Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Int64}}, Tuple{Tuple{}, Tuple{}}})
+precompile(Tuple{typeof(Base.iterate), Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Int64}}}, Tuple{Int64, Int64}})
+precompile(Tuple{typeof(Dates.character_codes), Type{Dates.DateFormat{Symbol("HH:MM:SS.s"), Tuple{Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}}}}})
+precompile(Tuple{Type{Base.IteratorSize}, Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType}})
+precompile(Tuple{typeof(Base._array_for), Type{Symbol}, Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType}, Base.HasLength})
+precompile(Tuple{Type{Base.Generator{I, F} where F where I}, getfield(Parsers, Symbol("#16#17")), Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType}})
+precompile(Tuple{typeof(Base.collect), Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}})
+precompile(Tuple{Type{Tuple}, Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}})
+precompile(Tuple{typeof(Base._array_for), Type{Int64}, Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType}, Base.HasLength})
+precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}, Int64})
+precompile(Tuple{typeof(Base.collect_to!), Array{Any, 1}, Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Parsers, Symbol("#16#17"))}, Int64, Int64})
+precompile(Tuple{Type{Base.Iterators.Zip{Is} where Is<:Tuple}, Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}}})
+precompile(Tuple{Type{Base.IteratorSize}, Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}}}})
+precompile(Tuple{typeof(Base._array_for), Type{Expr}, Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}}}, Base.HasLength})
+precompile(Tuple{typeof(Base.map), getfield(Base.Iterators, Symbol("#3#4")), Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}}})
+precompile(Tuple{typeof(Base.Iterators._zip_iterate_all), Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}}, Tuple{Tuple{}, Tuple{}}})
+precompile(Tuple{typeof(Base.iterate), Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM}}}, Tuple{Int64, Int64}})
+precompile(Tuple{typeof(Dates._directives), Type{Dates.DateFormat{Symbol("HH:MM:SS.s"), Tuple{Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}}}}})
+precompile(Tuple{Type{Base.Iterators.Zip{Is} where Is<:Tuple}, Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64}}})
+precompile(Tuple{typeof(Base.map), getfield(Base.Iterators, Symbol("#3#4")), Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64}}})
+precompile(Tuple{typeof(Base.Iterators._zip_iterate_all), Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64}}, Tuple{Tuple{}, Tuple{}}})
+precompile(Tuple{typeof(Base.iterate), Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Tuple{Int64, Int64, Int64, Int64}}}, Tuple{Int64, Int64}})
+precompile(Tuple{getfield(Base, Symbol("##chop#326")), Int64, Int64, typeof(Base.chop), String})
+precompile(Tuple{typeof(Base.nextind), Base.SubString{String}, Int64, Int64})
+precompile(Tuple{getfield(Base, Symbol("##chop#326")), Int64, Int64, typeof(Base.chop), Base.SubString{String}})
+precompile(Tuple{typeof(Parsers.codes), Int16})
+precompile(Tuple{typeof(CSV.fatalerror), Array{UInt8, 1}, Int64, Int64, Int16, Int64, Int64})
+precompile(Tuple{typeof(CSV.reallocatetape), Int64, Int64, Int64})
+precompile(Tuple{getfield(Mmap, Symbol("##mmap#1")), Bool, Bool, typeof(Mmap.mmap), Mmap.Anonymous, Type{Array{UInt64, 1}}, Tuple{Int64}, Int64})
+precompile(Tuple{typeof(CSV.notenoughcolumns), Int64, Int64, Int64})
+precompile(Tuple{typeof(CSV.toomanycolumns), Int64, Int64})
+precompile(Tuple{typeof(Base.ht_keyindex), Base.Dict{Int8, Int8}, Int8})
+precompile(Tuple{Type{Base.Dict{String, UInt64}}})
+precompile(Tuple{typeof(Base.rehash!), Base.Dict{String, UInt64}, Int64})
+precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{String, UInt64}, String})
+precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{String, UInt64}, CSV.PointerString})
+precompile(Tuple{typeof(Dates.validargs), Type{Dates.Time}, Int64, Int64, Int64, Int64, Int64, Int64, Dates.AMPM})
+precompile(Tuple{typeof(Base.power_by_squaring), Int64, Int64})
+precompile(Tuple{typeof(Parsers._typeparser), Type{Float64}, Array{UInt8, 1}, Int64, Int64, UInt8, Int16, Parsers.Options{false, true, false, Base.Missing, UInt8, Nothing}, Type{Base.GMP.BigInt}})
+precompile(Tuple{typeof(Parsers._typeparser), Type{Float64}, Array{UInt8, 1}, Int64, Int64, UInt8, Int16, Parsers.Options{false, true, false, Base.Missing, UInt8, Nothing}, Type{Int128}})
+precompile(Tuple{typeof(CSV.detect), Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Nothing}, Int64, Int64, Base.Dict{Int8, Int8}, Float64, Array{Base.Dict{String, UInt64}, 1}, Array{UInt64, 1}, Array{Int64, 1}, Bool, Array{Int8, 1}, Bool, Array{Array{UInt64, 1}, 1}})
+precompile(Tuple{typeof(CSV.parsevalue!), Type{Float64}, Int8, Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Nothing}, Int64, Int64, Array{Int8, 1}, Array{Array{UInt64, 1}, 1}})
+precompile(Tuple{typeof(CSV.parsevalue!), Type{Dates.Date}, Int8, Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Nothing}, Int64, Int64, Array{Int8, 1}, Array{Array{UInt64, 1}, 1}})
+precompile(Tuple{typeof(CSV.parsevalue!), Type{Dates.DateTime}, Int8, Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Nothing}, Int64, Int64, Array{Int8, 1}, Array{Array{UInt64, 1}, 1}})
+precompile(Tuple{typeof(CSV.parsevalue!), Type{Dates.Time}, Int8, Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Nothing}, Int64, Int64, Array{Int8, 1}, Array{Array{UInt64, 1}, 1}})
+precompile(Tuple{typeof(CSV.parsevalue!), Type{Bool}, Int8, Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Nothing}, Int64, Int64, Array{Int8, 1}, Array{Array{UInt64, 1}, 1}})
+precompile(Tuple{typeof(CSV.parsetape), Base.Val{false}, Bool, Int64, Base.Dict{Int8, Int8}, Array{Array{UInt64, 1}, 1}, Array{Array{UInt64, 1}, 1}, Array{UInt8, 1}, Int64, Int64, Int64, Nothing, Array{Int64, 1}, Float64, Array{Base.Dict{String, UInt64}, 1}, Array{UInt64, 1}, Int64, Array{Int8, 1}, Array{Int64, 1}, Bool, Parsers.Options{false, true, false, Base.Missing, UInt8, Nothing}, Bool})
+precompile(Tuple{typeof(CSV._eltype), Type{Int64}})
+precompile(Tuple{typeof(Base.getindex), Array{Array{UInt64, 1}, 1}, Int64})
+precompile(Tuple{typeof(Base.getindex), Array{Int64, 1}, Int64})
+precompile(Tuple{typeof(CSV.uint64), Int64})
+precompile(Tuple{Type{CSV.Column{Int64, Int64}}, Array{UInt64, 1}, Int64, UInt8, Bool, Nothing, Array{UInt8, 1}, UInt64})
+precompile(Tuple{typeof(CSV._eltype), Type{Dates.Date}})
+precompile(Tuple{typeof(Base.nonmissingtype), Type{Dates.Date}})
+precompile(Tuple{Type{CSV.Column{Dates.Date, Dates.Date}}, Array{UInt64, 1}, Int64, UInt8, Bool, Nothing, Array{UInt8, 1}, UInt64})
+precompile(Tuple{typeof(CSV._eltype), Type{String}})
+precompile(Tuple{typeof(Base.nonmissingtype), Type{String}})
+precompile(Tuple{typeof(CSV.sentinelvalue), Type{String}})
+precompile(Tuple{Type{CSV.Column{String, String}}, Array{UInt64, 1}, Int64, UInt8, Bool, Array{String, 1}, Array{UInt8, 1}, UInt64})
+precompile(Tuple{typeof(CSV._eltype), Type{Bool}})
+precompile(Tuple{typeof(Base.nonmissingtype), Type{Bool}})
+precompile(Tuple{Type{CSV.Column{Bool, Bool}}, Array{UInt64, 1}, Int64, UInt8, Bool, Nothing, Array{UInt8, 1}, UInt64})
+precompile(Tuple{typeof(Base.nonmissingtype), Type{CSV.PooledString}})
+precompile(Tuple{typeof(CSV.sentinelvalue), Type{CSV.PooledString}})
+precompile(Tuple{Type{CSV.Column{String, CSV.PooledString}}, Array{UInt64, 1}, Int64, UInt8, Bool, Array{String, 1}, Array{UInt8, 1}, UInt64})
+precompile(Tuple{typeof(CSV._eltype), Type{Float64}})
+precompile(Tuple{typeof(Base.nonmissingtype), Type{Float64}})
+precompile(Tuple{Type{CSV.Column{Float64, Float64}}, Array{UInt64, 1}, Int64, UInt8, Bool, Nothing, Array{UInt8, 1}, UInt64})
+precompile(Tuple{getfield(CSV, Symbol("#23#31")), Tuple{Symbol, CSV.Column{Int64, Int64}}})
+precompile(Tuple{Type{Base.Dict{Symbol, CSV.Column{Int64, Int64}}}})
+precompile(Tuple{typeof(Base.empty), Base.Dict{Any, Any}, Type{Symbol}, Type{CSV.Column{Int64, Int64}}})
+precompile(Tuple{typeof(Base.rehash!), Base.Dict{Symbol, CSV.Column{Int64, Int64}}, Int64})
+precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{Symbol, CSV.Column{Int64, Int64}}, Symbol})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, CSV.Column{Int64, Int64}}, CSV.Column{Int64, Int64}, Symbol})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Symbol, CSV.Column{Int64, Int64}}, Base.Generator{Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Array{Union{CSV.Column{T, P} where P where T, CSV.Column2{T, P} where P where T}, 1}}}, getfield(CSV, Symbol("#23#31"))}, Tuple{Int64, Int64}})
+precompile(Tuple{getfield(CSV, Symbol("#23#31")), Tuple{Symbol, CSV.Column{Dates.Date, Dates.Date}}})
+precompile(Tuple{Type{Base.Dict{Symbol, CSV.Column{T, P} where P where T}}})
+precompile(Tuple{typeof(Base.empty), Base.Dict{Symbol, CSV.Column{Int64, Int64}}, Type{Symbol}, Type{CSV.Column{T, P} where P where T}})
+precompile(Tuple{typeof(Base.rehash!), Base.Dict{Symbol, CSV.Column{T, P} where P where T}, Int64})
+precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{Symbol, CSV.Column{T, P} where P where T}, Symbol})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, CSV.Column{T, P} where P where T}, CSV.Column{Int64, Int64}, Symbol})
+precompile(Tuple{typeof(Base.merge!), Base.Dict{Symbol, CSV.Column{T, P} where P where T}, Base.Dict{Symbol, CSV.Column{Int64, Int64}}})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, CSV.Column{T, P} where P where T}, CSV.Column{Dates.Date, Dates.Date}, Symbol})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Symbol, CSV.Column{T, P} where P where T}, Base.Generator{Base.Iterators.Zip{Tuple{Array{Symbol, 1}, Array{Union{CSV.Column{T, P} where P where T, CSV.Column2{T, P} where P where T}, 1}}}, getfield(CSV, Symbol("#23#31"))}, Tuple{Int64, Int64}})
+precompile(Tuple{getfield(CSV, Symbol("#23#31")), Tuple{Symbol, CSV.Column{String, String}}})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, CSV.Column{T, P} where P where T}, CSV.Column{String, String}, Symbol})
+precompile(Tuple{getfield(CSV, Symbol("#23#31")), Tuple{Symbol, CSV.Column{Bool, Bool}}})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, CSV.Column{T, P} where P where T}, CSV.Column{Bool, Bool}, Symbol})
+precompile(Tuple{getfield(CSV, Symbol("#23#31")), Tuple{Symbol, CSV.Column{String, CSV.PooledString}}})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, CSV.Column{T, P} where P where T}, CSV.Column{String, CSV.PooledString}, Symbol})
+precompile(Tuple{getfield(CSV, Symbol("#23#31")), Tuple{Symbol, CSV.Column{Float64, Float64}}})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, CSV.Column{T, P} where P where T}, CSV.Column{Float64, Float64}, Symbol})
+precompile(Tuple{Type{Base.Dict{Symbol, AbstractArray{T, 1} where T}}})
+precompile(Tuple{Type{Base.Dict{Symbol, AbstractArray{T, 1} where T}}, Base.Dict{Symbol, CSV.Column{T, P} where P where T}})
+precompile(Tuple{Type{CSV.File{false}}, String, Array{Symbol, 1}, Array{Type, 1}, Int64, Int64, Array{Union{CSV.Column{T, P} where P where T, CSV.Column2{T, P} where P where T}, 1}, Base.Dict{Symbol, CSV.Column{T, P} where P where T}})
+precompile(Tuple{typeof(Base.rehash!), Base.Dict{Symbol, AbstractArray{T, 1} where T}, Int64})
+precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{Symbol, AbstractArray{T, 1} where T}, Symbol})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, AbstractArray{T, 1} where T}, CSV.Column{Int64, Int64}, Symbol})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, AbstractArray{T, 1} where T}, CSV.Column{Bool, Bool}, Symbol})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, AbstractArray{T, 1} where T}, CSV.Column{String, CSV.PooledString}, Symbol})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, AbstractArray{T, 1} where T}, CSV.Column{Float64, Float64}, Symbol})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, AbstractArray{T, 1} where T}, CSV.Column{String, String}, Symbol})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, AbstractArray{T, 1} where T}, CSV.Column{Dates.Date, Dates.Date}, Symbol})
+precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, CSV.Column{Int64, Int64}, Int64})
+precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, CSV.Column{Dates.Date, Dates.Date}, Int64})
+precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, CSV.Column{String, String}, Int64})
+precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, CSV.Column{Bool, Bool}, Int64})
+precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, CSV.Column{String, CSV.PooledString}, Int64})
+precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, CSV.Column{Float64, Float64}, Int64})
+precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), CSV.Column{Int64, Int64}})
+precompile(Tuple{typeof(Base._array_for), Type{Int64}, Array{AbstractArray{T, 1} where T, 1}, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Array{AbstractArray{T, 1} where T, 1}, getfield(DataFrames, Symbol("#84#87"))}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{AbstractArray{T, 1} where T, 1}, getfield(DataFrames, Symbol("#84#87"))}, Int64})
+precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), CSV.Column{Dates.Date, Dates.Date}})
+precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), CSV.Column{String, String}})
+precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), CSV.Column{Bool, Bool}})
+precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), CSV.Column{String, CSV.PooledString}})
+precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), CSV.Column{Float64, Float64}})
+precompile(Tuple{typeof(Base.extrema), Array{Int64, 1}})
+precompile(Tuple{typeof(Base.indexed_iterate), Tuple{Int64, Int64}, Int64})
+precompile(Tuple{typeof(Base.indexed_iterate), Tuple{Int64, Int64}, Int64, Int64})
+precompile(Tuple{typeof(Base.:(|>)), DataFrames.DataFrame, Type{T} where T})
+precompile(Tuple{typeof(Base.getindex), DataFrames.DataFrame, Base.Colon, Base.Colon})
+precompile(Tuple{typeof(Base.copymutable), DataFrames.DataFrameColumns{DataFrames.DataFrame, AbstractArray{T, 1} where T}})
+precompile(Tuple{typeof(Base.copy), DataFrames.DataFrameColumns{DataFrames.DataFrame, AbstractArray{T, 1} where T}})
+precompile(Tuple{typeof(Base._unaliascopy), DataFrames.DataFrameColumns{DataFrames.DataFrame, AbstractArray{T, 1} where T}, Array{AbstractArray{T, 1} where T, 1}})
+precompile(Tuple{typeof(Base.unaliascopy), DataFrames.DataFrameColumns{DataFrames.DataFrame, AbstractArray{T, 1} where T}})
+precompile(Tuple{typeof(Base.unalias), Array{AbstractArray{T, 1} where T, 1}, DataFrames.DataFrameColumns{DataFrames.DataFrame, AbstractArray{T, 1} where T}})
+precompile(Tuple{typeof(Base.throw_boundserror), DataFrames.DataFrameColumns{DataFrames.DataFrame, AbstractArray{T, 1} where T}, Tuple{Int64}})
+precompile(Tuple{typeof(Base.throw_boundserror), Array{AbstractArray{T, 1} where T, 1}, Tuple{Base.OneTo{Int64}}})
+precompile(Tuple{typeof(Base.copyto!), Array{AbstractArray{T, 1} where T, 1}, DataFrames.DataFrameColumns{DataFrames.DataFrame, AbstractArray{T, 1} where T}})
+precompile(Tuple{getfield(DataFrames, Symbol("##DataFrame#98")), Bool, Bool, Type{DataFrames.DataFrame}, DataFrames.DataFrameColumns{DataFrames.DataFrame, AbstractArray{T, 1} where T}, Array{Symbol, 1}})
+precompile(Tuple{Type{DataFrames.DataFrame}, DataFrames.DataFrame})
+precompile(Tuple{typeof(Base.copy), CSV.Column{Int64, Int64}})
+precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, Array{Int64, 1}, Int64})
+precompile(Tuple{typeof(Base.copy), CSV.Column{Dates.Date, Dates.Date}})
+precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, Array{Dates.Date, 1}, Int64})
+precompile(Tuple{typeof(Base.fill!), Array{UInt32, 1}, UInt32})
+precompile(Tuple{typeof(WeakRefStrings._setindex!), WeakRefStrings.StringArray{String, 1}, String, Int64})
+precompile(Tuple{typeof(Base.throw_boundserror), CSV.Column{String, String}, Tuple{Int64}})
+precompile(Tuple{typeof(Base.copy), CSV.Column{String, String}})
+precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, WeakRefStrings.StringArray{String, 1}, Int64})
+precompile(Tuple{typeof(Base.throw_boundserror), CSV.Column{Bool, Bool}, Tuple{Int64}})
+precompile(Tuple{typeof(Base.copy), CSV.Column{Bool, Bool}})
+precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, Array{Bool, 1}, Int64})
+precompile(Tuple{Type{Base.Dict{String, UInt32}}})
+precompile(Tuple{typeof(Base.foreach), getfield(CSV, Symbol("#41#44")), Base.Iterators.Enumerate{Nothing}})
+precompile(Tuple{getfield(CSV, Symbol("#41#44")), Tuple{Int64, String}})
+precompile(Tuple{typeof(Base.copy), CSV.Column{String, CSV.PooledString}})
+precompile(Tuple{typeof(Base.rehash!), Base.Dict{String, UInt32}, Int64})
+precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{String, UInt32}, String})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, UInt32}, UInt32, String})
+precompile(Tuple{typeof(PooledArrays._invert), Base.Dict{String, UInt32}})
+precompile(Tuple{typeof(Base.throw_boundserror), Array{UInt32, 1}, Tuple{Int64}})
+precompile(Tuple{typeof(Base.mapreduce_impl), typeof(Base.identity), typeof(Base.max), Array{UInt32, 1}, Int64, Int64})
+precompile(Tuple{Type{PooledArrays.PooledArray{T, R, N, RA} where RA where N where R<:Integer where T}, PooledArrays.RefArray{Array{UInt32, 1}}, Base.Dict{String, UInt32}, Array{String, 1}})
+precompile(Tuple{Type{PooledArrays.PooledArray{T, R, N, RA} where RA where N where R<:Integer where T}, PooledArrays.RefArray{Array{UInt32, 1}}, Base.Dict{String, UInt32}})
+precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Int64})
+precompile(Tuple{typeof(Base.copy), CSV.Column{Float64, Float64}})
+precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, Array{Float64, 1}, Int64})
+precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), Array{Int64, 1}})
+precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), Array{Dates.Date, 1}})
+precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), WeakRefStrings.StringArray{String, 1}})
+precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), Array{Bool, 1}})
+precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}})
+precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), Array{Float64, 1}})
+precompile(Tuple{getfield(Dates, Symbol("#@dateformat_str")), LineNumberNode, Module, Any})
+precompile(Tuple{Type{Dates.Delim{String, 14}}, String})
+precompile(Tuple{Type{Dates.DateFormat{Symbol("yyyy-mm-ddT00:00:00.000Z"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{String, 14}}}}, Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{String, 14}}, Dates.DateLocale})
+precompile(Tuple{typeof(Base.collect_to!), Array{Tuple{Int64, Symbol}, 1}, Base.Generator{Base.KeySet{Symbol, Base.Dict{Symbol, Int64}}, getfield(DataFrames, Symbol("#9#14")){String}}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect), Base.Generator{Base.KeySet{Symbol, Base.Dict{Symbol, Int64}}, getfield(DataFrames, Symbol("#9#14")){String}}})
+precompile(Tuple{typeof(Base.sort!), Array{Tuple{Int64, Symbol}, 1}, Int64, Int64, Base.Sort.InsertionSortAlg, Base.Order.ForwardOrdering})
+precompile(Tuple{typeof(Base.sort!), Array{Tuple{Int64, Symbol}, 1}, Int64, Int64, Base.Sort.MergeSortAlg, Base.Order.ForwardOrdering, Array{Tuple{Int64, Symbol}, 1}})
+precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Base.UnitRange{Int64}, getfield(DataFrames, Symbol("#10#15")){Array{Tuple{Int64, Symbol}, 1}}}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect), Base.Generator{Base.UnitRange{Int64}, getfield(DataFrames, Symbol("#10#15")){Array{Tuple{Int64, Symbol}, 1}}}})
+precompile(Tuple{typeof(Base.grow_to!), Array{Symbol, 1}, Base.Generator{Base.Iterators.Filter{getfield(DataFrames, Symbol("#13#18")){Int64}, Array{Tuple{Int64, Symbol}, 1}}, getfield(DataFrames, Symbol("#12#17"))}, Int64})
+precompile(Tuple{typeof(Base.grow_to!), Array{Symbol, 1}, Base.Generator{Base.Iterators.Filter{getfield(DataFrames, Symbol("#13#18")){Int64}, Array{Tuple{Int64, Symbol}, 1}}, getfield(DataFrames, Symbol("#12#17"))}})
+precompile(Tuple{typeof(DataFrames.fuzzymatch), Base.Dict{Symbol, Int64}, Symbol})
+precompile(Tuple{typeof(Base.getindex), DataFrames.DataFrame, Symbol})
+precompile(Tuple{typeof(Base.getproperty), DataFrames.DataFrame, Symbol})
+precompile(Tuple{typeof(Base.map), Function, WeakRefStrings.StringArray{String, 1}})
+precompile(Tuple{Type{Base.Generator{I, F} where F where I}, getfield(Main, Symbol("#3#4")), WeakRefStrings.StringArray{String, 1}})
+precompile(Tuple{getfield(Dates, Symbol("##s626#37")), Any, Any, Any, Any, Any, Any, Any, Any})
+precompile(Tuple{typeof(Dates.character_codes), Type{Dates.DateFormat{Symbol("yyyy-mm-ddT00:00:00.000Z"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{String, 14}}}}})
+precompile(Tuple{Type{Base.Generator{I, F} where F where I}, getfield(Dates, Symbol("#38#39")), Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType, DataType}})
+precompile(Tuple{typeof(Base.collect), Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Dates, Symbol("#38#39"))}})
+precompile(Tuple{Type{Tuple}, Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Dates, Symbol("#38#39"))}})
+precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Dates, Symbol("#38#39"))}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Dates, Symbol("#38#39"))}, Int64})
+precompile(Tuple{typeof(Base.collect_to!), Array{Any, 1}, Base.Generator{Tuple{DataType, DataType, DataType, DataType, DataType, DataType, DataType, DataType}, getfield(Dates, Symbol("#38#39"))}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect), Base.Generator{Array{Type, 1}, getfield(Dates, Symbol("#35#36"))}})
+precompile(Tuple{getfield(Dates, Symbol("##s627#34")), Any, Any, Any, Any, Any, Any})
+precompile(Tuple{typeof(Dates._directives), Type{Dates.DateFormat{Symbol("yyyy-mm-ddT00:00:00.000Z"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{String, 14}}}}})
+precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Array{Type, 1}, getfield(Dates, Symbol("#35#36"))}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{Type, 1}, getfield(Dates, Symbol("#35#36"))}, Int64})
+precompile(Tuple{typeof(Dates.tryparsenext_core), String, Int64, Int64, Dates.DateFormat{Symbol("yyyy-mm-ddT00:00:00.000Z"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{String, 14}}}, Bool})
+precompile(Tuple{typeof(Base.parse), Type{Dates.DateTime}, String, Dates.DateFormat{Symbol("yyyy-mm-ddT00:00:00.000Z"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{String, 14}}}})
+precompile(Tuple{typeof(Base.collect_to!), Array{Dates.DateTime, 1}, Base.Generator{WeakRefStrings.StringArray{String, 1}, getfield(Main, Symbol("#3#4"))}, Int64, Tuple{Base.OneTo{Int64}, Int64}})
+precompile(Tuple{typeof(Base._collect), WeakRefStrings.StringArray{String, 1}, Base.Generator{WeakRefStrings.StringArray{String, 1}, getfield(Main, Symbol("#3#4"))}, Base.EltypeUnknown, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.collect_similar), WeakRefStrings.StringArray{String, 1}, Base.Generator{WeakRefStrings.StringArray{String, 1}, getfield(Main, Symbol("#3#4"))}})
+precompile(Tuple{typeof(DataFrames.nrow), DataFrames.DataFrame})
+precompile(Tuple{typeof(DataFrames.insert_single_column!), DataFrames.DataFrame, Array{Dates.DateTime, 1}, Symbol})
+precompile(Tuple{typeof(Base.setproperty!), DataFrames.DataFrame, Symbol, Array{Dates.DateTime, 1}})
+precompile(Tuple{typeof(Base.map), Function, Array{Dates.Date, 1}})
+precompile(Tuple{Type{Base.Generator{I, F} where F where I}, getfield(Main, Symbol("#5#6")), Array{Dates.Date, 1}})
+precompile(Tuple{typeof(Dates.yearmonthday), Int64})
+precompile(Tuple{typeof(Base.lpad), String, Int64, String})
+precompile(Tuple{typeof(Base.string), Dates.Date})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{String, 1}, String, Base.Generator{Array{Dates.Date, 1}, getfield(Main, Symbol("#5#6"))}, Int64})
+precompile(Tuple{typeof(Base._collect), Array{Dates.Date, 1}, Base.Generator{Array{Dates.Date, 1}, getfield(Main, Symbol("#5#6"))}, Base.EltypeUnknown, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.collect_similar), Array{Dates.Date, 1}, Base.Generator{Array{Dates.Date, 1}, getfield(Main, Symbol("#5#6"))}})
+precompile(Tuple{typeof(DataFrames.insert_single_column!), DataFrames.DataFrame, Array{String, 1}, Symbol})
+precompile(Tuple{typeof(Base.setproperty!), DataFrames.DataFrame, Symbol, Array{String, 1}})
+precompile(Tuple{typeof(Dataiku.set_current_project), Dataiku.DSSProject})
+precompile(Tuple{getfield(Dataiku, Symbol("##create_dataset#62")), String, String, String, String, typeof(Dataiku.create_dataset), String, Dataiku.DSSProject})
+precompile(Tuple{typeof(Dataiku.create_dataset), String, Dataiku.DSSProject})
+precompile(Tuple{typeof(Base.:(*)), String, String, String})
+precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Base.Pair{String, String}, Vararg{Base.Pair{A, B} where B where A, N} where N})
+precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Bool}, Base.Pair{String, Base.Dict{String, String}}, Base.Pair{String, Base.Dict{String, String}}}}})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Any, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Bool}, Base.Pair{String, Base.Dict{String, String}}, Base.Pair{String, Base.Dict{String, String}}}})
+precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Bool}, Base.Pair{String, Base.Dict{String, String}}, Base.Pair{String, Base.Dict{String, String}}}})
+precompile(Tuple{typeof(Base.empty), Base.Dict{Any, Any}, Type{String}, Type{String}})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, String}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Bool}, Base.Pair{String, Base.Dict{String, String}}, Base.Pair{String, Base.Dict{String, String}}}, Int64})
+precompile(Tuple{typeof(Base.empty), Base.Dict{String, String}, Type{String}, Type{Any}})
+precompile(Tuple{typeof(Base.merge!), Base.Dict{String, Any}, Base.Dict{String, String}})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Bool}, Base.Pair{String, Base.Dict{String, String}}, Base.Pair{String, Base.Dict{String, String}}}, Int64})
+precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request), String, String, Base.Dict{String, Any}})
+precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request_json), String, String, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Dataiku.create_dataset), Base.Dict{String, Any}, Dataiku.DSSProject})
+precompile(Tuple{getfield(Base, Symbol("##sprint#339")), Nothing, Int64, typeof(Base.sprint), Function, Base.Dict{String, Any}})
+precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Base.Pair{String, Any}})
+precompile(Tuple{typeof(JSON.Writer.show_json), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Base.Dict{String, Any}})
+precompile(Tuple{typeof(JSON.Writer.print), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Base.convert), Type{Any}, String})
+precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String, String})
+precompile(Tuple{typeof(Base.convert), Type{Any}, Bool})
+precompile(Tuple{typeof(Base.print), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, Bool})
+precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String, Bool})
+precompile(Tuple{typeof(Base.convert), Type{Any}, Base.Dict{String, String}})
+precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String, Base.Dict{String, String}})
+precompile(Tuple{Type{Dataiku.DSSDataset}, String, Dataiku.DSSProject})
+precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol}, Type{NamedTuple{(:infer_schema,), Tuple{Bool}}}, Type{NamedTuple{(), Tuple{}}}})
+precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Base.Pair{String, Array{Any, 1}}, Base.Pair{String, Bool}}}})
+precompile(Tuple{typeof(Base.diff_names), Tuple{Symbol, Symbol}, Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Any, Any}, Tuple{Base.Pair{String, Array{Any, 1}}, Base.Pair{String, Bool}}})
+precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Tuple{Base.Pair{String, Array{Any, 1}}, Base.Pair{String, Bool}}})
+precompile(Tuple{typeof(Dataiku.get_schema_from_df), DataFrames.DataFrame})
+precompile(Tuple{typeof(CSV.isvaliddelim), Char})
+precompile(Tuple{typeof(CSV.checkvaliddelim), Char})
+precompile(Tuple{typeof(Base.throw_boundserror), Base.Broadcast.Broadcasted{Base.Broadcast.DefaultArrayStyle{1}, Tuple{Base.OneTo{Int64}}, typeof(Base.eltype), Tuple{Base.Broadcast.Extruded{DataFrames.DataFrameColumns{DataFrames.DataFrame, AbstractArray{T, 1} where T}, Tuple{Bool}, Tuple{Int64}}}}, Tuple{Int64}})
+precompile(Tuple{typeof(DataFrames.eltypes), DataFrames.DataFrame})
+precompile(Tuple{typeof(Base.copyto!), Array{Symbol, 1}, Int64, Array{Symbol, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Symbol, 1}, Symbol, Base.Generator{Array{Symbol, 1}, typeof(Tables.sym)}, Int64})
+precompile(Tuple{Type{Tables.Schema{names, types} where types where names}, Array{Symbol, 1}, Nothing})
+precompile(Tuple{typeof(Tables.schema), DataFrames.DataFrame})
+precompile(Tuple{typeof(Tables.columntable), DataFrames.DataFrame})
+precompile(Tuple{typeof(Tables.rows), DataFrames.DataFrame})
+precompile(Tuple{getfield(CSV, Symbol("##write#53")), Char, Char, Nothing, Nothing, Char, Char, Char, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Bool, String, Base.Iterators.Pairs{Symbol, Bool, Tuple{Symbol}, NamedTuple{(:writeheader,), Tuple{Bool}}}, typeof(CSV.write), Base.BufferStream, DataFrames.DataFrame})
+precompile(Tuple{getfield(Dataiku, Symbol("##write_dataframe#42")), Base.Iterators.Pairs{Symbol, Bool, Tuple{Symbol}, NamedTuple{(:infer_schema,), Tuple{Bool}}}, typeof(Dataiku.write_dataframe), Dataiku.DSSDataset, DataFrames.DataFrame})
+precompile(Tuple{typeof(Dataiku.write_with_schema), Dataiku.DSSDataset, DataFrames.DataFrame})
+precompile(Tuple{typeof(Dataiku._type_to_string), Type{T} where T})
+precompile(Tuple{typeof(Base.eltype), Array{Dates.DateTime, 1}})
+precompile(Tuple{typeof(Base.eltype), Array{Bool, 1}})
+precompile(Tuple{typeof(Base.eltype), PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}})
+precompile(Tuple{typeof(Base.eltype), Array{Float64, 1}})
+precompile(Tuple{Type{Base.Dict{String, Array{Any, 1}}}})
+precompile(Tuple{typeof(Base.empty), Base.Dict{Any, Any}, Type{String}, Type{Array{Any, 1}}})
+precompile(Tuple{typeof(Base.rehash!), Base.Dict{String, Array{Any, 1}}, Int64})
+precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{String, Array{Any, 1}}, String})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Array{Any, 1}}, Array{Any, 1}, String})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Array{Any, 1}}, Array{Any, 1}, Bool})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Array{Any, 1}}, Array{Any, 1}, Array{Any, 1}})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Array{Any, 1}}, Tuple{Base.Pair{String, Array{Any, 1}}, Base.Pair{String, Bool}}, Int64})
+precompile(Tuple{typeof(Base.empty), Base.Dict{String, Array{Any, 1}}, Type{String}, Type{Any}})
+precompile(Tuple{typeof(Base.merge!), Base.Dict{String, Any}, Base.Dict{String, Array{Any, 1}}})
+precompile(Tuple{typeof(Base.merge!), Base.Dict{Any, Any}, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Base.merge!), Base.Dict{String, Any}, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Any}, Tuple{Base.Pair{String, Array{Any, 1}}, Base.Pair{String, Bool}}, Int64})
+precompile(Tuple{Type{CSV.Options{D, N, DF, M} where M where DF where N where D}, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Bool, Tuple{}})
+precompile(Tuple{typeof(Base.similar), Base.Broadcast.Broadcasted{Base.Broadcast.DefaultArrayStyle{1}, Tuple{Base.OneTo{Int64}}, typeof(Base.eltype), Tuple{Base.Broadcast.Extruded{DataFrames.DataFrameColumns{DataFrames.DataFrame, AbstractArray{T, 1} where T}, Tuple{Bool}, Tuple{Int64}}}}, Type{DataType}})
+precompile(Tuple{typeof(Base.setindex!), Array{DataType, 1}, Type{T} where T, Int64})
+precompile(Tuple{typeof(Base.Broadcast.copyto_nonleaf!), Array{DataType, 1}, Base.Broadcast.Broadcasted{Base.Broadcast.DefaultArrayStyle{1}, Tuple{Base.OneTo{Int64}}, typeof(Base.eltype), Tuple{Base.Broadcast.Extruded{DataFrames.DataFrameColumns{DataFrames.DataFrame, AbstractArray{T, 1} where T}, Tuple{Bool}, Tuple{Int64}}}}, Base.OneTo{Int64}, Int64, Int64})
+precompile(Tuple{typeof(Core.Compiler.eltype), Type{Array{DataType, 1}}})
+precompile(Tuple{Type{Tables.Schema{names, types} where types where names}, Array{Symbol, 1}, Array{DataType, 1}})
+precompile(Tuple{Type{Tables.Schema{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Int64, String, Dates.DateTime, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}}})
+precompile(Tuple{getfield(Tables, Symbol("##s19#16")), Any, Any, Any, Any, Any})
+precompile(Tuple{Type{Base.Generator{I, F} where F where I}, getfield(Tables, Symbol("#17#19")){Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}, DataType}, Base.UnitRange{Int64}})
+precompile(Tuple{getfield(Tables, Symbol("#17#19")){Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}, DataType}, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Expr, 1}, Expr, Base.Generator{Base.UnitRange{Int64}, getfield(Tables, Symbol("#17#19")){Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}, DataType}}, Int64})
+precompile(Tuple{typeof(Base.collect), Base.Generator{Base.UnitRange{Int64}, getfield(Tables, Symbol("#17#19")){Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}, DataType}}})
+precompile(Tuple{Type{Tuple}, Base.Generator{Base.UnitRange{Int64}, getfield(Tables, Symbol("#17#19")){Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}, DataType}}})
+precompile(Tuple{typeof(Tables.columntable), Tables.Schema{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Int64, String, Dates.DateTime, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}, DataFrames.DataFrame})
+precompile(Tuple{Type{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), T} where T<:Tuple}, Tuple{Array{Int64, 1}, Array{String, 1}, Array{Dates.DateTime, 1}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Float64, 1}}})
+precompile(Tuple{typeof(Tables.rows), NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{String, 1}, Array{Dates.DateTime, 1}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Float64, 1}}}})
+precompile(Tuple{typeof(Tables._types), Type{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{String, 1}, Array{Dates.DateTime, 1}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Float64, 1}}}}})
+precompile(Tuple{typeof(Tables._eltype), Type{Array{Int64, 1}}})
+precompile(Tuple{typeof(Tables._eltype), Type{Array{String, 1}}})
+precompile(Tuple{typeof(Tables._eltype), Type{Array{Dates.DateTime, 1}}})
+precompile(Tuple{typeof(Tables._eltype), Type{Array{Bool, 1}}})
+precompile(Tuple{typeof(Tables._eltype), Type{PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}}})
+precompile(Tuple{typeof(Tables._eltype), Type{Array{Float64, 1}}})
+precompile(Tuple{typeof(Tables.schema), Tables.RowIterator{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{String, 1}, Array{Dates.DateTime, 1}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Float64, 1}}}}})
+precompile(Tuple{getfield(Tables, Symbol("##s12#5")), Any, Any, Any, Any, Any, Any, Any})
+precompile(Tuple{typeof(Base.seekstart), Base.BufferStream})
+precompile(Tuple{getfield(CSV, Symbol("##write#54")), Bool, Bool, Array{String, 1}, typeof(CSV.write), Tables.Schema{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Int64, String, Dates.DateTime, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}, Tables.RowIterator{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{String, 1}, Array{Dates.DateTime, 1}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Float64, 1}}}}, Base.BufferStream, CSV.Options{UInt8, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Tuple{}}})
+precompile(Tuple{getfield(CSV, Symbol("#kw##write")), NamedTuple{(:writeheader,), Tuple{Bool}}, typeof(CSV.write), Tables.Schema{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Int64, String, Dates.DateTime, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}, Tables.RowIterator{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{String, 1}, Array{Dates.DateTime, 1}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Float64, 1}}}}, Base.BufferStream, CSV.Options{UInt8, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Tuple{}}})
+precompile(Tuple{typeof(CSV.writecell), Array{UInt8, 1}, Int64, Int64, Base.BufferStream, Int64, CSV.Options{UInt8, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Tuple{}}})
+precompile(Tuple{typeof(CSV.writedelimnewline), Array{UInt8, 1}, Int64, Int64, Base.BufferStream, UInt8})
+precompile(Tuple{typeof(CSV.check), Base.CodeUnits{UInt8, String}, Int64, UInt8, UInt8, UInt8, UInt8})
+precompile(Tuple{typeof(CSV.writecell), Array{UInt8, 1}, Int64, Int64, Base.BufferStream, String, CSV.Options{UInt8, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Tuple{}}})
+precompile(Tuple{typeof(Dates.format), Base.GenericIOBuffer{Array{UInt8, 1}}, Dates.DateTime, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}})
+precompile(Tuple{typeof(Dates.format), Dates.DateTime, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Int64})
+precompile(Tuple{typeof(CSV.writecell), Array{UInt8, 1}, Int64, Int64, Base.BufferStream, Dates.DateTime, CSV.Options{UInt8, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Tuple{}}})
+precompile(Tuple{typeof(CSV.writecell), Array{UInt8, 1}, Int64, Int64, Base.BufferStream, Bool, CSV.Options{UInt8, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Tuple{}}})
+precompile(Tuple{typeof(CSV.writecell), Array{UInt8, 1}, Int64, Int64, Base.BufferStream, Float64, CSV.Options{UInt8, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Tuple{}}})
+precompile(Tuple{typeof(CSV.writerow), Array{UInt8, 1}, Base.RefValue{Int64}, Int64, Base.BufferStream, Tables.Schema{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Int64, String, Dates.DateTime, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}, Tables.ColumnsRow{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{String, 1}, Array{Dates.DateTime, 1}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Float64, 1}}}}, Int64, CSV.Options{UInt8, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Tuple{}}})
+precompile(Tuple{getfield(CSV, Symbol("#55#56")){Bool, Tables.Schema{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Int64, String, Dates.DateTime, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}, Tables.RowIterator{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{String, 1}, Array{Dates.DateTime, 1}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Bool, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, PooledArrays.PooledArray{String, UInt32, 1, Array{UInt32, 1}}, Array{Int64, 1}, Array{Float64, 1}}}}, CSV.Options{UInt8, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Tuple{}}, Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}, Int64, Int64, Array{UInt8, 1}}, Base.BufferStream})
+precompile(Tuple{typeof(Dataiku.set_schema), Dataiku.DSSDataset, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Dataiku.runs_remotely)})
+precompile(Tuple{typeof(Dataiku.get_flow)})
+precompile(Tuple{typeof(Base.getproperty), Dataiku.DSSDataset, Symbol})
+precompile(Tuple{typeof(Dataiku.get_name_or_id), Dataiku.DSSDataset})
+precompile(Tuple{typeof(Dataiku.full_name), Dataiku.DSSDataset})
+precompile(Tuple{typeof(Dataiku._get_flow_inputs_or_outputs), Dataiku.DSSDataset, String})
+precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Symbol, Bool, Tuple{Symbol}, NamedTuple{(:intern_call,), Tuple{Bool}}}, typeof(Dataiku.request_json), String, String, Base.Dict{String, String}})
+precompile(Tuple{getfield(Dataiku, Symbol("##_init_write_session#54")), String, String, Bool, typeof(Dataiku._init_write_session), Dataiku.DSSDataset, Base.Dict{String, Any}})
+precompile(Tuple{getfield(Dataiku, Symbol("##write_data#51")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.write_data), Dataiku.DSSDataset, Base.BufferStream, Base.Dict{String, Any}})
+precompile(Tuple{getfield(Dataiku, Symbol("#kw##write_data")), NamedTuple{(:infer_schema,), Tuple{Bool}}, typeof(Dataiku.write_data), Dataiku.DSSDataset, Base.BufferStream, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Base.convert), Type{Any}, Array{Any, 1}})
+precompile(Tuple{typeof(JSON.Writer.show_json), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Array{Any, 1}})
+precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String, Array{Any, 1}})
+precompile(Tuple{typeof(JSON.Writer.show_element), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Base.Dict{String, String}})
+precompile(Tuple{typeof(JSON.Parser.skip!), JSON.Parser.MemoryParserState, UInt8, UInt8, Vararg{UInt8, N} where N})
+precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Base.Dict{String, Any}}}}})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Any, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Base.Dict{String, Any}}}})
+precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Base.Dict{String, Any}}}})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, String}, String, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, String}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Base.Dict{String, Any}}}, Int64})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Any}, Base.Dict{String, Any}, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Any}, String, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Base.Dict{String, Any}}}, Int64})
+precompile(Tuple{typeof(JSON.Writer.json), Base.Dict{String, Any}})
+precompile(Tuple{typeof(Base.convert), Type{Any}, Base.Dict{String, Any}})
+precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String, Base.Dict{String, Any}})
+precompile(Tuple{getfield(Base, Symbol("##sprint#339")), Nothing, Int64, typeof(Base.sprint), Function, Base.Generator{Base.Dict{String, String}, getfield(HTTP.URIs, Symbol("#16#17"))}, Vararg{Any, N} where N})
+precompile(Tuple{typeof(Base.join), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.Generator{Base.Dict{String, String}, getfield(HTTP.URIs, Symbol("#16#17"))}, String})
+precompile(Tuple{getfield(Base, Symbol("##sprint#339")), Nothing, Int64, typeof(Base.sprint), Function, Base.Generator{Base.Generator{Base.CodeUnits{UInt8, String}, Type{Char}}, getfield(HTTP.URIs, Symbol("#12#13")){typeof(HTTP.URIs.issafe)}}})
+precompile(Tuple{getfield(HTTP.URIs, Symbol("#12#13")){typeof(HTTP.URIs.issafe)}, Char})
+precompile(Tuple{typeof(Base.join), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.Generator{Base.Generator{Base.CodeUnits{UInt8, String}, Type{Char}}, getfield(HTTP.URIs, Symbol("#12#13")){typeof(HTTP.URIs.issafe)}}, String})
+precompile(Tuple{typeof(Base.join), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.Generator{Base.Generator{Base.CodeUnits{UInt8, String}, Type{Char}}, getfield(HTTP.URIs, Symbol("#12#13")){typeof(HTTP.URIs.issafe)}}})
+precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request), String, String, Base.BufferStream})
+precompile(Tuple{typeof(Dataiku._push_data), String, Base.BufferStream})
+precompile(Tuple{getfield(HTTP, Symbol("##request#4")), Base.Dict{String, String}, Base.BufferStream, Nothing, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), String, String, Base.Dict{String, String}, Base.BufferStream})
+precompile(Tuple{typeof(HTTP.request), String, String, Base.Dict{String, String}, Base.BufferStream})
+precompile(Tuple{getfield(HTTP.MessageRequest, Symbol("##request#1")), Base.VersionNumber, String, Nothing, Nothing, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), Type{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Base.BufferStream})
+precompile(Tuple{getfield(HTTP.RedirectRequest, Symbol("##request#1")), Int64, Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), Type{HTTP.RedirectRequest.RedirectLayer{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Base.BufferStream})
+precompile(Tuple{typeof(HTTP.request), Type{HTTP.RedirectRequest.RedirectLayer{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Base.BufferStream})
+precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{Nothing}}, typeof(HTTP.request), Type{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Base.BufferStream})
+precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{Nothing}}, typeof(HTTP.request), Type{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Base.BufferStream})
+precompile(Tuple{getfield(HTTP.ConnectionRequest, Symbol("##request#1")), Nothing, Type{T} where T, Int64, Base.Iterators.Pairs{Symbol, Nothing, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{Nothing}}}, typeof(HTTP.request), Type{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Base.BufferStream})
+precompile(Tuple{getfield(HTTP.StreamRequest, Symbol("##request#1")), Nothing, Nothing, Int64, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), Type{HTTP.StreamRequest.StreamLayer{Union{}}}, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, Base.BufferStream})
+precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{Nothing}}, typeof(HTTP.request), Type{HTTP.StreamRequest.StreamLayer{Union{}}}, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, Base.BufferStream})
+precompile(Tuple{typeof(HTTP.Messages.setheader), HTTP.Messages.Request, Base.Pair{String, String}})
+precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request), String, String, String})
+precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Symbol, Bool, Tuple{Symbol}, NamedTuple{(:intern_call,), Tuple{Bool}}}, typeof(Dataiku.request_json), String, String, String})
+precompile(Tuple{typeof(Dataiku._wait_write_session), String})
+precompile(Tuple{getfield(Dataiku, Symbol("#52#53")){String}})
+precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("#8#9")){DataType, Base.SubString{String}, Base.SubString{String}, Int64, Bool}, HTTP.ConnectionPool.Connection{Sockets.TCPSocket}})
+precompile(Tuple{typeof(Base.write), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Base.BufferStream})
+precompile(Tuple{typeof(HTTP.StreamRequest.writebody), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, HTTP.Messages.Request, Base.BufferStream})
+precompile(Tuple{getfield(HTTP.StreamRequest, Symbol("#2#3")){HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, Base.BufferStream, HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}}})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Any}, Int64, String})
+precompile(Tuple{typeof(Base.string), Int64, String, String, String})
+precompile(Tuple{getfield(Base, Symbol("#kw##printstyled")), NamedTuple{(:bold, :color), Tuple{Bool, Symbol}}, typeof(Base.printstyled), Base.IOContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, String, Vararg{String, N} where N})
+precompile(Tuple{getfield(Base, Symbol("##printstyled#708")), Bool, Symbol, typeof(Base.printstyled), Base.IOContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, String, Vararg{String, N} where N})
+precompile(Tuple{getfield(Base, Symbol("#kw##with_output_color")), NamedTuple{(:bold,), Tuple{Bool}}, typeof(Base.with_output_color), Function, Symbol, Base.IOContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, String, Vararg{String, N} where N})
+precompile(Tuple{typeof(Base.MainInclude.include), String})
+precompile(Tuple{typeof(Base.include), Module, String})
+precompile(Tuple{getfield(Test, Symbol("#@testset")), LineNumberNode, Module, Vararg{Any, N} where N})
+precompile(Tuple{typeof(Test.testset_beginend), Tuple{String, Expr}, Expr, LineNumberNode})
+precompile(Tuple{typeof(Test.parse_testset_args), Tuple{String}})
+precompile(Tuple{getfield(Test, Symbol("#@test")), LineNumberNode, Module, Any, Vararg{Any, N} where N})
+precompile(Tuple{typeof(Test.test_expr!), String, Expr})
+precompile(Tuple{typeof(Test.get_test_result), Expr, LineNumberNode})
+precompile(Tuple{typeof(Base.first), String})
+precompile(Tuple{typeof(Base.in), Symbol, Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}})
+precompile(Tuple{typeof(Base.collect), Base.Generator{Array{Any, 1}, typeof(Base.esc)}})
+precompile(Tuple{Type{Base.Generator{I, F} where F where I}, Type{QuoteNode}, Array{Any, 1}})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{QuoteNode, 1}, QuoteNode, Base.Generator{Array{Any, 1}, Type{QuoteNode}}, Int64})
+precompile(Tuple{typeof(Base.collect), Base.Generator{Array{Any, 1}, Type{QuoteNode}}})
+precompile(Tuple{typeof(Test.get_testset_depth)})
+precompile(Tuple{typeof(Base.length), Array{Test.AbstractTestSet, 1}})
+precompile(Tuple{typeof(Test._check_testset), Type{T} where T, Expr})
+precompile(Tuple{typeof(Base.merge), NamedTuple{(), Tuple{}}, Base.Dict{Symbol, Any}})
+precompile(Tuple{Type{Test.DefaultTestSet}, String})
+precompile(Tuple{typeof(Test.push_testset), Test.DefaultTestSet})
+precompile(Tuple{typeof(Base.push!), Array{Test.AbstractTestSet, 1}, Test.DefaultTestSet})
+precompile(Tuple{typeof(Random.default_rng)})
+precompile(Tuple{typeof(Base.copy), Random.MersenneTwister})
+precompile(Tuple{typeof(Base.getproperty), Random.MersenneTwister, Symbol})
+precompile(Tuple{typeof(Random.seed!), Array{UInt32, 1}})
+precompile(Tuple{typeof(Test.get_testset)})
+precompile(Tuple{typeof(Base.isempty), Array{Test.AbstractTestSet, 1}})
+precompile(Tuple{typeof(Base.lastindex), Array{Test.AbstractTestSet, 1}})
+precompile(Tuple{typeof(Base.getindex), Array{Test.AbstractTestSet, 1}, Int64})
+precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request_json), String, String, String})
+precompile(Tuple{typeof(Dataiku.get_settings), Dataiku.DSSProject})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Any}, Float64, String})
+precompile(Tuple{typeof(Base.haskey), Base.Dict{String, Any}, String})
+precompile(Tuple{Type{Test.Returned}, Bool, Nothing, LineNumberNode})
+precompile(Tuple{typeof(Test.do_test), Test.Returned, Expr})
+precompile(Tuple{typeof(Dataiku.set_settings), Base.Dict{String, Any}, Dataiku.DSSProject})
+precompile(Tuple{typeof(Dataiku.set_settings), Dataiku.DSSProject, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Base.convert), Type{Any}, Int64})
+precompile(Tuple{typeof(Base.print), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, Int64})
+precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String, Int64})
+precompile(Tuple{typeof(Base.convert), Type{Any}, Float64})
+precompile(Tuple{typeof(Base.write), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, Char})
+precompile(Tuple{typeof(Base.Grisu.fastfixedtoa), Float64, Int64, Int64, Array{UInt8, 1}})
+precompile(Tuple{typeof(Base.Grisu.grisu), Float64, Int64, Int64, Array{UInt8, 1}, Array{Base.Grisu.Bignums.Bignum, 1}})
+precompile(Tuple{typeof(Base.Grisu.grisu), Float64, Int64, Int64, Array{UInt8, 1}})
+precompile(Tuple{typeof(Base.Grisu._show), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, Float64, Int64, Int64, Bool, Bool})
+precompile(Tuple{typeof(Base.print), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, Float64})
+precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String, Float64})
+precompile(Tuple{typeof(Test.eval_test), Expr, Expr, LineNumberNode, Bool})
+precompile(Tuple{typeof(Base.allocatedinline), Type{UInt128}})
+precompile(Tuple{typeof(Base.copyto!), Array{Float64, 1}, Int64, Array{Float64, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{UInt128, 1}, Int64, Array{UInt128, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.copy!), Random.MersenneTwister, Random.MersenneTwister})
+precompile(Tuple{typeof(Test.pop_testset)})
+precompile(Tuple{typeof(Base.pop!), Array{Test.AbstractTestSet, 1}})
+precompile(Tuple{typeof(Test.record), Test.DefaultTestSet, Test.DefaultTestSet})
+precompile(Tuple{typeof(Test.get_test_counts), Test.DefaultTestSet})
+precompile(Tuple{typeof(Test.get_alignment), Test.DefaultTestSet, Int64})
+precompile(Tuple{typeof(Test.print_test_results), Test.DefaultTestSet, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{Test.Error, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{Test.Fail, 1}, Int64, Int64})
+precompile(Tuple{typeof(Test.filter_errors), Test.DefaultTestSet})
+precompile(Tuple{typeof(Base.copyto!), Base.IndexLinear, Array{Union{Test.Error, Test.Fail}, 1}, Base.IndexLinear, Array{Any, 1}})
+precompile(Tuple{typeof(Test.finish), Test.DefaultTestSet})
+precompile(Tuple{typeof(Dataiku.get_metadata), Dataiku.DSSProject})
+precompile(Tuple{typeof(Base.length), Base.Dict{String, Any}})
+precompile(Tuple{typeof(Dataiku.set_metadata), Base.Dict{String, Any}, Dataiku.DSSProject})
+precompile(Tuple{typeof(Dataiku.set_metadata), Dataiku.DSSProject, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Base.convert), Type{Any}, Array{String, 1}})
+precompile(Tuple{typeof(JSON.Writer.show_element), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String})
+precompile(Tuple{typeof(JSON.Writer.show_json), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Array{String, 1}})
+precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String, Array{String, 1}})
+precompile(Tuple{typeof(Dataiku.get_tags), Dataiku.DSSProject})
+precompile(Tuple{typeof(Dataiku.set_tags), Base.Dict{String, Any}, Dataiku.DSSProject})
+precompile(Tuple{typeof(Dataiku.set_tags), Dataiku.DSSProject, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Dataiku.get_variables), Dataiku.DSSProject})
+precompile(Tuple{typeof(Dataiku.set_variables), Base.Dict{String, Any}, Dataiku.DSSProject})
+precompile(Tuple{typeof(Dataiku.set_variables), Dataiku.DSSProject, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Dataiku.duplicate), Dataiku.DSSProject, String, String, String})
+precompile(Tuple{typeof(Dataiku.duplicate), Dataiku.DSSProject, String, String})
+precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:intern_call,), Tuple{Bool}}}, Type{NamedTuple{(:params,), Tuple{Base.Dict{String, Array{Any, 1}}}}}})
+precompile(Tuple{typeof(Base.iterate), Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, Array{Any, 1}}}})
+precompile(Tuple{typeof(Base.iterate), Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, Array{Any, 1}}}, Int64})
+precompile(Tuple{typeof(Base.grow_to!), Array{String, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, Array{Any, 1}}}, getfield(Dataiku, Symbol("#1#3"))}, Int64})
+precompile(Tuple{typeof(Base.grow_to!), Array{String, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, Array{Any, 1}}}, getfield(Dataiku, Symbol("#1#3"))}})
+precompile(Tuple{getfield(Dataiku, Symbol("##get_url_and_header#5")), Bool, Base.Dict{String, Array{Any, 1}}, Bool, typeof(Dataiku.get_url_and_header), String})
+precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Symbol, Base.Dict{String, Array{Any, 1}}, Tuple{Symbol}, NamedTuple{(:params,), Tuple{Base.Dict{String, Array{Any, 1}}}}}, typeof(Dataiku.request), String, String, String})
+precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Symbol, Base.Dict{String, Array{Any, 1}}, Tuple{Symbol}, NamedTuple{(:params,), Tuple{Base.Dict{String, Array{Any, 1}}}}}, typeof(Dataiku.request_json), String, String, String})
+precompile(Tuple{getfield(Dataiku, Symbol("##list_projects#17")), Array{Any, 1}, typeof(Dataiku.list_projects)})
+precompile(Tuple{typeof(Dataiku.list_projects)})
+precompile(Tuple{getfield(Base, Symbol("#kw##printstyled")), NamedTuple{(:bold, :color), Tuple{Bool, Symbol}}, typeof(Base.printstyled), String, String, Vararg{String, N} where N})
+precompile(Tuple{getfield(Base, Symbol("##printstyled#709")), Bool, Symbol, typeof(Base.printstyled), String, Vararg{String, N} where N})
+precompile(Tuple{getfield(Base, Symbol("#kw##printstyled")), NamedTuple{(:bold, :color), Tuple{Bool, Symbol}}, typeof(Base.printstyled), Base.TTY, String, Vararg{String, N} where N})
+precompile(Tuple{getfield(Base, Symbol("##printstyled#708")), Bool, Symbol, typeof(Base.printstyled), Base.TTY, String, Vararg{String, N} where N})
+precompile(Tuple{getfield(Base, Symbol("#kw##with_output_color")), NamedTuple{(:bold,), Tuple{Bool}}, typeof(Base.with_output_color), Function, Symbol, Base.TTY, String, Vararg{String, N} where N})
+precompile(Tuple{getfield(Base, Symbol("##with_output_color#707")), Bool, typeof(Base.with_output_color), Function, Symbol, Base.TTY, String, Vararg{String, N} where N})
+precompile(Tuple{typeof(Base.print), Base.IOContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, String, String, Vararg{String, N} where N})
+precompile(Tuple{getfield(Base, Symbol("#kw##printstyled")), NamedTuple{(:bold, :color), Tuple{Bool, Symbol}}, typeof(Base.printstyled), String, String})
+precompile(Tuple{getfield(Base, Symbol("#kw##printstyled")), NamedTuple{(:bold, :color), Tuple{Bool, Symbol}}, typeof(Base.printstyled), String})
+precompile(Tuple{getfield(Base, Symbol("##printstyled#709")), Bool, Symbol, typeof(Base.printstyled), String})
+precompile(Tuple{typeof(Base.print), String, String})
+precompile(Tuple{typeof(Test.print_counts), Test.DefaultTestSet, Int64, Int64, Int64, Int64, Int64, Int64, Int64})
+precompile(Tuple{getfield(Base, Symbol("#kw##printstyled")), NamedTuple{(:color,), Tuple{Symbol}}, typeof(Base.printstyled), String, String})
+precompile(Tuple{Type{NamedTuple{(:color,), T} where T<:Tuple}, Tuple{Symbol}})
+precompile(Tuple{getfield(Base, Symbol("#kw##printstyled")), NamedTuple{(:color,), Tuple{Symbol}}, typeof(Base.printstyled), String})
+precompile(Tuple{typeof(Dataiku.get_schema), Dataiku.DSSDataset})
+precompile(Tuple{typeof(Base.collect), Base.Generator{Array{Any, 1}, getfield(Dataiku, Symbol("#59#60"))}})
+precompile(Tuple{typeof(Dataiku.get_column_names), Array{Any, 1}})
+precompile(Tuple{getfield(Dataiku, Symbol("#59#60")), Base.Dict{String, Any}})
+precompile(Tuple{typeof(Base._array_for), Type{Symbol}, Array{Any, 1}, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.collect_to!), Array{Symbol, 1}, Base.Generator{Array{Any, 1}, getfield(Dataiku, Symbol("#59#60"))}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Symbol, 1}, Symbol, Base.Generator{Array{Any, 1}, getfield(Dataiku, Symbol("#59#60"))}, Int64})
+precompile(Tuple{typeof(Base.in), Base.Pair{String, Any}, Base.Dict{String, String}, typeof(Base.:(==))})
+precompile(Tuple{typeof(Base.:(==)), Base.Dict{String, Any}, Base.Dict{String, String}})
+precompile(Tuple{typeof(Dataiku.get_settings), Dataiku.DSSDataset})
+precompile(Tuple{typeof(Base.getproperty), Dataiku.DSSProject, Symbol})
+precompile(Tuple{typeof(Base.in), Base.Pair{String, Any}, Base.Dict{String, Any}, typeof(Base.:(==))})
+precompile(Tuple{typeof(Base.:(==)), Base.Dict{String, Any}, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Base.:(==)), Bool, Bool})
+precompile(Tuple{typeof(Base.:(==)), Array{Any, 1}, Array{Any, 1}})
+precompile(Tuple{typeof(Dataiku.set_settings), Dataiku.DSSDataset, Base.Dict{String, Any}})
+precompile(Tuple{typeof(JSON.Writer.show_element), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Dataiku.get_metadata), Dataiku.DSSDataset})
+precompile(Tuple{typeof(Dataiku.set_metadata), Dataiku.DSSDataset, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Dataiku.list_partitions), Dataiku.DSSDataset})
+precompile(Tuple{typeof(Dataiku.get_column_names), Dataiku.DSSDataset, Array{Any, 1}})
+precompile(Tuple{typeof(Dataiku.get_column_types), Dataiku.DSSDataset, Array{Any, 1}})
+precompile(Tuple{getfield(Dataiku, Symbol("##_get_reading_schema#21")), Bool, typeof(Dataiku._get_reading_schema), Dataiku.DSSDataset, Array{Any, 1}})
+precompile(Tuple{typeof(Base.collect), Base.Generator{Array{Any, 1}, getfield(DataFrames, Symbol("#84#87"))}})
+precompile(Tuple{typeof(Base.copyto!), Base.IndexLinear, Array{AbstractArray{T, 1} where T, 1}, Base.IndexLinear, Array{Any, 1}})
+precompile(Tuple{getfield(DataFrames, Symbol("#DataFrame#83#86")), Bool, Type{DataFrames.DataFrame}, Array{Any, 1}, DataFrames.Index})
+precompile(Tuple{getfield(Dataiku, Symbol("##_create_sampling_argument#61")), String, Nothing, Nothing, Nothing, typeof(Dataiku._create_sampling_argument)})
+precompile(Tuple{getfield(Dataiku, Symbol("##_get_reading_params#22")), Nothing, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku._get_reading_params), Dataiku.DSSDataset})
+precompile(Tuple{getfield(Dataiku, Symbol("##get_dataframe#18")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.get_dataframe), Dataiku.DSSDataset, Array{Any, 1}})
+precompile(Tuple{typeof(Dataiku.get_dataframe), Dataiku.DSSDataset})
+precompile(Tuple{typeof(Dataiku.get_column_names), Array{Any, 1}, Array{Any, 1}})
+precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}}})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Any, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}})
+precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, String}, String, Nothing})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, String}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}, Int64})
+precompile(Tuple{typeof(Base.empty), Base.Dict{String, String}, Type{String}, Type{Union{Nothing, String}}})
+precompile(Tuple{typeof(Base.rehash!), Base.Dict{String, Union{Nothing, String}}, Int64})
+precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{String, Union{Nothing, String}}, String})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Union{Nothing, String}}, String, String})
+precompile(Tuple{typeof(Base.merge!), Base.Dict{String, Union{Nothing, String}}, Base.Dict{String, String}})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Union{Nothing, String}}, Nothing, String})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Union{Nothing, String}}, Nothing, Nothing})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Union{Nothing, String}}, String, Nothing})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Union{Nothing, String}}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}, Int64})
+precompile(Tuple{Type{NamedTuple{(:params,), T} where T<:Tuple}, Tuple{Base.Dict{String, Union{Nothing, String}}}})
+precompile(Tuple{getfield(Dataiku, Symbol("#2#4")), Base.Pair{String, Union{Nothing, String}}})
+precompile(Tuple{typeof(Base.iterate), Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, Union{Nothing, String}}}})
+precompile(Tuple{typeof(Base.iterate), Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, Union{Nothing, String}}}, Int64})
+precompile(Tuple{typeof(Base.grow_to!), Array{String, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, Union{Nothing, String}}}, getfield(Dataiku, Symbol("#1#3"))}, Int64})
+precompile(Tuple{typeof(Base.grow_to!), Array{String, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, Union{Nothing, String}}}, getfield(Dataiku, Symbol("#1#3"))}})
+precompile(Tuple{getfield(Dataiku, Symbol("##get_url_and_header#5")), Bool, Base.Dict{String, Union{Nothing, String}}, Bool, typeof(Dataiku.get_url_and_header), String})
+precompile(Tuple{getfield(Dataiku, Symbol("##get_stream#8")), Base.Iterators.Pairs{Symbol, Base.Dict{String, Union{Nothing, String}}, Tuple{Symbol}, NamedTuple{(:params,), Tuple{Base.Dict{String, Union{Nothing, String}}}}}, typeof(Dataiku.get_stream), Function, String})
+precompile(Tuple{getfield(Dataiku, Symbol("#kw##get_stream")), NamedTuple{(:params,), Tuple{Base.Dict{String, Union{Nothing, String}}}}, typeof(Dataiku.get_stream), Function, String})
+precompile(Tuple{getfield(HTTP, Symbol("##open#6")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.open), Function, String, String, Base.Dict{String, String}})
+precompile(Tuple{typeof(HTTP.open), Function, String, String, Base.Dict{String, String}})
+precompile(Tuple{Type{NamedTuple{(:iofunction,), T} where T<:Tuple}, Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}})
+precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol}, Type{NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}, Type{NamedTuple{(), Tuple{}}}})
+precompile(Tuple{typeof(Base.merge), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}})
+precompile(Tuple{typeof(Base.diff_names), Tuple{Symbol}, Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}})
+precompile(Tuple{getfield(HTTP, Symbol("##stack#18")), Bool, Bool, Bool, Bool, Bool, Bool, Bool, Int64, Bool, Int64, Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.stack)})
+precompile(Tuple{getfield(HTTP, Symbol("##request#4")), Base.Dict{String, String}, Nothing, Nothing, Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.request), String, String, Base.Dict{String, String}, Nothing})
+precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), String, String, Base.Dict{String, String}, Nothing})
+precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:reuse_limit,), Tuple{Int64}}}, Type{NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}})
+precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:require_ssl_verification,), Tuple{Bool}}}, Type{NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}})
+precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Bool, getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}})
+precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Char, Nothing, Array{Symbol, 1}, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}}})
+precompile(Tuple{typeof(Base._promote_typejoin), Type{Char}, Type{Nothing}})
+precompile(Tuple{typeof(Base.diff_names), Tuple{Symbol, Symbol, Symbol, Symbol}, Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}})
+precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}, Type{NamedTuple{(:parent,), Tuple{HTTP.Messages.Response}}}})
+precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}, HTTP.Messages.Response}}})
+precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:iofunction, :parent), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}, HTTP.Messages.Response}}}, Type{NamedTuple{(:parent,), Tuple{HTTP.Messages.Response}}}})
+precompile(Tuple{getfield(HTTP.RedirectRequest, Symbol("##request#1")), Int64, Bool, Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.request), Type{HTTP.RedirectRequest.RedirectLayer{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Nothing})
+precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), Type{HTTP.RedirectRequest.RedirectLayer{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Nothing})
+precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), Type{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Nothing})
+precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol}, Type{NamedTuple{(:reuse_limit,), Tuple{Int64}}}, Type{NamedTuple{(), Tuple{}}}})
+precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol}, Type{NamedTuple{(:require_ssl_verification,), Tuple{Bool}}}, Type{NamedTuple{(), Tuple{}}}})
+precompile(Tuple{getfield(HTTP.MessageRequest, Symbol("##request#1")), Base.VersionNumber, String, Nothing, Function, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), Type{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Nothing})
+precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), Type{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Nothing})
+precompile(Tuple{getfield(Base, Symbol("#50#51#53")){Base.ExponentialBackOff, getfield(HTTP.RetryRequest, Symbol("#2#3")){Bool, HTTP.Messages.Request}, typeof(HTTP.request)}, Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}, getfield(Base, Symbol("#50#52")){getfield(Base, Symbol("#50#51#53")){Base.ExponentialBackOff, getfield(HTTP.RetryRequest, Symbol("#2#3")){Bool, HTTP.Messages.Request}, typeof(HTTP.request)}}, Type{T} where T, Vararg{Any, N} where N})
+precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), Type{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Nothing})
+precompile(Tuple{getfield(HTTP.ExceptionRequest, Symbol("##request#1")), Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.request), Type{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}, HTTP.URIs.URI, Vararg{Any, N} where N})
+precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), Type{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Nothing})
+precompile(Tuple{getfield(HTTP.ConnectionRequest, Symbol("##request#1")), Nothing, Type{T} where T, Int64, Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.request), Type{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Nothing})
+precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("##getconnection#14")), Bool, Int64, Base.Iterators.Pairs{Symbol, Any, Tuple{Symbol, Symbol}, NamedTuple{(:require_ssl_verification, :iofunction), Tuple{Bool, getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.ConnectionPool.getconnection), Type{Sockets.TCPSocket}, Base.SubString{String}, Base.SubString{String}})
+precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("##getconnection#11")), Int64, Int64, Int64, Int64, Bool, Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.ConnectionPool.getconnection), Type{HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Base.SubString{String}, Base.SubString{String}})
+precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("#kw##getconnection")), NamedTuple{(:reuse_limit, :iofunction), Tuple{Int64, getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}, typeof(HTTP.ConnectionPool.getconnection), Type{HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Base.SubString{String}, Base.SubString{String}})
+precompile(Tuple{typeof(Base.readbytes!), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Base.SubArray{UInt8, 1, Array{UInt8, 1}, Tuple{Base.UnitRange{Int64}}, true}, Int64})
+precompile(Tuple{typeof(BufferedStreams.fillbuffer!), BufferedStreams.BufferedInputStream{HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}}})
+precompile(Tuple{typeof(Base.readbytes!), BufferedStreams.BufferedInputStream{HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}}, Array{UInt8, 1}, Int64})
+precompile(Tuple{typeof(CSV.slurp), BufferedStreams.BufferedInputStream{HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}}})
+precompile(Tuple{typeof(CSV.detectheaderdatapos), Array{UInt8, 1}, Int64, Int64, UInt8, UInt8, UInt8, Nothing, Bool, Array{Symbol, 1}, Int64})
+precompile(Tuple{typeof(CSV.detectdelimandguessrows), Array{UInt8, 1}, Int64, Int64, Int64, UInt8, UInt8, UInt8, Char, Nothing, Bool})
+precompile(Tuple{Type{Parsers.Options{ignorerepeated, Q, debug, S, D, DF} where DF where D where S where debug where Q where ignorerepeated}, Base.Missing, UInt8, UInt8, UInt8, UInt8, UInt8, Char, UInt8, Nothing, Nothing, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Bool, Bool, Bool, Bool, Bool})
+precompile(Tuple{Type{Parsers.Options{ignorerepeated, Q, debug, S, D, DF} where DF where D where S where debug where Q where ignorerepeated}, Array{String, 1}, UInt8, UInt8, UInt8, UInt8, UInt8, Char, UInt8, Nothing, Nothing, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Bool, Bool, Bool, Bool, Bool})
+precompile(Tuple{Type{Parsers.Options{ignorerepeated, Q, debug, S, D, DF} where DF where D where S where debug where Q where ignorerepeated}, Base.Missing, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, Nothing, Nothing, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Bool, Bool, Bool, Bool, Bool})
+precompile(Tuple{Type{Parsers.Options{ignorerepeated, Q, debug, S, D, DF} where DF where D where S where debug where Q where ignorerepeated}, Array{String, 1}, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, Nothing, Nothing, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Bool, Bool, Bool, Bool, Bool})
+precompile(Tuple{typeof(CSV.file), BufferedStreams.BufferedInputStream{HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}}, Array{Symbol, 1}, Bool, Int64, Nothing, Int64, Int64, Bool, Nothing, Bool, Bool, Array{String, 1}, String, Char, Bool, Char, Nothing, Nothing, Char, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, UInt8, Nothing, Nothing, Nothing, Nothing, Base.Dict{Int8, Int8}, Bool, Float64, Bool, Bool, Nothing, Bool, Bool, Nothing})
+precompile(Tuple{getfield(Core, Symbol("#kw#Type")), NamedTuple{(:delim, :types, :header, :dateformat), Tuple{Char, Nothing, Array{Symbol, 1}, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}}, Type{CSV.File{threaded} where threaded}, BufferedStreams.BufferedInputStream{HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}}})
+precompile(Tuple{getfield(HTTP.StreamRequest, Symbol("##request#1")), Nothing, getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}, Int64, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), Type{HTTP.StreamRequest.StreamLayer{Union{}}}, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, Nothing})
+precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#19#20")){Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), Type{HTTP.StreamRequest.StreamLayer{Union{}}}, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, Nothing})
+precompile(Tuple{Type{Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}}, Array{String, 1}, Base.Missing, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, Nothing, Nothing, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Bool, Bool})
+precompile(Tuple{typeof(Base.collect_to!), Array{Symbol, 1}, Base.Generator{Base.UnitRange{Int64}, getfield(CSV, Symbol("#7#10"))}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect), Base.Generator{Base.UnitRange{Int64}, getfield(CSV, Symbol("#7#10"))}})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Symbol, 1}, Symbol, Base.Generator{Array{Symbol, 1}, getfield(CSV, Symbol("#9#12")){Bool}}, Int64})
+precompile(Tuple{typeof(CSV.columnname), Array{UInt8, 1}, Int64, Int64, Int16, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}, Int64})
+precompile(Tuple{typeof(CSV.detectcolumnnames), Array{UInt8, 1}, Int64, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}, Array{Symbol, 1}, Bool})
+precompile(Tuple{typeof(Dates.character_codes), Type{Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}})
+precompile(Tuple{typeof(Dates._directives), Type{Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}})
+precompile(Tuple{typeof(CSV.parsetape), Base.Val{false}, Bool, Int64, Base.Dict{Int8, Int8}, Array{Array{UInt64, 1}, 1}, Array{Array{UInt64, 1}, 1}, Array{UInt8, 1}, Int64, Int64, Int64, Nothing, Array{Int64, 1}, Float64, Array{Base.Dict{String, UInt64}, 1}, Array{UInt64, 1}, Int64, Array{Int8, 1}, Array{Int64, 1}, Bool, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}, Bool})
+precompile(Tuple{typeof(CSV.timetype), Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}})
+precompile(Tuple{typeof(Parsers._typeparser), Type{Float64}, Array{UInt8, 1}, Int64, Int64, UInt8, Int16, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}, Type{Base.GMP.BigInt}})
+precompile(Tuple{typeof(Parsers._typeparser), Type{Float64}, Array{UInt8, 1}, Int64, Int64, UInt8, Int16, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}, Type{Int128}})
+precompile(Tuple{typeof(CSV.detect), Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}, Int64, Int64, Base.Dict{Int8, Int8}, Float64, Array{Base.Dict{String, UInt64}, 1}, Array{UInt64, 1}, Array{Int64, 1}, Bool, Array{Int8, 1}, Bool, Array{Array{UInt64, 1}, 1}})
+precompile(Tuple{typeof(Parsers.xparse), Type{Dates.DateTime}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}})
+precompile(Tuple{typeof(CSV.uint64), Dates.DateTime})
+precompile(Tuple{typeof(Base.setindex!), Array{UInt64, 1}, UInt64, Int64})
+precompile(Tuple{typeof(CSV.parseint!), Int8, Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}, Int64, Int64, Array{Int8, 1}, Array{Array{UInt64, 1}, 1}, Array{Int64, 1}})
+precompile(Tuple{typeof(CSV.parsevalue!), Type{Dates.DateTime}, Int8, Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}, Int64, Int64, Array{Int8, 1}, Array{Array{UInt64, 1}, 1}})
+precompile(Tuple{typeof(CSV.parsevalue!), Type{Bool}, Int8, Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}, Int64, Int64, Array{Int8, 1}, Array{Array{UInt64, 1}, 1}})
+precompile(Tuple{typeof(CSV.parsepooled!), Int8, Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}, Int64, Int64, Int64, Float64, Array{Base.Dict{String, UInt64}, 1}, Array{UInt64, 1}, Array{Int8, 1}, Bool, Array{Array{UInt64, 1}, 1}})
+precompile(Tuple{typeof(CSV.parsevalue!), Type{Float64}, Int8, Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}, Int64, Int64, Array{Int8, 1}, Array{Array{UInt64, 1}, 1}})
+precompile(Tuple{typeof(Base.:(/)), Int64, Float64})
+precompile(Tuple{typeof(Base.ceil), Type{Int64}, Float64})
+precompile(Tuple{typeof(Mmap.mmap), Type{Array{UInt64, 1}}, Int64})
+precompile(Tuple{typeof(CSV._eltype), Type{Dates.DateTime}})
+precompile(Tuple{typeof(Base.nonmissingtype), Type{Dates.DateTime}})
+precompile(Tuple{Type{CSV.Column{Dates.DateTime, Dates.DateTime}}, Array{UInt64, 1}, Int64, UInt8, Bool, Nothing, Array{UInt8, 1}, UInt64})
+precompile(Tuple{getfield(CSV, Symbol("#23#31")), Tuple{Symbol, CSV.Column{Dates.DateTime, Dates.DateTime}}})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, CSV.Column{T, P} where P where T}, CSV.Column{Dates.DateTime, Dates.DateTime}, Symbol})
+precompile(Tuple{typeof(Base.show), Base.GenericIOBuffer{Array{UInt8, 1}}, Type})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{Symbol, AbstractArray{T, 1} where T}, CSV.Column{Dates.DateTime, Dates.DateTime}, Symbol})
+precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, CSV.Column{Dates.DateTime, Dates.DateTime}, Int64})
+precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), CSV.Column{Dates.DateTime, Dates.DateTime}})
+precompile(Tuple{typeof(Base.length), CSV.Column{Int64, Int64}})
+precompile(Tuple{typeof(DataFrames.ncol), DataFrames.DataFrame})
+precompile(Tuple{typeof(Base.names), DataFrames.DataFrame})
+precompile(Tuple{typeof(Base.:(==)), Symbol, Symbol})
+precompile(Tuple{typeof(Base.lastindex), Array{Symbol, 1}})
+precompile(Tuple{typeof(Base.eltype), CSV.Column{Int64, Int64}})
+precompile(Tuple{typeof(Base.eltype), CSV.Column{Dates.DateTime, Dates.DateTime}})
+precompile(Tuple{typeof(Base.eltype), CSV.Column{Bool, Bool}})
+precompile(Tuple{typeof(Base.eltype), CSV.Column{String, CSV.PooledString}})
+precompile(Tuple{typeof(Base.eltype), CSV.Column{Float64, Float64}})
+precompile(Tuple{typeof(Base.getindex), Array{DataType, 1}, Int64})
+precompile(Tuple{typeof(Base.lastindex), Array{DataType, 1}})
+precompile(Tuple{typeof(Base.getindex), DataFrames.DataFrame, Int64})
+precompile(Tuple{typeof(Base.throw_boundserror), CSV.Column{Int64, Int64}, Tuple{Int64}})
+precompile(Tuple{typeof(Base.getindex), CSV.Column{Int64, Int64}, Int64})
+precompile(Tuple{typeof(Base.throw_boundserror), CSV.Column{Dates.DateTime, Dates.DateTime}, Tuple{Int64}})
+precompile(Tuple{typeof(Base.getindex), CSV.Column{Dates.DateTime, Dates.DateTime}, Int64})
+precompile(Tuple{typeof(Base.:(==)), Dates.DateTime, Dates.DateTime})
+precompile(Tuple{typeof(Base.getindex), CSV.Column{Bool, Bool}, Int64})
+precompile(Tuple{typeof(Base.throw_boundserror), CSV.Column{String, CSV.PooledString}, Tuple{Int64}})
+precompile(Tuple{typeof(Base.getindex), CSV.Column{String, CSV.PooledString}, Int64})
+precompile(Tuple{typeof(Base.lastindex), DataFrames.DataFrame})
+precompile(Tuple{typeof(Base.throw_boundserror), CSV.Column{Float64, Float64}, Tuple{Int64}})
+precompile(Tuple{typeof(Base.getindex), CSV.Column{Float64, Float64}, Int64})
+precompile(Tuple{typeof(Base.lastindex), CSV.Column{Int64, Int64}})
+precompile(Tuple{typeof(Base.lastindex), CSV.Column{Dates.DateTime, Dates.DateTime}})
+precompile(Tuple{typeof(Base.lastindex), CSV.Column{Bool, Bool}})
+precompile(Tuple{typeof(Base.lastindex), CSV.Column{String, CSV.PooledString}})
+precompile(Tuple{typeof(Base.lastindex), CSV.Column{Float64, Float64}})
+precompile(Tuple{typeof(Dataiku.iter_rows), Dataiku.DSSDataset})
+precompile(Tuple{getfield(Base, Symbol("##Channel#637")), Type{T} where T, Nothing, Nothing, Nothing, Type{Base.Channel{T} where T}, Function})
+precompile(Tuple{getfield(Core, Symbol("#kw#Type")), NamedTuple{(:taskref, :spawn), Tuple{Nothing, Bool}}, Type{Base.Channel{DataFrames.DataFrameRow{D, S} where S<:DataFrames.AbstractIndex where D<:DataFrames.AbstractDataFrame}}, Function, Int64})
+precompile(Tuple{getfield(Base, Symbol("##_#633")), Nothing, Bool, Type{Base.Channel{DataFrames.DataFrameRow{D, S} where S<:DataFrames.AbstractIndex where D<:DataFrames.AbstractDataFrame}}, getfield(Dataiku, Symbol("#31#32")){Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, Dataiku.DSSDataset, Array{Any, 1}}, Int64})
+precompile(Tuple{typeof(Base.register_taskdone_hook), Task, Function})
+precompile(Tuple{getfield(Dataiku, Symbol("#31#32")){Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, Dataiku.DSSDataset, Array{Any, 1}}, Base.Channel{DataFrames.DataFrameRow{D, S} where S<:DataFrames.AbstractIndex where D<:DataFrames.AbstractDataFrame}})
+precompile(Tuple{getfield(Base, Symbol("#634#635")){getfield(Dataiku, Symbol("#31#32")){Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, Dataiku.DSSDataset, Array{Any, 1}}, Base.Channel{DataFrames.DataFrameRow{D, S} where S<:DataFrames.AbstractIndex where D<:DataFrames.AbstractDataFrame}}})
+precompile(Tuple{getfield(Mmap, Symbol("#3#5")){Int64, Ptr{Nothing}}, Array{UInt64, 1}})
+precompile(Tuple{typeof(Base.take_buffered), Base.Channel{DataFrames.DataFrameRow{D, S} where S<:DataFrames.AbstractIndex where D<:DataFrames.AbstractDataFrame}})
+precompile(Tuple{typeof(Base.take_unbuffered), Base.Channel{DataFrames.DataFrameRow{D, S} where S<:DataFrames.AbstractIndex where D<:DataFrames.AbstractDataFrame}})
+precompile(Tuple{typeof(Base.take!), Base.Channel{DataFrames.DataFrameRow{D, S} where S<:DataFrames.AbstractIndex where D<:DataFrames.AbstractDataFrame}})
+precompile(Tuple{getfield(Core, Symbol("#kw#Type")), NamedTuple{(:taskref, :spawn), Tuple{Nothing, Bool}}, Type{Base.Channel{Any}}, Function, Int64})
+precompile(Tuple{getfield(Base, Symbol("##_#633")), Nothing, Bool, Type{Base.Channel{Any}}, getfield(Dataiku, Symbol("#24#26")){Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, Dataiku.DSSDataset, Array{Symbol, 1}, Nothing}, Int64})
+precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol}, Type{NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}, Type{NamedTuple{(), Tuple{}}}})
+precompile(Tuple{getfield(Dataiku, Symbol("#24#26")){Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, Dataiku.DSSDataset, Array{Symbol, 1}, Nothing}, Base.Channel{Any}})
+precompile(Tuple{getfield(Base, Symbol("#634#635")){getfield(Dataiku, Symbol("#24#26")){Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, Dataiku.DSSDataset, Array{Symbol, 1}, Nothing}, Base.Channel{Any}}})
+precompile(Tuple{Type{NamedTuple{(:iofunction,), T} where T<:Tuple}, Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}})
+precompile(Tuple{typeof(Base.merge), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}})
+precompile(Tuple{getfield(HTTP, Symbol("##stack#18")), Bool, Bool, Bool, Bool, Bool, Bool, Bool, Int64, Bool, Int64, Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.stack)})
+precompile(Tuple{getfield(HTTP, Symbol("##request#4")), Base.Dict{String, String}, Nothing, Nothing, Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.request), String, String, Base.Dict{String, String}, Nothing})
+precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), String, String, Base.Dict{String, String}, Nothing})
+precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:reuse_limit,), Tuple{Int64}}}, Type{NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}})
+precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:require_ssl_verification,), Tuple{Bool}}}, Type{NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}})
+precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Bool, getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}})
+precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol}, Type{NamedTuple{(:copycols,), Tuple{Bool}}}, Type{NamedTuple{(), Tuple{}}}})
+precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}, Type{NamedTuple{(:parent,), Tuple{HTTP.Messages.Response}}}})
+precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}, HTTP.Messages.Response}}})
+precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:iofunction, :parent), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}, HTTP.Messages.Response}}}, Type{NamedTuple{(:parent,), Tuple{HTTP.Messages.Response}}}})
+precompile(Tuple{getfield(HTTP.RedirectRequest, Symbol("##request#1")), Int64, Bool, Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.request), Type{HTTP.RedirectRequest.RedirectLayer{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Nothing})
+precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), Type{HTTP.RedirectRequest.RedirectLayer{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Nothing})
+precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), Type{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Nothing})
+precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), Type{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Nothing})
+precompile(Tuple{getfield(Base, Symbol("#50#51#53")){Base.ExponentialBackOff, getfield(HTTP.RetryRequest, Symbol("#2#3")){Bool, HTTP.Messages.Request}, typeof(HTTP.request)}, Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}, getfield(Base, Symbol("#50#52")){getfield(Base, Symbol("#50#51#53")){Base.ExponentialBackOff, getfield(HTTP.RetryRequest, Symbol("#2#3")){Bool, HTTP.Messages.Request}, typeof(HTTP.request)}}, Type{T} where T, Vararg{Any, N} where N})
+precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), Type{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Nothing})
+precompile(Tuple{getfield(HTTP.ExceptionRequest, Symbol("##request#1")), Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.request), Type{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}, HTTP.URIs.URI, Vararg{Any, N} where N})
+precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), Type{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Nothing})
+precompile(Tuple{getfield(HTTP.ConnectionRequest, Symbol("##request#1")), Nothing, Type{T} where T, Int64, Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.request), Type{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Nothing})
+precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("##getconnection#14")), Bool, Int64, Base.Iterators.Pairs{Symbol, Any, Tuple{Symbol, Symbol}, NamedTuple{(:require_ssl_verification, :iofunction), Tuple{Bool, getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.ConnectionPool.getconnection), Type{Sockets.TCPSocket}, Base.SubString{String}, Base.SubString{String}})
+precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("##getconnection#11")), Int64, Int64, Int64, Int64, Bool, Base.Iterators.Pairs{Symbol, getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}}, typeof(HTTP.ConnectionPool.getconnection), Type{HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Base.SubString{String}, Base.SubString{String}})
+precompile(Tuple{getfield(HTTP.ConnectionPool, Symbol("#kw##getconnection")), NamedTuple{(:reuse_limit, :iofunction), Tuple{Int64, getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}, typeof(HTTP.ConnectionPool.getconnection), Type{HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, Base.SubString{String}, Base.SubString{String}})
+precompile(Tuple{typeof(Base.count), getfield(Dataiku, Symbol("#28#29")){Char}, String})
+precompile(Tuple{typeof(Dataiku._split_last_line), String, Bool, Char})
+precompile(Tuple{typeof(CSV.slurp), Base.GenericIOBuffer{Array{UInt8, 1}}})
+precompile(Tuple{typeof(CSV.file), Base.GenericIOBuffer{Array{UInt8, 1}}, Array{Symbol, 1}, Bool, Int64, Nothing, Int64, Int64, Bool, Nothing, Bool, Bool, Array{String, 1}, String, Char, Bool, Char, Nothing, Nothing, Char, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, UInt8, Nothing, Nothing, Nothing, Nothing, Base.Dict{Int8, Int8}, Bool, Float64, Bool, Bool, Nothing, Bool, Bool, Nothing})
+precompile(Tuple{getfield(Core, Symbol("#kw#Type")), NamedTuple{(:delim, :types, :header, :dateformat), Tuple{Char, Nothing, Array{Symbol, 1}, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}}, Type{CSV.File{threaded} where threaded}, Base.GenericIOBuffer{Array{UInt8, 1}}})
+precompile(Tuple{typeof(Base.put_buffered), Base.Channel{Any}, DataFrames.DataFrame})
+precompile(Tuple{typeof(Base.put_unbuffered), Base.Channel{Any}, DataFrames.DataFrame})
+precompile(Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}, HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}})
+precompile(Tuple{getfield(HTTP.StreamRequest, Symbol("##request#1")), Nothing, getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}, Int64, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), Type{HTTP.StreamRequest.StreamLayer{Union{}}}, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, Nothing})
+precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{getfield(Dataiku, Symbol("#25#27")){Base.Channel{Any}, Array{Symbol, 1}, Nothing}}}, typeof(HTTP.request), Type{HTTP.StreamRequest.StreamLayer{Union{}}}, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, Nothing})
+precompile(Tuple{typeof(Base.show), Base.GenericIOBuffer{Array{UInt8, 1}}, Int64})
+precompile(Tuple{typeof(Base.eachrow), DataFrames.DataFrame})
+precompile(Tuple{typeof(Base.iterate), DataFrames.DataFrameRows{DataFrames.DataFrame, DataFrames.Index}})
+precompile(Tuple{typeof(Base.put_buffered), Base.Channel{DataFrames.DataFrameRow{D, S} where S<:DataFrames.AbstractIndex where D<:DataFrames.AbstractDataFrame}, DataFrames.DataFrameRow{DataFrames.DataFrame, DataFrames.Index}})
+precompile(Tuple{typeof(Base.put_unbuffered), Base.Channel{DataFrames.DataFrameRow{D, S} where S<:DataFrames.AbstractIndex where D<:DataFrames.AbstractDataFrame}, DataFrames.DataFrameRow{DataFrames.DataFrame, DataFrames.Index}})
+precompile(Tuple{typeof(Base.put!), Base.Channel{DataFrames.DataFrameRow{D, S} where S<:DataFrames.AbstractIndex where D<:DataFrames.AbstractDataFrame}, DataFrames.DataFrameRow{DataFrames.DataFrame, DataFrames.Index}})
+precompile(Tuple{typeof(CSV.parsestring!), Int8, Array{UInt64, 1}, Array{UInt8, 1}, Int64, Int64, Parsers.Options{false, true, false, Base.Missing, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}}, Int64, Int64, Array{Int8, 1}})
+precompile(Tuple{typeof(Base.getindex), DataFrames.DataFrameRow{DataFrames.DataFrame, DataFrames.Index}, Int64})
+precompile(Tuple{typeof(Base.lastindex), DataFrames.DataFrameRow{DataFrames.DataFrame, DataFrames.Index}})
+precompile(Tuple{typeof(Dataiku.iter_tuples), Dataiku.DSSDataset})
+precompile(Tuple{getfield(Core, Symbol("#kw#Type")), NamedTuple{(:taskref, :spawn), Tuple{Nothing, Bool}}, Type{Base.Channel{Tuple}}, Function, Int64})
+precompile(Tuple{getfield(Base, Symbol("##_#633")), Nothing, Bool, Type{Base.Channel{Tuple}}, getfield(Dataiku, Symbol("#37#39")){Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, Dataiku.DSSDataset, Array{Any, 1}}, Int64})
+precompile(Tuple{getfield(Dataiku, Symbol("#37#39")){Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, Dataiku.DSSDataset, Array{Any, 1}}, Base.Channel{Tuple}})
+precompile(Tuple{getfield(Base, Symbol("#634#635")){getfield(Dataiku, Symbol("#37#39")){Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, Dataiku.DSSDataset, Array{Any, 1}}, Base.Channel{Tuple}}})
+precompile(Tuple{typeof(Base.iterate), DataFrames.DataFrameRows{DataFrames.DataFrame, DataFrames.Index}, Tuple{Base.OneTo{Int64}, Int64}})
+precompile(Tuple{typeof(Base.take_buffered), Base.Channel{Tuple}})
+precompile(Tuple{typeof(Base.take_unbuffered), Base.Channel{Tuple}})
+precompile(Tuple{typeof(Base.take!), Base.Channel{Tuple}})
+precompile(Tuple{Type{Base.Generator{I, F} where F where I}, getfield(Dataiku, Symbol("#38#40")){DataFrames.DataFrame, Int64}, Base.UnitRange{Int64}})
+precompile(Tuple{getfield(Dataiku, Symbol("#38#40")){DataFrames.DataFrame, Int64}, Int64})
+precompile(Tuple{typeof(Base.collect), Base.Generator{Base.UnitRange{Int64}, getfield(Dataiku, Symbol("#38#40")){DataFrames.DataFrame, Int64}}})
+precompile(Tuple{Type{Tuple}, Base.Generator{Base.UnitRange{Int64}, getfield(Dataiku, Symbol("#38#40")){DataFrames.DataFrame, Int64}}})
+precompile(Tuple{typeof(Base._array_for), Type{Int64}, Base.UnitRange{Int64}, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Base.UnitRange{Int64}, getfield(Dataiku, Symbol("#38#40")){DataFrames.DataFrame, Int64}}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Base.UnitRange{Int64}, getfield(Dataiku, Symbol("#38#40")){DataFrames.DataFrame, Int64}}, Int64})
+precompile(Tuple{typeof(Base.setindex_widen_up_to), Array{Int64, 1}, Dates.DateTime, Int64})
+precompile(Tuple{typeof(Base.collect_to!), Array{Any, 1}, Base.Generator{Base.UnitRange{Int64}, getfield(Dataiku, Symbol("#38#40")){DataFrames.DataFrame, Int64}}, Int64, Int64})
+precompile(Tuple{typeof(Base.put_buffered), Base.Channel{Tuple}, Tuple{Int64, Dates.DateTime, Dates.DateTime, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}})
+precompile(Tuple{typeof(Base.put_unbuffered), Base.Channel{Tuple}, Tuple{Int64, Dates.DateTime, Dates.DateTime, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}})
+precompile(Tuple{typeof(Base.put!), Base.Channel{Tuple}, Tuple{Int64, Dates.DateTime, Dates.DateTime, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}})
+precompile(Tuple{getfield(Dataiku, Symbol("##write_dataframe#44")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.write_dataframe), Function, Dataiku.DSSDataset})
+precompile(Tuple{typeof(Dataiku.write_dataframe), Function, Dataiku.DSSDataset})
+precompile(Tuple{getfield(Core, Symbol("#kw#Type")), NamedTuple{(:taskref, :spawn), Tuple{Nothing, Bool}}, Type{Base.Channel{DataFrames.AbstractDataFrame}}, Function, Int64})
+precompile(Tuple{getfield(Base, Symbol("##_#633")), Nothing, Bool, Type{Base.Channel{DataFrames.AbstractDataFrame}}, getfield(Main, Symbol("#7#8")), Int64})
+precompile(Tuple{getfield(Main, Symbol("#7#8")), Base.Channel{DataFrames.AbstractDataFrame}})
+precompile(Tuple{getfield(Base, Symbol("#634#635")){getfield(Main, Symbol("#7#8")), Base.Channel{DataFrames.AbstractDataFrame}}})
+precompile(Tuple{getfield(Core, Symbol("#kw#Type")), NamedTuple{(:taskref, :spawn), Tuple{Nothing, Bool}}, Type{Base.Channel{DataFrames.DataFrame}}, Function, Int64})
+precompile(Tuple{getfield(Base, Symbol("##_#633")), Nothing, Bool, Type{Base.Channel{DataFrames.DataFrame}}, getfield(Dataiku, Symbol("#34#35")){Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, Dataiku.DSSDataset, Int64, Array{Any, 1}}, Int64})
+precompile(Tuple{getfield(Dataiku, Symbol("#34#35")){Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, Dataiku.DSSDataset, Int64, Array{Any, 1}}, Base.Channel{DataFrames.DataFrame}})
+precompile(Tuple{getfield(Base, Symbol("#634#635")){getfield(Dataiku, Symbol("#34#35")){Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, Dataiku.DSSDataset, Int64, Array{Any, 1}}, Base.Channel{DataFrames.DataFrame}}})
+precompile(Tuple{typeof(Base.take_buffered), Base.Channel{DataFrames.AbstractDataFrame}})
+precompile(Tuple{typeof(Base.take_unbuffered), Base.Channel{DataFrames.AbstractDataFrame}})
+precompile(Tuple{getfield(Dataiku, Symbol("##write_chnl#50")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.write_chnl), Dataiku.DSSDataset, Base.Channel{DataFrames.AbstractDataFrame}})
+precompile(Tuple{typeof(Dataiku.write_chnl), Dataiku.DSSDataset, Base.Channel{DataFrames.AbstractDataFrame}})
+precompile(Tuple{typeof(Base.take_buffered), Base.Channel{DataFrames.DataFrame}})
+precompile(Tuple{typeof(Base.take_unbuffered), Base.Channel{DataFrames.DataFrame}})
+precompile(Tuple{typeof(Base.iterate), Base.Channel{DataFrames.DataFrame}, Nothing})
+precompile(Tuple{typeof(Base.iterate), Base.Channel{DataFrames.DataFrame}})
+precompile(Tuple{typeof(Core.Compiler.eltype), Type{Array{Array{Symbol, 1}, 1}}})
+precompile(Tuple{typeof(Base.grow_to!), Array{DataFrames.DataFrame, 1}, Base.Generator{Base.Iterators.Filter{getfield(DataFrames, Symbol("#66#68")), Tuple{DataFrames.DataFrame, DataFrames.DataFrame}}, getfield(DataFrames, Symbol("#65#67"))}, Int64})
+precompile(Tuple{typeof(Base.grow_to!), Array{DataFrames.DataFrame, 1}, Base.Generator{Base.Iterators.Filter{getfield(DataFrames, Symbol("#66#68")), Tuple{DataFrames.DataFrame, DataFrames.DataFrame}}, getfield(DataFrames, Symbol("#65#67"))}})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Array{Symbol, 1}, 1}, Array{Symbol, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, typeof(Base.names)}, Int64})
+precompile(Tuple{typeof(Base._collect), Array{DataFrames.DataFrame, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, typeof(Base.names)}, Base.EltypeUnknown, Base.HasShape{1}})
+precompile(Tuple{Type{Base.Dict{Array{Symbol, 1}, Nothing}}})
+precompile(Tuple{typeof(Base.hash), Array{Symbol, 1}, UInt64})
+precompile(Tuple{typeof(Base.rehash!), Base.Dict{Array{Symbol, 1}, Nothing}, Int64})
+precompile(Tuple{typeof(Base.isequal), Array{Symbol, 1}, Array{Symbol, 1}})
+precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{Array{Symbol, 1}, Nothing}, Array{Symbol, 1}})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{Array{Symbol, 1}, Nothing}, Nothing, Array{Symbol, 1}})
+precompile(Tuple{typeof(Base.ht_keyindex), Base.Dict{Array{Symbol, 1}, Nothing}, Array{Symbol, 1}})
+precompile(Tuple{typeof(Base.unique), Array{Array{Symbol, 1}, 1}})
+precompile(Tuple{typeof(Base.throw_boundserror), Array{Symbol, 1}, Tuple{Int64}})
+precompile(Tuple{typeof(Base.setdiff!), Base.Set{Symbol}, Array{Symbol, 1}})
+precompile(Tuple{typeof(Base.pop!), Base.Dict{Symbol, Nothing}, Symbol})
+precompile(Tuple{typeof(Base.filter), getfield(Base, Symbol("#83#84")){typeof(Base.in), typeof(Base.pop!), Base.Set{Symbol}}, Array{Symbol, 1}})
+precompile(Tuple{getfield(DataFrames, Symbol("#70#74")), Array{Symbol, 1}})
+precompile(Tuple{typeof(Base.filter!), getfield(DataFrames, Symbol("#70#74")), Array{Array{Symbol, 1}, 1}})
+precompile(Tuple{typeof(Base.:(==)), Array{Symbol, 1}, Array{Symbol, 1}})
+precompile(Tuple{typeof(Base.grow_to!), Array{Int64, 1}, Base.Generator{Base.Iterators.Filter{getfield(Base, Symbol("#77#78")){getfield(DataFrames, Symbol("#72#76")){Array{Symbol, 1}}}, Base.Iterators.Pairs{Int64, Array{Symbol, 1}, Base.LinearIndices{1, Tuple{Base.OneTo{Int64}}}, Array{Array{Symbol, 1}, 1}}}, typeof(Base.first)}, Int64})
+precompile(Tuple{typeof(Base.grow_to!), Array{Int64, 1}, Base.Generator{Base.Iterators.Filter{getfield(Base, Symbol("#77#78")){getfield(DataFrames, Symbol("#72#76")){Array{Symbol, 1}}}, Base.Iterators.Pairs{Int64, Array{Symbol, 1}, Base.LinearIndices{1, Tuple{Base.OneTo{Int64}}}, Array{Array{Symbol, 1}, 1}}}, typeof(Base.first)}})
+precompile(Tuple{getfield(DataFrames, Symbol("#71#75")){Array{Array{Symbol, 1}, 1}, Array{Symbol, 1}}, Tuple{Int64, Array{Symbol, 1}}})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{String, 1}, String, Base.Generator{Base.Iterators.Enumerate{Array{Array{Symbol, 1}, 1}}, getfield(DataFrames, Symbol("#71#75")){Array{Array{Symbol, 1}, 1}, Array{Symbol, 1}}}, Tuple{Int64, Int64}})
+precompile(Tuple{typeof(Base.collect), Base.Generator{Base.Iterators.Enumerate{Array{Array{Symbol, 1}, 1}}, getfield(DataFrames, Symbol("#71#75")){Array{Array{Symbol, 1}, 1}, Array{Symbol, 1}}}})
+precompile(Tuple{getfield(DataFrames, Symbol("##_vcat#69")), Symbol, typeof(DataFrames._vcat), Array{DataFrames.DataFrame, 1}})
+precompile(Tuple{typeof(Base.vcat), DataFrames.DataFrame, DataFrames.DataFrame})
+precompile(Tuple{typeof(Base.filter!), getfield(Base, Symbol("#83#84")){typeof(Base.:(∉)), typeof(Base.push!), Base.Set{Symbol}}, Array{Symbol, 1}})
+precompile(Tuple{typeof(Base.mapfilter), getfield(Base, Symbol("#83#84")){typeof(Base.:(∉)), typeof(Base.push!), Base.Set{Symbol}}, typeof(Base.push!), Array{Symbol, 1}, Array{Symbol, 1}})
+precompile(Tuple{typeof(Base.union!), Array{Symbol, 1}, Array{Symbol, 1}})
+precompile(Tuple{typeof(Base.union), Array{Symbol, 1}})
+precompile(Tuple{typeof(Base.intersect), Array{Symbol, 1}})
+precompile(Tuple{typeof(Base.Iterators.enumerate), Array{Symbol, 1}})
+precompile(Tuple{typeof(Base.iterate), Base.Iterators.Enumerate{Array{Symbol, 1}}, Tuple{Int64}})
+precompile(Tuple{typeof(Base.map), Function, Array{DataFrames.DataFrame, 1}})
+precompile(Tuple{Type{Base.Generator{I, F} where F where I}, getfield(DataFrames, Symbol("#73#77")){Symbol}, Array{DataFrames.DataFrame, 1}})
+precompile(Tuple{typeof(Base._collect), Array{DataFrames.DataFrame, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Base.EltypeUnknown, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.collect_similar), Array{DataFrames.DataFrame, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}})
+precompile(Tuple{typeof(Base._similar_for), Array{DataFrames.DataFrame, 1}, Type{CSV.Column{Int64, Int64}}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{CSV.Column{Int64, Int64}, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to!), Array{CSV.Column{Int64, Int64}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{CSV.Column{Int64, Int64}, 1}, CSV.Column{Int64, Int64}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64})
+precompile(Tuple{typeof(Base.map), Function, Array{CSV.Column{Int64, Int64}, 1}})
+precompile(Tuple{Type{Base.Generator{I, F} where F where I}, typeof(Base.length), Array{CSV.Column{Int64, Int64}, 1}})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{CSV.Column{Int64, Int64}, 1}, typeof(Base.length)}, Int64})
+precompile(Tuple{typeof(Base.collect_similar), Array{CSV.Column{Int64, Int64}, 1}, Base.Generator{Array{CSV.Column{Int64, Int64}, 1}, typeof(Base.length)}})
+precompile(Tuple{typeof(Base._mapreduce_dim), Function, Function, NamedTuple{(), Tuple{}}, Array{CSV.Column{Int64, Int64}, 1}, Base.Colon})
+precompile(Tuple{typeof(Base.mapreduce), Function, Function, Array{CSV.Column{Int64, Int64}, 1}})
+precompile(Tuple{typeof(Base.mapreduce_impl), typeof(Base.eltype), typeof(Base.promote_type), Array{CSV.Column{Int64, Int64}, 1}, Int64, Int64, Int64})
+precompile(Tuple{typeof(Base._mapreduce), typeof(Base.eltype), typeof(Base.promote_type), Base.IndexLinear, Array{CSV.Column{Int64, Int64}, 1}})
+precompile(Tuple{typeof(Base.sum), Array{Int64, 1}})
+precompile(Tuple{typeof(Tables.allocatecolumn), Type{T} where T, Int64})
+precompile(Tuple{typeof(DataAPI.defaultarray), Type{Int64}, Int64})
+precompile(Tuple{typeof(Base.length), Array{CSV.Column{Int64, Int64}, 1}})
+precompile(Tuple{typeof(Base.getindex), Array{CSV.Column{Int64, Int64}, 1}, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{Int64, 1}, Int64, CSV.Column{Int64, Int64}, Int64, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{Int64, 1}, Int64, CSV.Column{Int64, Int64}})
+precompile(Tuple{typeof(Base.iterate), Base.Iterators.Enumerate{Array{Symbol, 1}}, Tuple{Int64, Int64}})
+precompile(Tuple{typeof(Base._similar_for), Array{DataFrames.DataFrame, 1}, Type{CSV.Column{Dates.DateTime, Dates.DateTime}}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to!), Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}, CSV.Column{Dates.DateTime, Dates.DateTime}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64})
+precompile(Tuple{typeof(Base.map), Function, Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}})
+precompile(Tuple{Type{Base.Generator{I, F} where F where I}, typeof(Base.length), Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}, typeof(Base.length)}, Int64})
+precompile(Tuple{typeof(Base.collect_similar), Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}, Base.Generator{Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}, typeof(Base.length)}})
+precompile(Tuple{typeof(Base._mapreduce_dim), Function, Function, NamedTuple{(), Tuple{}}, Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}, Base.Colon})
+precompile(Tuple{typeof(Base.mapreduce), Function, Function, Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}})
+precompile(Tuple{typeof(Base.mapreduce_impl), typeof(Base.eltype), typeof(Base.promote_type), Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}, Int64, Int64, Int64})
+precompile(Tuple{typeof(Base._mapreduce), typeof(Base.eltype), typeof(Base.promote_type), Base.IndexLinear, Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}})
+precompile(Tuple{typeof(DataAPI.defaultarray), Type{Dates.DateTime}, Int64})
+precompile(Tuple{Type{Array{Dates.DateTime, 1}}, UndefInitializer, Int64})
+precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, Array{Dates.DateTime, 1}, Int64})
+precompile(Tuple{typeof(Base.length), Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}})
+precompile(Tuple{typeof(Base.getindex), Array{CSV.Column{Dates.DateTime, Dates.DateTime}, 1}, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{Dates.DateTime, 1}, Int64, CSV.Column{Dates.DateTime, Dates.DateTime}, Int64, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{Dates.DateTime, 1}, Int64, CSV.Column{Dates.DateTime, Dates.DateTime}})
+precompile(Tuple{typeof(Base._similar_for), Array{DataFrames.DataFrame, 1}, Type{CSV.Column{Bool, Bool}}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{CSV.Column{Bool, Bool}, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to!), Array{CSV.Column{Bool, Bool}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{CSV.Column{Bool, Bool}, 1}, CSV.Column{Bool, Bool}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64})
+precompile(Tuple{typeof(Base.map), Function, Array{CSV.Column{Bool, Bool}, 1}})
+precompile(Tuple{Type{Base.Generator{I, F} where F where I}, typeof(Base.length), Array{CSV.Column{Bool, Bool}, 1}})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{CSV.Column{Bool, Bool}, 1}, typeof(Base.length)}, Int64})
+precompile(Tuple{typeof(Base.collect_similar), Array{CSV.Column{Bool, Bool}, 1}, Base.Generator{Array{CSV.Column{Bool, Bool}, 1}, typeof(Base.length)}})
+precompile(Tuple{typeof(Base._mapreduce_dim), Function, Function, NamedTuple{(), Tuple{}}, Array{CSV.Column{Bool, Bool}, 1}, Base.Colon})
+precompile(Tuple{typeof(Base.mapreduce), Function, Function, Array{CSV.Column{Bool, Bool}, 1}})
+precompile(Tuple{typeof(Base.mapreduce_impl), typeof(Base.eltype), typeof(Base.promote_type), Array{CSV.Column{Bool, Bool}, 1}, Int64, Int64, Int64})
+precompile(Tuple{typeof(Base._mapreduce), typeof(Base.eltype), typeof(Base.promote_type), Base.IndexLinear, Array{CSV.Column{Bool, Bool}, 1}})
+precompile(Tuple{typeof(DataAPI.defaultarray), Type{Bool}, Int64})
+precompile(Tuple{typeof(Base.length), Array{CSV.Column{Bool, Bool}, 1}})
+precompile(Tuple{typeof(Base.getindex), Array{CSV.Column{Bool, Bool}, 1}, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{Bool, 1}, Int64, CSV.Column{Bool, Bool}, Int64, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{Bool, 1}, Int64, CSV.Column{Bool, Bool}})
+precompile(Tuple{typeof(Base._similar_for), Array{DataFrames.DataFrame, 1}, Type{CSV.Column{String, CSV.PooledString}}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{CSV.Column{String, CSV.PooledString}, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to!), Array{CSV.Column{String, CSV.PooledString}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{CSV.Column{String, CSV.PooledString}, 1}, CSV.Column{String, CSV.PooledString}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64})
+precompile(Tuple{typeof(Base.map), Function, Array{CSV.Column{String, CSV.PooledString}, 1}})
+precompile(Tuple{Type{Base.Generator{I, F} where F where I}, typeof(Base.length), Array{CSV.Column{String, CSV.PooledString}, 1}})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{CSV.Column{String, CSV.PooledString}, 1}, typeof(Base.length)}, Int64})
+precompile(Tuple{typeof(Base.collect_similar), Array{CSV.Column{String, CSV.PooledString}, 1}, Base.Generator{Array{CSV.Column{String, CSV.PooledString}, 1}, typeof(Base.length)}})
+precompile(Tuple{typeof(Base._mapreduce_dim), Function, Function, NamedTuple{(), Tuple{}}, Array{CSV.Column{String, CSV.PooledString}, 1}, Base.Colon})
+precompile(Tuple{typeof(Base.mapreduce), Function, Function, Array{CSV.Column{String, CSV.PooledString}, 1}})
+precompile(Tuple{typeof(Base.mapreduce_impl), typeof(Base.eltype), typeof(Base.promote_type), Array{CSV.Column{String, CSV.PooledString}, 1}, Int64, Int64, Int64})
+precompile(Tuple{typeof(Base._mapreduce), typeof(Base.eltype), typeof(Base.promote_type), Base.IndexLinear, Array{CSV.Column{String, CSV.PooledString}, 1}})
+precompile(Tuple{typeof(DataAPI.defaultarray), Type{String}, Int64})
+precompile(Tuple{Type{Array{String, 1}}, UndefInitializer, Int64})
+precompile(Tuple{typeof(Base.setindex!), Array{AbstractArray{T, 1} where T, 1}, Array{String, 1}, Int64})
+precompile(Tuple{typeof(Base.length), Array{CSV.Column{String, CSV.PooledString}, 1}})
+precompile(Tuple{typeof(Base.getindex), Array{CSV.Column{String, CSV.PooledString}, 1}, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{String, 1}, Int64, CSV.Column{String, CSV.PooledString}, Int64, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{String, 1}, Int64, CSV.Column{String, CSV.PooledString}})
+precompile(Tuple{typeof(Base._similar_for), Array{DataFrames.DataFrame, 1}, Type{CSV.Column{Float64, Float64}}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{CSV.Column{Float64, Float64}, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to!), Array{CSV.Column{Float64, Float64}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{CSV.Column{Float64, Float64}, 1}, CSV.Column{Float64, Float64}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64})
+precompile(Tuple{typeof(Base.map), Function, Array{CSV.Column{Float64, Float64}, 1}})
+precompile(Tuple{Type{Base.Generator{I, F} where F where I}, typeof(Base.length), Array{CSV.Column{Float64, Float64}, 1}})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{CSV.Column{Float64, Float64}, 1}, typeof(Base.length)}, Int64})
+precompile(Tuple{typeof(Base.collect_similar), Array{CSV.Column{Float64, Float64}, 1}, Base.Generator{Array{CSV.Column{Float64, Float64}, 1}, typeof(Base.length)}})
+precompile(Tuple{typeof(Base._mapreduce_dim), Function, Function, NamedTuple{(), Tuple{}}, Array{CSV.Column{Float64, Float64}, 1}, Base.Colon})
+precompile(Tuple{typeof(Base.mapreduce), Function, Function, Array{CSV.Column{Float64, Float64}, 1}})
+precompile(Tuple{typeof(Base.mapreduce_impl), typeof(Base.eltype), typeof(Base.promote_type), Array{CSV.Column{Float64, Float64}, 1}, Int64, Int64, Int64})
+precompile(Tuple{typeof(Base._mapreduce), typeof(Base.eltype), typeof(Base.promote_type), Base.IndexLinear, Array{CSV.Column{Float64, Float64}, 1}})
+precompile(Tuple{typeof(DataAPI.defaultarray), Type{Float64}, Int64})
+precompile(Tuple{typeof(Base.length), Array{CSV.Column{Float64, Float64}, 1}})
+precompile(Tuple{typeof(Base.getindex), Array{CSV.Column{Float64, Float64}, 1}, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{Float64, 1}, Int64, CSV.Column{Float64, Float64}, Int64, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{Float64, 1}, Int64, CSV.Column{Float64, Float64}})
+precompile(Tuple{getfield(Core, Symbol("#kw#Type")), NamedTuple{(:copycols,), Tuple{Bool}}, Type{DataFrames.DataFrame}, Array{AbstractArray{T, 1} where T, 1}, Array{Symbol, 1}})
+precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), Array{Dates.DateTime, 1}})
+precompile(Tuple{getfield(DataFrames, Symbol("#84#87")), Array{String, 1}})
+precompile(Tuple{typeof(Base._similar_for), Array{DataFrames.DataFrame, 1}, Type{Array{Int64, 1}}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{Array{Int64, 1}, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to!), Array{Array{Int64, 1}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Array{Int64, 1}, 1}, Array{Int64, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{AbstractArray{Int64, 1}, 1}, Int64, Array{Array{Int64, 1}, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.setindex_widen_up_to), Array{Array{Int64, 1}, 1}, CSV.Column{Int64, Int64}, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{AbstractArray{Int64, 1}, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to!), Array{AbstractArray{Int64, 1}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64})
+precompile(Tuple{typeof(Base.map), Function, Array{AbstractArray{Int64, 1}, 1}})
+precompile(Tuple{Type{Base.Generator{I, F} where F where I}, typeof(Base.length), Array{AbstractArray{Int64, 1}, 1}})
+precompile(Tuple{typeof(Base._collect), Array{AbstractArray{Int64, 1}, 1}, Base.Generator{Array{AbstractArray{Int64, 1}, 1}, typeof(Base.length)}, Base.EltypeUnknown, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.collect_similar), Array{AbstractArray{Int64, 1}, 1}, Base.Generator{Array{AbstractArray{Int64, 1}, 1}, typeof(Base.length)}})
+precompile(Tuple{typeof(Base._similar_for), Array{AbstractArray{Int64, 1}, 1}, Type{Int64}, Base.Generator{Array{AbstractArray{Int64, 1}, 1}, typeof(Base.length)}, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Array{AbstractArray{Int64, 1}, 1}, typeof(Base.length)}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{AbstractArray{Int64, 1}, 1}, typeof(Base.length)}, Int64})
+precompile(Tuple{typeof(Base._mapreduce_dim), Function, Function, NamedTuple{(), Tuple{}}, Array{AbstractArray{Int64, 1}, 1}, Base.Colon})
+precompile(Tuple{typeof(Base.mapreduce), Function, Function, Array{AbstractArray{Int64, 1}, 1}})
+precompile(Tuple{typeof(Base.mapreduce_impl), typeof(Base.eltype), typeof(Base.promote_type), Array{AbstractArray{Int64, 1}, 1}, Int64, Int64, Int64})
+precompile(Tuple{typeof(Base._mapreduce), typeof(Base.eltype), typeof(Base.promote_type), Base.IndexLinear, Array{AbstractArray{Int64, 1}, 1}})
+precompile(Tuple{typeof(Base.length), Array{AbstractArray{Int64, 1}, 1}})
+precompile(Tuple{typeof(Base.getindex), Array{AbstractArray{Int64, 1}, 1}, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{Int64, 1}, Int64, Array{Int64, 1}})
+precompile(Tuple{typeof(Base._similar_for), Array{DataFrames.DataFrame, 1}, Type{Array{Dates.DateTime, 1}}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{Array{Dates.DateTime, 1}, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to!), Array{Array{Dates.DateTime, 1}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Array{Dates.DateTime, 1}, 1}, Array{Dates.DateTime, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{AbstractArray{Dates.DateTime, 1}, 1}, Int64, Array{Array{Dates.DateTime, 1}, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.setindex_widen_up_to), Array{Array{Dates.DateTime, 1}, 1}, CSV.Column{Dates.DateTime, Dates.DateTime}, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{AbstractArray{Dates.DateTime, 1}, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to!), Array{AbstractArray{Dates.DateTime, 1}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64})
+precompile(Tuple{typeof(Base.map), Function, Array{AbstractArray{Dates.DateTime, 1}, 1}})
+precompile(Tuple{Type{Base.Generator{I, F} where F where I}, typeof(Base.length), Array{AbstractArray{Dates.DateTime, 1}, 1}})
+precompile(Tuple{typeof(Base._collect), Array{AbstractArray{Dates.DateTime, 1}, 1}, Base.Generator{Array{AbstractArray{Dates.DateTime, 1}, 1}, typeof(Base.length)}, Base.EltypeUnknown, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.collect_similar), Array{AbstractArray{Dates.DateTime, 1}, 1}, Base.Generator{Array{AbstractArray{Dates.DateTime, 1}, 1}, typeof(Base.length)}})
+precompile(Tuple{typeof(Base.length), Array{Dates.DateTime, 1}})
+precompile(Tuple{typeof(Base._similar_for), Array{AbstractArray{Dates.DateTime, 1}, 1}, Type{Int64}, Base.Generator{Array{AbstractArray{Dates.DateTime, 1}, 1}, typeof(Base.length)}, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Array{AbstractArray{Dates.DateTime, 1}, 1}, typeof(Base.length)}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{AbstractArray{Dates.DateTime, 1}, 1}, typeof(Base.length)}, Int64})
+precompile(Tuple{typeof(Base.length), CSV.Column{Dates.DateTime, Dates.DateTime}})
+precompile(Tuple{typeof(Base._mapreduce_dim), Function, Function, NamedTuple{(), Tuple{}}, Array{AbstractArray{Dates.DateTime, 1}, 1}, Base.Colon})
+precompile(Tuple{typeof(Base.mapreduce), Function, Function, Array{AbstractArray{Dates.DateTime, 1}, 1}})
+precompile(Tuple{typeof(Base.mapreduce_impl), typeof(Base.eltype), typeof(Base.promote_type), Array{AbstractArray{Dates.DateTime, 1}, 1}, Int64, Int64, Int64})
+precompile(Tuple{typeof(Base._mapreduce), typeof(Base.eltype), typeof(Base.promote_type), Base.IndexLinear, Array{AbstractArray{Dates.DateTime, 1}, 1}})
+precompile(Tuple{typeof(Base.length), Array{AbstractArray{Dates.DateTime, 1}, 1}})
+precompile(Tuple{typeof(Base.getindex), Array{AbstractArray{Dates.DateTime, 1}, 1}, Int64})
+precompile(Tuple{typeof(Base.allocatedinline), Type{Dates.DateTime}})
+precompile(Tuple{typeof(Base.copyto!), Array{Dates.DateTime, 1}, Int64, Array{Dates.DateTime, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{Dates.DateTime, 1}, Int64, Array{Dates.DateTime, 1}})
+precompile(Tuple{typeof(Base._similar_for), Array{DataFrames.DataFrame, 1}, Type{Array{Bool, 1}}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{Array{Bool, 1}, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to!), Array{Array{Bool, 1}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Array{Bool, 1}, 1}, Array{Bool, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{AbstractArray{Bool, 1}, 1}, Int64, Array{Array{Bool, 1}, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.setindex_widen_up_to), Array{Array{Bool, 1}, 1}, CSV.Column{Bool, Bool}, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{AbstractArray{Bool, 1}, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to!), Array{AbstractArray{Bool, 1}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64})
+precompile(Tuple{typeof(Base.map), Function, Array{AbstractArray{Bool, 1}, 1}})
+precompile(Tuple{Type{Base.Generator{I, F} where F where I}, typeof(Base.length), Array{AbstractArray{Bool, 1}, 1}})
+precompile(Tuple{typeof(Base._collect), Array{AbstractArray{Bool, 1}, 1}, Base.Generator{Array{AbstractArray{Bool, 1}, 1}, typeof(Base.length)}, Base.EltypeUnknown, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.collect_similar), Array{AbstractArray{Bool, 1}, 1}, Base.Generator{Array{AbstractArray{Bool, 1}, 1}, typeof(Base.length)}})
+precompile(Tuple{typeof(Base.length), Array{Bool, 1}})
+precompile(Tuple{typeof(Base._similar_for), Array{AbstractArray{Bool, 1}, 1}, Type{Int64}, Base.Generator{Array{AbstractArray{Bool, 1}, 1}, typeof(Base.length)}, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Array{AbstractArray{Bool, 1}, 1}, typeof(Base.length)}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{AbstractArray{Bool, 1}, 1}, typeof(Base.length)}, Int64})
+precompile(Tuple{typeof(Base.length), CSV.Column{Bool, Bool}})
+precompile(Tuple{typeof(Base._mapreduce_dim), Function, Function, NamedTuple{(), Tuple{}}, Array{AbstractArray{Bool, 1}, 1}, Base.Colon})
+precompile(Tuple{typeof(Base.mapreduce), Function, Function, Array{AbstractArray{Bool, 1}, 1}})
+precompile(Tuple{typeof(Base.mapreduce_impl), typeof(Base.eltype), typeof(Base.promote_type), Array{AbstractArray{Bool, 1}, 1}, Int64, Int64, Int64})
+precompile(Tuple{typeof(Base._mapreduce), typeof(Base.eltype), typeof(Base.promote_type), Base.IndexLinear, Array{AbstractArray{Bool, 1}, 1}})
+precompile(Tuple{typeof(Base.length), Array{AbstractArray{Bool, 1}, 1}})
+precompile(Tuple{typeof(Base.getindex), Array{AbstractArray{Bool, 1}, 1}, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{Bool, 1}, Int64, Array{Bool, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{Bool, 1}, Int64, Array{Bool, 1}})
+precompile(Tuple{typeof(Base._similar_for), Array{DataFrames.DataFrame, 1}, Type{Array{String, 1}}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{Array{String, 1}, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to!), Array{Array{String, 1}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Array{String, 1}, 1}, Array{String, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{AbstractArray{String, 1}, 1}, Int64, Array{Array{String, 1}, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.setindex_widen_up_to), Array{Array{String, 1}, 1}, CSV.Column{String, CSV.PooledString}, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{AbstractArray{String, 1}, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to!), Array{AbstractArray{String, 1}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64})
+precompile(Tuple{typeof(Base.map), Function, Array{AbstractArray{String, 1}, 1}})
+precompile(Tuple{Type{Base.Generator{I, F} where F where I}, typeof(Base.length), Array{AbstractArray{String, 1}, 1}})
+precompile(Tuple{typeof(Base._collect), Array{AbstractArray{String, 1}, 1}, Base.Generator{Array{AbstractArray{String, 1}, 1}, typeof(Base.length)}, Base.EltypeUnknown, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.collect_similar), Array{AbstractArray{String, 1}, 1}, Base.Generator{Array{AbstractArray{String, 1}, 1}, typeof(Base.length)}})
+precompile(Tuple{typeof(Base._similar_for), Array{AbstractArray{String, 1}, 1}, Type{Int64}, Base.Generator{Array{AbstractArray{String, 1}, 1}, typeof(Base.length)}, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Array{AbstractArray{String, 1}, 1}, typeof(Base.length)}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{AbstractArray{String, 1}, 1}, typeof(Base.length)}, Int64})
+precompile(Tuple{typeof(Base.length), CSV.Column{String, CSV.PooledString}})
+precompile(Tuple{typeof(Base._mapreduce_dim), Function, Function, NamedTuple{(), Tuple{}}, Array{AbstractArray{String, 1}, 1}, Base.Colon})
+precompile(Tuple{typeof(Base.mapreduce), Function, Function, Array{AbstractArray{String, 1}, 1}})
+precompile(Tuple{typeof(Base.mapreduce_impl), typeof(Base.eltype), typeof(Base.promote_type), Array{AbstractArray{String, 1}, 1}, Int64, Int64, Int64})
+precompile(Tuple{typeof(Base._mapreduce), typeof(Base.eltype), typeof(Base.promote_type), Base.IndexLinear, Array{AbstractArray{String, 1}, 1}})
+precompile(Tuple{typeof(Base.length), Array{AbstractArray{String, 1}, 1}})
+precompile(Tuple{typeof(Base.getindex), Array{AbstractArray{String, 1}, 1}, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{String, 1}, Int64, Array{String, 1}})
+precompile(Tuple{typeof(Base.setindex_widen_up_to), Array{Array{String, 1}, 1}, CSV.Column{String, String}, Int64})
+precompile(Tuple{typeof(Base.length), CSV.Column{String, String}})
+precompile(Tuple{typeof(Base.eltype), CSV.Column{String, String}})
+precompile(Tuple{typeof(Base.copyto!), Array{String, 1}, Int64, CSV.Column{String, String}, Int64, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{String, 1}, Int64, CSV.Column{String, String}})
+precompile(Tuple{typeof(Base._similar_for), Array{DataFrames.DataFrame, 1}, Type{Array{Float64, 1}}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{Array{Float64, 1}, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to!), Array{Array{Float64, 1}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Array{Float64, 1}, 1}, Array{Float64, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{AbstractArray{Float64, 1}, 1}, Int64, Array{Array{Float64, 1}, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.setindex_widen_up_to), Array{Array{Float64, 1}, 1}, CSV.Column{Float64, Float64}, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{Any, 1}, Int64, Array{AbstractArray{Float64, 1}, 1}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to!), Array{AbstractArray{Float64, 1}, 1}, Base.Generator{Array{DataFrames.DataFrame, 1}, getfield(DataFrames, Symbol("#73#77")){Symbol}}, Int64, Int64})
+precompile(Tuple{typeof(Base.map), Function, Array{AbstractArray{Float64, 1}, 1}})
+precompile(Tuple{Type{Base.Generator{I, F} where F where I}, typeof(Base.length), Array{AbstractArray{Float64, 1}, 1}})
+precompile(Tuple{typeof(Base._collect), Array{AbstractArray{Float64, 1}, 1}, Base.Generator{Array{AbstractArray{Float64, 1}, 1}, typeof(Base.length)}, Base.EltypeUnknown, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.collect_similar), Array{AbstractArray{Float64, 1}, 1}, Base.Generator{Array{AbstractArray{Float64, 1}, 1}, typeof(Base.length)}})
+precompile(Tuple{typeof(Base.length), Array{Float64, 1}})
+precompile(Tuple{typeof(Base._similar_for), Array{AbstractArray{Float64, 1}, 1}, Type{Int64}, Base.Generator{Array{AbstractArray{Float64, 1}, 1}, typeof(Base.length)}, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.collect_to!), Array{Int64, 1}, Base.Generator{Array{AbstractArray{Float64, 1}, 1}, typeof(Base.length)}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{Int64, 1}, Int64, Base.Generator{Array{AbstractArray{Float64, 1}, 1}, typeof(Base.length)}, Int64})
+precompile(Tuple{typeof(Base.length), CSV.Column{Float64, Float64}})
+precompile(Tuple{typeof(Base._mapreduce_dim), Function, Function, NamedTuple{(), Tuple{}}, Array{AbstractArray{Float64, 1}, 1}, Base.Colon})
+precompile(Tuple{typeof(Base.mapreduce), Function, Function, Array{AbstractArray{Float64, 1}, 1}})
+precompile(Tuple{typeof(Base.mapreduce_impl), typeof(Base.eltype), typeof(Base.promote_type), Array{AbstractArray{Float64, 1}, 1}, Int64, Int64, Int64})
+precompile(Tuple{typeof(Base._mapreduce), typeof(Base.eltype), typeof(Base.promote_type), Base.IndexLinear, Array{AbstractArray{Float64, 1}, 1}})
+precompile(Tuple{typeof(Base.length), Array{AbstractArray{Float64, 1}, 1}})
+precompile(Tuple{typeof(Base.getindex), Array{AbstractArray{Float64, 1}, 1}, Int64})
+precompile(Tuple{typeof(Base.copyto!), Array{Float64, 1}, Int64, Array{Float64, 1}})
+precompile(Tuple{typeof(Base._all), getfield(Base, Symbol("#240#242")), Base.Dict{Symbol, Int64}, Base.Colon})
+precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Base.Dict{Symbol, Int64}})
+precompile(Tuple{typeof(Base.getindex), DataFrames.DataFrame, Base.UnitRange{Int64}, Base.Colon})
+precompile(Tuple{typeof(Base.getindex), Array{Int64, 1}, Base.UnitRange{Int64}})
+precompile(Tuple{typeof(Base.throw_boundserror), Array{Dates.DateTime, 1}, Tuple{Base.UnitRange{Int64}}})
+precompile(Tuple{typeof(Base.getindex), Array{Dates.DateTime, 1}, Base.UnitRange{Int64}})
+precompile(Tuple{typeof(Base.getindex), Array{Bool, 1}, Base.UnitRange{Int64}})
+precompile(Tuple{typeof(Base.getindex), Array{String, 1}, Base.UnitRange{Int64}})
+precompile(Tuple{typeof(Base.throw_boundserror), Array{Float64, 1}, Tuple{Base.UnitRange{Int64}}})
+precompile(Tuple{typeof(Base.getindex), Array{Float64, 1}, Base.UnitRange{Int64}})
+precompile(Tuple{typeof(Base.put_buffered), Base.Channel{DataFrames.DataFrame}, DataFrames.DataFrame})
+precompile(Tuple{typeof(Base.put_unbuffered), Base.Channel{DataFrames.DataFrame}, DataFrames.DataFrame})
+precompile(Tuple{typeof(Base.put!), Base.Channel{DataFrames.DataFrame}, DataFrames.DataFrame})
+precompile(Tuple{typeof(Base.put_buffered), Base.Channel{DataFrames.AbstractDataFrame}, DataFrames.DataFrame})
+precompile(Tuple{typeof(Base.put_unbuffered), Base.Channel{DataFrames.AbstractDataFrame}, DataFrames.DataFrame})
+precompile(Tuple{typeof(Base.put!), Base.Channel{DataFrames.AbstractDataFrame}, DataFrames.DataFrame})
+precompile(Tuple{typeof(Base.lastindex), DataFrames.DataFrame, Int64})
+precompile(Tuple{getfield(Base, Symbol("##_#633")), Nothing, Bool, Type{Base.Channel{Any}}, getfield(Dataiku, Symbol("#45#46")){Base.Channel{DataFrames.AbstractDataFrame}, DataFrames.DataFrame}, Int64})
+precompile(Tuple{typeof(Dataiku._dataframe_chnl_to_csv), Base.Channel{DataFrames.AbstractDataFrame}, DataFrames.DataFrame})
+precompile(Tuple{typeof(Base.put_buffered), Base.Channel{Any}, Base.BufferStream})
+precompile(Tuple{typeof(Base.iterate), Base.Channel{DataFrames.AbstractDataFrame}, Nothing})
+precompile(Tuple{typeof(Base.put_unbuffered), Base.Channel{Any}, Base.BufferStream})
+precompile(Tuple{getfield(Dataiku, Symbol("#45#46")){Base.Channel{DataFrames.AbstractDataFrame}, DataFrames.DataFrame}, Base.Channel{Any}})
+precompile(Tuple{getfield(Base, Symbol("#634#635")){getfield(Dataiku, Symbol("#45#46")){Base.Channel{DataFrames.AbstractDataFrame}, DataFrames.DataFrame}, Base.Channel{Any}}})
+precompile(Tuple{Type{Tables.Schema{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Int64, Dates.DateTime, Dates.DateTime, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}}})
+precompile(Tuple{typeof(Tables.columntable), Tables.Schema{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Int64, Dates.DateTime, Dates.DateTime, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}, DataFrames.DataFrame})
+precompile(Tuple{Type{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), T} where T<:Tuple}, Tuple{Array{Int64, 1}, Array{Dates.DateTime, 1}, Array{Dates.DateTime, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{String, 1}, Array{String, 1}, Array{Int64, 1}, Array{Float64, 1}}})
+precompile(Tuple{typeof(Tables.rows), NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{Dates.DateTime, 1}, Array{Dates.DateTime, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{String, 1}, Array{String, 1}, Array{Int64, 1}, Array{Float64, 1}}}})
+precompile(Tuple{typeof(Tables._types), Type{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{Dates.DateTime, 1}, Array{Dates.DateTime, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{String, 1}, Array{String, 1}, Array{Int64, 1}, Array{Float64, 1}}}}})
+precompile(Tuple{typeof(Tables.schema), Tables.RowIterator{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{Dates.DateTime, 1}, Array{Dates.DateTime, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{String, 1}, Array{String, 1}, Array{Int64, 1}, Array{Float64, 1}}}}})
+precompile(Tuple{getfield(CSV, Symbol("##write#54")), Bool, Bool, Array{String, 1}, typeof(CSV.write), Tables.Schema{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Int64, Dates.DateTime, Dates.DateTime, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}, Tables.RowIterator{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{Dates.DateTime, 1}, Array{Dates.DateTime, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{String, 1}, Array{String, 1}, Array{Int64, 1}, Array{Float64, 1}}}}, Base.BufferStream, CSV.Options{UInt8, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Tuple{}}})
+precompile(Tuple{getfield(CSV, Symbol("#kw##write")), NamedTuple{(:writeheader,), Tuple{Bool}}, typeof(CSV.write), Tables.Schema{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Int64, Dates.DateTime, Dates.DateTime, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}, Tables.RowIterator{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{Dates.DateTime, 1}, Array{Dates.DateTime, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{String, 1}, Array{String, 1}, Array{Int64, 1}, Array{Float64, 1}}}}, Base.BufferStream, CSV.Options{UInt8, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Tuple{}}})
+precompile(Tuple{typeof(CSV.writerow), Array{UInt8, 1}, Base.RefValue{Int64}, Int64, Base.BufferStream, Tables.Schema{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Int64, Dates.DateTime, Dates.DateTime, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}, Tables.ColumnsRow{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{Dates.DateTime, 1}, Array{Dates.DateTime, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{String, 1}, Array{String, 1}, Array{Int64, 1}, Array{Float64, 1}}}}, Int64, CSV.Options{UInt8, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Tuple{}}})
+precompile(Tuple{getfield(CSV, Symbol("#55#56")){Bool, Tables.Schema{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Int64, Dates.DateTime, Dates.DateTime, Bool, String, Bool, String, Bool, String, Int64, Int64, Int64, Int64, Int64, String, String, Int64, Float64}}, Tables.RowIterator{NamedTuple{(:id, :Date, :Date_parsed, :holiday_bank, :holiday_bank_reasons, :holiday_school, :holiday_school_reasons, :holiday_weekend, :holiday_zones, :annee, :mois, :semaine, :jour, :jour_semaine, :Partenaire, :Agence, :CP, :nb_colis), Tuple{Array{Int64, 1}, Array{Dates.DateTime, 1}, Array{Dates.DateTime, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Bool, 1}, Array{String, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{Int64, 1}, Array{String, 1}, Array{String, 1}, Array{Int64, 1}, Array{Float64, 1}}}}, CSV.Options{UInt8, UInt8, Dates.DateFormat{Symbol("yyyy-mm-ddTHH:MM:SS.sssZ"), Tuple{Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x6d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x73000000)}, Dates.Delim{Char, 1}}}, Tuple{}}, Tuple{Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol, Symbol}, Int64, Int64, Array{UInt8, 1}}, Base.BufferStream})
+precompile(Tuple{getfield(Dataiku, Symbol("##write_data#51")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.write_data), Dataiku.DSSDataset, Base.Channel{Any}, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Dataiku.write_data), Dataiku.DSSDataset, Base.Channel{Any}, Base.Dict{String, Any}})
+precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request), String, String, Base.Channel{Any}})
+precompile(Tuple{typeof(Dataiku._push_data), String, Base.Channel{Any}})
+precompile(Tuple{getfield(HTTP, Symbol("##request#4")), Base.Dict{String, String}, Base.Channel{Any}, Nothing, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), String, String, Base.Dict{String, String}, Base.Channel{Any}})
+precompile(Tuple{typeof(HTTP.request), String, String, Base.Dict{String, String}, Base.Channel{Any}})
+precompile(Tuple{getfield(HTTP.MessageRequest, Symbol("##request#1")), Base.VersionNumber, String, Nothing, Nothing, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), Type{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Base.Channel{Any}})
+precompile(Tuple{getfield(HTTP.RedirectRequest, Symbol("##request#1")), Int64, Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), Type{HTTP.RedirectRequest.RedirectLayer{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Base.Channel{Any}})
+precompile(Tuple{typeof(HTTP.request), Type{HTTP.RedirectRequest.RedirectLayer{HTTP.MessageRequest.MessageLayer{HTTP.RetryRequest.RetryLayer{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}}}}, String, HTTP.URIs.URI, Array{Base.Pair{Base.SubString{String}, Base.SubString{String}}, 1}, Base.Channel{Any}})
+precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{Nothing}}, typeof(HTTP.request), Type{HTTP.ExceptionRequest.ExceptionLayer{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Base.Channel{Any}})
+precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{Nothing}}, typeof(HTTP.request), Type{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Base.Channel{Any}})
+precompile(Tuple{getfield(HTTP.ConnectionRequest, Symbol("##request#1")), Nothing, Type{T} where T, Int64, Base.Iterators.Pairs{Symbol, Nothing, Tuple{Symbol}, NamedTuple{(:iofunction,), Tuple{Nothing}}}, typeof(HTTP.request), Type{HTTP.ConnectionRequest.ConnectionPoolLayer{HTTP.StreamRequest.StreamLayer{Union{}}}}, HTTP.URIs.URI, HTTP.Messages.Request, Base.Channel{Any}})
+precompile(Tuple{getfield(HTTP.StreamRequest, Symbol("##request#1")), Nothing, Nothing, Int64, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(HTTP.request), Type{HTTP.StreamRequest.StreamLayer{Union{}}}, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, Base.Channel{Any}})
+precompile(Tuple{getfield(HTTP, Symbol("#kw##request")), NamedTuple{(:iofunction,), Tuple{Nothing}}, typeof(HTTP.request), Type{HTTP.StreamRequest.StreamLayer{Union{}}}, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, Base.Channel{Any}})
+precompile(Tuple{typeof(HTTP.StreamRequest.writebodystream), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, HTTP.Messages.Request, Base.Channel{Any}})
+precompile(Tuple{typeof(HTTP.StreamRequest.writebody), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, HTTP.Messages.Request, Base.Channel{Any}})
+precompile(Tuple{getfield(HTTP.StreamRequest, Symbol("#2#3")){HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}, HTTP.Messages.Request, Base.Channel{Any}, HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}}})
+precompile(Tuple{typeof(HTTP.StreamRequest.writechunk), HTTP.Streams.Stream{HTTP.Messages.Response, HTTP.ConnectionPool.Transaction{Sockets.TCPSocket}}, HTTP.Messages.Request, Base.BufferStream})
+precompile(Tuple{typeof(Dataiku._get_stream_write), DataFrames.DataFrame})
+precompile(Tuple{typeof(Base.foreach), getfield(Base, Symbol("#466#467")){Task}, Array{Any, 1}})
+precompile(Tuple{getfield(Base, Symbol("#649#651")){Task, Base.Channel{Any}}})
+precompile(Tuple{typeof(Base.close_chnl_on_taskdone), Task, Base.Channel{Any}})
+precompile(Tuple{getfield(Base, Symbol("#466#467")){Task}, getfield(Base, Symbol("#638#639")){Base.Channel{Any}}})
+precompile(Tuple{typeof(Base.delete!), Base.IdDict{Any, Any}, Any})
+precompile(Tuple{typeof(Base.close), Base.Channel{DataFrames.DataFrame}, Base.InvalidStateException})
+precompile(Tuple{getfield(Base, Symbol("#649#651")){Task, Base.Channel{DataFrames.DataFrame}}})
+precompile(Tuple{typeof(Base.close_chnl_on_taskdone), Task, Base.Channel{DataFrames.DataFrame}})
+precompile(Tuple{getfield(Base, Symbol("#466#467")){Task}, getfield(Base, Symbol("#638#639")){Base.Channel{DataFrames.DataFrame}}})
+precompile(Tuple{typeof(Base.close), Base.Channel{DataFrames.AbstractDataFrame}, Base.InvalidStateException})
+precompile(Tuple{getfield(Base, Symbol("#649#651")){Task, Base.Channel{DataFrames.AbstractDataFrame}}})
+precompile(Tuple{typeof(Base.close_chnl_on_taskdone), Task, Base.Channel{DataFrames.AbstractDataFrame}})
+precompile(Tuple{getfield(Base, Symbol("#466#467")){Task}, getfield(Base, Symbol("#638#639")){Base.Channel{DataFrames.AbstractDataFrame}}})
+precompile(Tuple{typeof(Dataiku.create_analysis), Dataiku.DSSDataset})
+precompile(Tuple{typeof(Dataiku.request_json), String, String, Base.Dict{String, String}})
+precompile(Tuple{Type{Dataiku.DSSAnalysis}, String, Dataiku.DSSProject})
+precompile(Tuple{getfield(Dataiku, Symbol("##create_prediction_ml_task#78")), String, String, Nothing, Bool, typeof(Dataiku.create_prediction_ml_task), Dataiku.DSSDataset, Symbol})
+precompile(Tuple{typeof(Dataiku.create_prediction_ml_task), Dataiku.DSSDataset, Symbol})
+precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Symbol}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}}})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Any, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Symbol}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}})
+precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Symbol}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, String}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Symbol}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}, Int64})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Any}, Symbol, String})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Symbol}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}, Int64})
+precompile(Tuple{typeof(Dataiku.get_status), Dataiku.DSSMLTask})
+precompile(Tuple{typeof(Dataiku.wait_guess_complete), Dataiku.DSSMLTask})
+precompile(Tuple{getfield(Dataiku, Symbol("##create_ml_task#80")), Bool, typeof(Dataiku.create_ml_task), Dataiku.DSSDataset, Base.Dict{String, Any}})
+precompile(Tuple{getfield(Dataiku, Symbol("#kw##create_ml_task")), NamedTuple{(:wait_guess,), Tuple{Bool}}, typeof(Dataiku.create_ml_task), Dataiku.DSSDataset, Base.Dict{String, Any}})
+precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String, Nothing})
+precompile(Tuple{typeof(Base.convert), Type{Any}, Symbol})
+precompile(Tuple{typeof(Base.write), JSON.Writer.StringContext{JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}}, Symbol})
+precompile(Tuple{typeof(JSON.Writer.show_string), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, Symbol})
+precompile(Tuple{typeof(JSON.Writer.show_json), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Symbol})
+precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String, Symbol})
+precompile(Tuple{Type{Dataiku.DSSMLTask}, Base.Dict{String, Any}, Dataiku.DSSProject})
+precompile(Tuple{Type{Dataiku.DSSMLTask}, String, String, Dataiku.DSSProject})
+precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Base.Pair{String, String}, Base.Pair{String, Symbol}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}}})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Any, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, Symbol}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}})
+precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Tuple{Base.Pair{String, String}, Base.Pair{String, Symbol}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}})
+precompile(Tuple{getfield(Dataiku, Symbol("##create_prediction_ml_task#81")), String, String, Nothing, Bool, typeof(Dataiku.create_prediction_ml_task), Dataiku.DSSAnalysis, Symbol})
+precompile(Tuple{typeof(Dataiku.create_prediction_ml_task), Dataiku.DSSAnalysis, Symbol})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, String}, Tuple{Base.Pair{String, String}, Base.Pair{String, Symbol}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}, Int64})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, Symbol}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Nothing}}, Int64})
+precompile(Tuple{getfield(Dataiku, Symbol("##create_ml_task#83")), Bool, typeof(Dataiku.create_ml_task), Dataiku.DSSAnalysis, Base.Dict{String, Any}})
+precompile(Tuple{getfield(Dataiku, Symbol("#kw##create_ml_task")), NamedTuple{(:wait_guess,), Tuple{Bool}}, typeof(Dataiku.create_ml_task), Dataiku.DSSAnalysis, Base.Dict{String, Any}})
+precompile(Tuple{getfield(Dataiku, Symbol("##create_clustering_ml_task#79")), String, String, Bool, typeof(Dataiku.create_clustering_ml_task), Dataiku.DSSDataset})
+precompile(Tuple{typeof(Dataiku.create_clustering_ml_task), Dataiku.DSSDataset})
+precompile(Tuple{getfield(Dataiku, Symbol("##create_ml_task#80")), Bool, typeof(Dataiku.create_ml_task), Dataiku.DSSDataset, Base.Dict{String, String}})
+precompile(Tuple{getfield(Dataiku, Symbol("#kw##create_ml_task")), NamedTuple{(:wait_guess,), Tuple{Bool}}, typeof(Dataiku.create_ml_task), Dataiku.DSSDataset, Base.Dict{String, String}})
+precompile(Tuple{getfield(Dataiku, Symbol("##create_ml_task#83")), Bool, typeof(Dataiku.create_ml_task), Dataiku.DSSAnalysis, Base.Dict{String, String}})
+precompile(Tuple{getfield(Dataiku, Symbol("##create_clustering_ml_task#82")), String, String, Bool, typeof(Dataiku.create_clustering_ml_task), Dataiku.DSSAnalysis})
+precompile(Tuple{typeof(Dataiku.create_clustering_ml_task), Dataiku.DSSAnalysis})
+precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request), String, String, Base.Dict{String, Nothing}})
+precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request_json), String, String, Base.Dict{String, Nothing}})
+precompile(Tuple{typeof(Dataiku.guess), Dataiku.DSSMLTask, Nothing})
+precompile(Tuple{typeof(Dataiku.guess), Dataiku.DSSMLTask})
+precompile(Tuple{getfield(Base, Symbol("##sprint#339")), Nothing, Int64, typeof(Base.sprint), Function, Base.Dict{String, Nothing}})
+precompile(Tuple{typeof(JSON.Writer.show_json), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Base.Dict{String, Nothing}})
+precompile(Tuple{typeof(JSON.Writer.print), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.Dict{String, Nothing}})
+precompile(Tuple{typeof(Dataiku.list_analysis), Dataiku.DSSProject})
+precompile(Tuple{typeof(Dataiku.list_analysis)})
+precompile(Tuple{typeof(Base.:(|>)), Array{Any, 1}, typeof(Base.length)})
+precompile(Tuple{typeof(Dataiku.list_ml_tasks), Dataiku.DSSAnalysis})
+precompile(Tuple{typeof(Dataiku.list_ml_tasks), Dataiku.DSSProject})
+precompile(Tuple{typeof(Dataiku.list_ml_tasks)})
+precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request), String, String, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}})
+precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request_json), String, String, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}})
+precompile(Tuple{getfield(Dataiku, Symbol("##start_train#85")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.start_train), Dataiku.DSSMLTask})
+precompile(Tuple{getfield(Base, Symbol("#Timer#505#506")), Float64, Type{Base.Timer}, Int64})
+precompile(Tuple{typeof(Dataiku.wait_train_complete), Dataiku.DSSMLTask})
+precompile(Tuple{getfield(Dataiku, Symbol("##train#84")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.train), Dataiku.DSSMLTask})
+precompile(Tuple{typeof(Dataiku.train), Dataiku.DSSMLTask})
+precompile(Tuple{getfield(Base, Symbol("##sprint#339")), Nothing, Int64, typeof(Base.sprint), Function, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}})
+precompile(Tuple{typeof(JSON.Writer.show_json), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}})
+precompile(Tuple{typeof(JSON.Writer.print), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}})
+precompile(Tuple{typeof(Dataiku.get_trained_models_ids), Dataiku.DSSMLTask, String, Nothing})
+precompile(Tuple{typeof(Dataiku.get_trained_models_ids), Dataiku.DSSMLTask, String})
+precompile(Tuple{Type{Base.Iterators.Filter{F, I} where I where F}, getfield(Dataiku, Symbol("#87#92")){String}, Array{Any, 1}})
+precompile(Tuple{Type{Base.Generator{I, F} where F where I}, getfield(Dataiku, Symbol("#86#91")), Base.Iterators.Filter{getfield(Dataiku, Symbol("#87#92")){String}, Array{Any, 1}}})
+precompile(Tuple{typeof(Base.iterate), Base.Iterators.Filter{getfield(Dataiku, Symbol("#87#92")){String}, Array{Any, 1}}})
+precompile(Tuple{typeof(Base.grow_to!), Array{Any, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#87#92")){String}, Array{Any, 1}}, getfield(Dataiku, Symbol("#86#91"))}})
+precompile(Tuple{typeof(Base.collect), Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#87#92")){String}, Array{Any, 1}}, getfield(Dataiku, Symbol("#86#91"))}})
+precompile(Tuple{getfield(Dataiku, Symbol("#87#92")){String}, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Base.empty), Array{Any, 1}, Type{Base.Dict{String, Any}}})
+precompile(Tuple{typeof(Base.iterate), Base.Iterators.Filter{getfield(Dataiku, Symbol("#87#92")){String}, Array{Any, 1}}, Int64})
+precompile(Tuple{typeof(Base.grow_to!), Array{Base.Dict{String, Any}, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#87#92")){String}, Array{Any, 1}}, getfield(Dataiku, Symbol("#86#91"))}, Int64})
+precompile(Tuple{Type{Base.Generator{I, F} where F where I}, getfield(Dataiku, Symbol("#88#93")), Array{Base.Dict{String, Any}, 1}})
+precompile(Tuple{typeof(Base.collect), Base.Generator{Array{Base.Dict{String, Any}, 1}, getfield(Dataiku, Symbol("#88#93"))}})
+precompile(Tuple{typeof(Base._array_for), Type{String}, Array{Base.Dict{String, Any}, 1}, Base.HasShape{1}})
+precompile(Tuple{typeof(Base.collect_to!), Array{String, 1}, Base.Generator{Array{Base.Dict{String, Any}, 1}, getfield(Dataiku, Symbol("#88#93"))}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect_to_with_first!), Array{String, 1}, String, Base.Generator{Array{Base.Dict{String, Any}, 1}, getfield(Dataiku, Symbol("#88#93"))}, Int64})
+precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Base.Pair{String, String}, Base.Pair{String, Array{String, 1}}}}})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Any, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, Array{String, 1}}}})
+precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Tuple{Base.Pair{String, String}, Base.Pair{String, Array{String, 1}}}})
+precompile(Tuple{typeof(Dataiku.start_ensembling), Dataiku.DSSMLTask, Array{String, 1}, String})
+precompile(Tuple{typeof(Dataiku.get_trained_models_ids), Dataiku.DSSMLTask, Nothing, Nothing})
+precompile(Tuple{Type{Dataiku.DSSTrainedModel}, Dataiku.DSSMLTask, Nothing, Nothing})
+precompile(Tuple{typeof(Dataiku.ensemble), Dataiku.DSSMLTask, Array{String, 1}, String})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, String}, String, Array{String, 1}})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, String}, Tuple{Base.Pair{String, String}, Base.Pair{String, Array{String, 1}}}, Int64})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Any}, Array{String, 1}, Array{String, 1}})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Any}, String, Array{String, 1}})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, Array{String, 1}}}, Int64})
+precompile(Tuple{typeof(Dataiku.request_json), String, String, Base.Dict{String, Any}})
+precompile(Tuple{Type{Dataiku.DSSTrainedModel}, String})
+precompile(Tuple{typeof(Dataiku.get_snippet), Dataiku.DSSTrainedModel})
+precompile(Tuple{typeof(Dataiku.get_user_meta), Dataiku.DSSTrainedModel})
+precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request), String, String, Base.Dict{String, Array{String, 1}}})
+precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request_json), String, String, Base.Dict{String, Array{String, 1}}})
+precompile(Tuple{typeof(Dataiku.get_trained_model_snippet), Dataiku.DSSMLTask, Array{String, 1}})
+precompile(Tuple{typeof(Dataiku.get_trained_model_snippet), Dataiku.DSSMLTask, String})
+precompile(Tuple{typeof(Base.string), String, Base.SubString{String}, String, Base.SubString{String}, Vararg{Union{Char, Base.SubString{String}, String}, N} where N})
+precompile(Tuple{getfield(Base, Symbol("##sprint#339")), Nothing, Int64, typeof(Base.sprint), Function, Base.Dict{String, Array{String, 1}}})
+precompile(Tuple{typeof(JSON.Writer.show_json), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Base.Dict{String, Array{String, 1}}})
+precompile(Tuple{typeof(JSON.Writer.print), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.Dict{String, Array{String, 1}}})
+precompile(Tuple{typeof(Dataiku.set_user_meta), Dataiku.DSSTrainedModel, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Dataiku.get_settings), Dataiku.DSSMLTask})
+precompile(Tuple{typeof(Dataiku.set_settings), Dataiku.DSSMLTask, Base.Dict{String, Any}})
+precompile(Tuple{typeof(JSON.Writer.show_element), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Float64})
+precompile(Tuple{typeof(JSON.Writer.show_element), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Int64})
+precompile(Tuple{typeof(Dataiku.get_trained_models_ids), Dataiku.DSSMLTask, String, String})
+precompile(Tuple{Type{Dataiku.DSSTrainedModel}, Dataiku.DSSMLTask, String, String})
+precompile(Tuple{Type{Base.Iterators.Filter{F, I} where I where F}, getfield(Dataiku, Symbol("#90#95")){String}, Base.Dict{String, Any}})
+precompile(Tuple{Type{Base.Generator{I, F} where F where I}, getfield(Dataiku, Symbol("#89#94")), Base.Iterators.Filter{getfield(Dataiku, Symbol("#90#95")){String}, Base.Dict{String, Any}}})
+precompile(Tuple{getfield(Dataiku, Symbol("#90#95")){String}, Base.Pair{String, Any}})
+precompile(Tuple{typeof(Base.iterate), Base.Iterators.Filter{getfield(Dataiku, Symbol("#90#95")){String}, Base.Dict{String, Any}}})
+precompile(Tuple{typeof(Base.iterate), Base.Iterators.Filter{getfield(Dataiku, Symbol("#90#95")){String}, Base.Dict{String, Any}}, Int64})
+precompile(Tuple{typeof(Base.grow_to!), Array{String, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#90#95")){String}, Base.Dict{String, Any}}, getfield(Dataiku, Symbol("#89#94"))}, Int64})
+precompile(Tuple{typeof(Base.grow_to!), Array{String, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#90#95")){String}, Base.Dict{String, Any}}, getfield(Dataiku, Symbol("#89#94"))}})
+precompile(Tuple{typeof(Base.collect), Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#90#95")){String}, Base.Dict{String, Any}}, getfield(Dataiku, Symbol("#89#94"))}})
+precompile(Tuple{typeof(Base.convert), Type{AbstractString}, String})
+precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request), String, String, Base.Dict{Any, Any}})
+precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request_json), String, String, Base.Dict{Any, Any}})
+precompile(Tuple{getfield(Dataiku, Symbol("##deploy_to_flow#96")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.deploy_to_flow), Dataiku.DSSTrainedModel})
+precompile(Tuple{typeof(Dataiku.deploy_to_flow), Dataiku.DSSTrainedModel})
+precompile(Tuple{typeof(Base.iterate), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}})
+precompile(Tuple{typeof(Dataiku.find_field), Array{Any, 1}, String, Base.SubString{String}})
+precompile(Tuple{getfield(Base, Symbol("##sprint#339")), Nothing, Int64, typeof(Base.sprint), Function, Base.Dict{Any, Any}})
+precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Base.Pair{Any, Any}})
+precompile(Tuple{typeof(JSON.Writer.show_json), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Base.Dict{Any, Any}})
+precompile(Tuple{typeof(JSON.Writer.print), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.Dict{Any, Any}})
+precompile(Tuple{Type{Dataiku.DSSSavedModel}, String, Dataiku.DSSProject})
+precompile(Tuple{typeof(Dataiku.find_field), Array{Any, 1}, String, String})
+precompile(Tuple{typeof(Dataiku.redeploy_to_flow), Dataiku.DSSTrainedModel, Dataiku.DSSSavedModel, Bool})
+precompile(Tuple{typeof(Dataiku.redeploy_to_flow), Dataiku.DSSTrainedModel, Dataiku.DSSSavedModel})
+precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Base.Pair{String, String}, Base.Pair{String, Bool}}}})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Any, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, Bool}}})
+precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Tuple{Base.Pair{String, String}, Base.Pair{String, Bool}}})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, String}, String, Bool})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, String}, Tuple{Base.Pair{String, String}, Base.Pair{String, Bool}}, Int64})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Any}, Bool, Bool})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Any}, String, Bool})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, Bool}}, Int64})
+precompile(Tuple{Type{Base.Pair{A, B} where B where A}, String, Bool})
+precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Base.Pair{String, Bool}})
+precompile(Tuple{typeof(Base.in), Base.Pair{String, Any}, Base.Dict{String, Bool}, typeof(Base.:(==))})
+precompile(Tuple{typeof(Base.:(==)), Base.Dict{String, Any}, Base.Dict{String, Bool}})
+precompile(Tuple{typeof(Dataiku.list_versions), Dataiku.DSSSavedModel})
+precompile(Tuple{Type{Dataiku.DSSModelVersion}, Dataiku.DSSSavedModel, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Dataiku.set_active), Dataiku.DSSModelVersion})
+precompile(Tuple{typeof(Dataiku.get_snippet), Dataiku.DSSModelVersion})
+precompile(Tuple{typeof(Dataiku.get_user_meta), Dataiku.DSSModelVersion})
+precompile(Tuple{typeof(Dataiku.set_user_meta), Dataiku.DSSModelVersion, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Dataiku.delete), Dataiku.DSSSavedModel})
+precompile(Tuple{typeof(Dataiku.delete), Dataiku.DSSMLTask})
+precompile(Tuple{typeof(Dataiku.delete), Dataiku.DSSAnalysis})
+precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Base.Dict{Any, Any}}}}})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Any, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Base.Dict{Any, Any}}}})
+precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Base.Dict{Any, Any}}}})
+precompile(Tuple{getfield(Dataiku, Symbol("##create_scenario#75")), Base.Dict{Any, Any}, String, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.create_scenario), String, String, Dataiku.DSSProject})
+precompile(Tuple{typeof(Dataiku.create_scenario), String, String})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, String}, String, Base.Dict{Any, Any}})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, String}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Base.Dict{Any, Any}}}, Int64})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Any}, Base.Dict{Any, Any}, String})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Any}, Base.Dict{Any, Any}, Base.Dict{Any, Any}})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Any}, String, Base.Dict{Any, Any}})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Any}, Tuple{Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, String}, Base.Pair{String, Base.Dict{Any, Any}}}, Int64})
+precompile(Tuple{typeof(Base.merge), Base.Dict{String, Any}})
+precompile(Tuple{typeof(Dataiku.create_scenario), Base.Dict{String, Any}, Dataiku.DSSProject})
+precompile(Tuple{typeof(Base.convert), Type{Any}, Base.Dict{Any, Any}})
+precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, String, Base.Dict{Any, Any}})
+precompile(Tuple{Type{Dataiku.DSSScenario}, String, Dataiku.DSSProject})
+precompile(Tuple{typeof(Dataiku.list_scenarios), Dataiku.DSSProject})
+precompile(Tuple{typeof(Dataiku.list_scenarios)})
+precompile(Tuple{typeof(Dataiku.get_status), Dataiku.DSSScenario})
+precompile(Tuple{typeof(Dataiku.set_status), Dataiku.DSSScenario, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Dataiku.get_settings), Dataiku.DSSScenario})
+precompile(Tuple{typeof(Base.in), Base.Pair{String, Any}, Base.Dict{Any, Any}, typeof(Base.:(==))})
+precompile(Tuple{typeof(Base.:(==)), Base.Dict{String, Any}, Base.Dict{Any, Any}})
+precompile(Tuple{typeof(Dataiku.set_settings), Dataiku.DSSScenario, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Dataiku.set_payload), Dataiku.DSSScenario, String})
+precompile(Tuple{typeof(Dataiku.get_payload), Dataiku.DSSScenario})
+precompile(Tuple{typeof(Base.get), Base.Dict{String, Any}, String, String})
+precompile(Tuple{typeof(Dataiku.run), Dataiku.DSSScenario, Base.Dict{Any, Any}})
+precompile(Tuple{typeof(Dataiku.is_cancelled), Dataiku.DSSTriggerFire})
+precompile(Tuple{typeof(Dataiku.get_scenario_run), Dataiku.DSSTriggerFire})
+precompile(Tuple{getfield(Dataiku, Symbol("##wait_for_scenario_run#77")), Bool, typeof(Dataiku.wait_for_scenario_run), Dataiku.DSSTriggerFire})
+precompile(Tuple{typeof(Dataiku.get_details), Dataiku.DSSScenarioRun})
+precompile(Tuple{typeof(Base.collect_to!), Array{Char, 1}, Base.Generator{Base.CodeUnits{UInt8, String}, Type{Char}}, Int64, Int64})
+precompile(Tuple{typeof(Base.collect), Base.Generator{Base.CodeUnits{UInt8, String}, Type{Char}}})
+precompile(Tuple{typeof(Base.filter), typeof(HTTP.Cookies.validcookievaluebyte), Array{Char, 1}})
+precompile(Tuple{typeof(Base.string), Char, String, Char})
+precompile(Tuple{typeof(HTTP.Cookies.sanitizeCookieValue), String})
+precompile(Tuple{typeof(Base.write), Base.GenericIOBuffer{Array{UInt8, 1}}, String, Char, String})
+precompile(Tuple{typeof(HTTP.Cookies.isCookieDomainName), String})
+precompile(Tuple{typeof(Dates.dayofweek), Dates.DateTime})
+precompile(Tuple{typeof(Dates.format), Base.GenericIOBuffer{Array{UInt8, 1}}, Dates.DatePart{Char(0x75000000)}, Dates.DateTime, Dates.DateLocale})
+precompile(Tuple{typeof(Dates.format), Base.GenericIOBuffer{Array{UInt8, 1}}, Dates.DateTime, Dates.DateFormat{Symbol("e, dd u yyyy HH:MM:SS"), Tuple{Dates.DatePart{Char(0x65000000)}, Dates.Delim{String, 2}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x75000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}}}})
+precompile(Tuple{typeof(Dates.format), Dates.DateTime, Dates.DateFormat{Symbol("e, dd u yyyy HH:MM:SS"), Tuple{Dates.DatePart{Char(0x65000000)}, Dates.Delim{String, 2}, Dates.DatePart{Char(0x64000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x75000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x79000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x48000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x4d000000)}, Dates.Delim{Char, 1}, Dates.DatePart{Char(0x53000000)}}}, Int64})
+precompile(Tuple{typeof(Base.write), Base.GenericIOBuffer{Array{UInt8, 1}}, String, String, String})
+precompile(Tuple{typeof(HTTP.Cookies.isIP), String})
+precompile(Tuple{Type{String}, HTTP.Cookies.Cookie, Bool})
+precompile(Tuple{typeof(Base.string), String, Array{HTTP.Cookies.Cookie, 1}, Bool})
+precompile(Tuple{getfield(Dataiku, Symbol("##wait#76")), Bool, typeof(Dataiku.wait), Dataiku.DSSScenarioRun})
+precompile(Tuple{getfield(Dataiku, Symbol("##run_and_wait#72")), Bool, typeof(Dataiku.run_and_wait), Dataiku.DSSScenario, Base.Dict{Any, Any}})
+precompile(Tuple{typeof(Dataiku.run_and_wait), Dataiku.DSSScenario})
+precompile(Tuple{Type{Dataiku.DSSTriggerFire}, Base.Dict{String, Any}})
+precompile(Tuple{Type{NamedTuple{(:params,), T} where T<:Tuple}, Tuple{Base.Dict{String, String}}})
+precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:intern_call,), Tuple{Bool}}}, Type{NamedTuple{(:params,), Tuple{Base.Dict{String, String}}}}})
+precompile(Tuple{typeof(Base.iterate), Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, String}}})
+precompile(Tuple{typeof(Base.iterate), Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, String}}, Int64})
+precompile(Tuple{typeof(Base.grow_to!), Array{String, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, String}}, getfield(Dataiku, Symbol("#1#3"))}, Int64})
+precompile(Tuple{typeof(Base.grow_to!), Array{String, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, String}}, getfield(Dataiku, Symbol("#1#3"))}})
+precompile(Tuple{getfield(Dataiku, Symbol("##get_url_and_header#5")), Bool, Base.Dict{String, String}, Bool, typeof(Dataiku.get_url_and_header), String})
+precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Symbol, Base.Dict{String, String}, Tuple{Symbol}, NamedTuple{(:params,), Tuple{Base.Dict{String, String}}}}, typeof(Dataiku.request), String, String, String})
+precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Symbol, Base.Dict{String, String}, Tuple{Symbol}, NamedTuple{(:params,), Tuple{Base.Dict{String, String}}}}, typeof(Dataiku.request_json), String, String, String})
+precompile(Tuple{getfield(Dataiku, Symbol("#kw##request_json")), NamedTuple{(:params,), Tuple{Base.Dict{String, String}}}, typeof(Dataiku.request_json), String, String})
+precompile(Tuple{Type{Dataiku.DSSScenarioRun}, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Dataiku.run), Dataiku.DSSScenario})
+precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Base.Pair{String, Int64}, Base.Pair{String, Bool}}}})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Any, Any}, Tuple{Base.Pair{String, Int64}, Base.Pair{String, Bool}}})
+precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Tuple{Base.Pair{String, Int64}, Base.Pair{String, Bool}}})
+precompile(Tuple{typeof(Dataiku.get_last_runs), Dataiku.DSSScenario, Int64, Bool})
+precompile(Tuple{typeof(Dataiku.get_current_run), Dataiku.DSSScenario})
+precompile(Tuple{typeof(Base.empty), Base.Dict{Any, Any}, Type{String}, Type{Int64}})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Int64}, Int64, Bool})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Int64}, Int64, Int64})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Int64}, Tuple{Base.Pair{String, Int64}, Base.Pair{String, Bool}}, Int64})
+precompile(Tuple{Type{Base.Dict{String, Integer}}})
+precompile(Tuple{typeof(Base.empty), Base.Dict{String, Int64}, Type{String}, Type{Integer}})
+precompile(Tuple{typeof(Base.rehash!), Base.Dict{String, Integer}, Int64})
+precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{String, Integer}, String})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Integer}, Int64, String})
+precompile(Tuple{typeof(Base.merge!), Base.Dict{String, Integer}, Base.Dict{String, Int64}})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Integer}, Bool, String})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Integer}, Tuple{Base.Pair{String, Int64}, Base.Pair{String, Bool}}, Int64})
+precompile(Tuple{Type{NamedTuple{(:params,), T} where T<:Tuple}, Tuple{Base.Dict{String, Integer}}})
+precompile(Tuple{typeof(Base.merge_types), Tuple{Symbol, Symbol}, Type{NamedTuple{(:intern_call,), Tuple{Bool}}}, Type{NamedTuple{(:params,), Tuple{Base.Dict{String, Integer}}}}})
+precompile(Tuple{typeof(Base.grow_to!), Array{String, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, Integer}}, getfield(Dataiku, Symbol("#1#3"))}, Int64})
+precompile(Tuple{typeof(Base.grow_to!), Array{String, 1}, Base.Generator{Base.Iterators.Filter{getfield(Dataiku, Symbol("#2#4")), Base.Dict{String, Integer}}, getfield(Dataiku, Symbol("#1#3"))}})
+precompile(Tuple{getfield(Dataiku, Symbol("##get_url_and_header#5")), Bool, Base.Dict{String, Integer}, Bool, typeof(Dataiku.get_url_and_header), String})
+precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Symbol, Base.Dict{String, Integer}, Tuple{Symbol}, NamedTuple{(:params,), Tuple{Base.Dict{String, Integer}}}}, typeof(Dataiku.request), String, String, String})
+precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Symbol, Base.Dict{String, Integer}, Tuple{Symbol}, NamedTuple{(:params,), Tuple{Base.Dict{String, Integer}}}}, typeof(Dataiku.request_json), String, String, String})
+precompile(Tuple{getfield(Dataiku, Symbol("#kw##request_json")), NamedTuple{(:params,), Tuple{Base.Dict{String, Integer}}}, typeof(Dataiku.request_json), String, String})
+precompile(Tuple{typeof(Dataiku.abort), Dataiku.DSSScenario})
+precompile(Tuple{typeof(Base._compute_eltype), Type{Tuple{Base.Pair{String, Base.Dict{String, String}}, Base.Pair{String, Base.Dict{Any, Any}}}}})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{Any, Any}, Tuple{Base.Pair{String, Base.Dict{String, String}}, Base.Pair{String, Base.Dict{Any, Any}}}})
+precompile(Tuple{Type{Base.Dict{K, V} where V where K}, Tuple{Base.Pair{String, Base.Dict{String, String}}, Base.Pair{String, Base.Dict{Any, Any}}}})
+precompile(Tuple{getfield(Dataiku, Symbol("##create_recipe#69")), Base.Dict{Any, Any}, typeof(Dataiku.create_recipe), Base.Dict{String, String}, Dataiku.DSSProject})
+precompile(Tuple{getfield(Dataiku, Symbol("##create_recipe#68")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.create_recipe), String, String, Dataiku.DSSProject})
+precompile(Tuple{typeof(Dataiku.create_recipe), String, String, Dataiku.DSSProject})
+precompile(Tuple{Type{Base.Dict{String, Base.Dict{String, String}}}})
+precompile(Tuple{typeof(Base.empty), Base.Dict{Any, Any}, Type{String}, Type{Base.Dict{String, String}}})
+precompile(Tuple{typeof(Base.rehash!), Base.Dict{String, Base.Dict{String, String}}, Int64})
+precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{String, Base.Dict{String, String}}, String})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Base.Dict{String, String}}, Base.Dict{String, String}, String})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Base.Dict{String, String}}, Tuple{Base.Pair{String, Base.Dict{String, String}}, Base.Pair{String, Base.Dict{Any, Any}}}, Int64})
+precompile(Tuple{Type{Base.Dict{String, Base.Dict{K, V} where V where K}}})
+precompile(Tuple{typeof(Base.empty), Base.Dict{String, Base.Dict{String, String}}, Type{String}, Type{Base.Dict{K, V} where V where K}})
+precompile(Tuple{typeof(Base.rehash!), Base.Dict{String, Base.Dict{K, V} where V where K}, Int64})
+precompile(Tuple{typeof(Base.ht_keyindex2!), Base.Dict{String, Base.Dict{K, V} where V where K}, String})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Base.Dict{K, V} where V where K}, Base.Dict{String, String}, String})
+precompile(Tuple{typeof(Base.merge!), Base.Dict{String, Base.Dict{K, V} where V where K}, Base.Dict{String, Base.Dict{String, String}}})
+precompile(Tuple{typeof(Base.setindex!), Base.Dict{String, Base.Dict{K, V} where V where K}, Base.Dict{Any, Any}, String})
+precompile(Tuple{typeof(Base.grow_to!), Base.Dict{String, Base.Dict{K, V} where V where K}, Tuple{Base.Pair{String, Base.Dict{String, String}}, Base.Pair{String, Base.Dict{Any, Any}}}, Int64})
+precompile(Tuple{getfield(Dataiku, Symbol("##request#6")), Bool, Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request), String, String, Base.Dict{String, Base.Dict{K, V} where V where K}})
+precompile(Tuple{getfield(Dataiku, Symbol("##request_json#7")), Base.Iterators.Pairs{Union{}, Union{}, Tuple{}, NamedTuple{(), Tuple{}}}, typeof(Dataiku.request_json), String, String, Base.Dict{String, Base.Dict{K, V} where V where K}})
+precompile(Tuple{typeof(Dataiku.request_json), String, String, Base.Dict{String, Base.Dict{K, V} where V where K}})
+precompile(Tuple{getfield(Base, Symbol("##sprint#339")), Nothing, Int64, typeof(Base.sprint), Function, Base.Dict{String, Base.Dict{K, V} where V where K}})
+precompile(Tuple{typeof(JSON.Writer.show_pair), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Base.Pair{String, Base.Dict{K, V} where V where K}})
+precompile(Tuple{typeof(JSON.Writer.show_json), JSON.Writer.CompactContext{Base.GenericIOBuffer{Array{UInt8, 1}}}, JSON.Serializations.StandardSerialization, Base.Dict{String, Base.Dict{K, V} where V where K}})
+precompile(Tuple{typeof(JSON.Writer.print), Base.GenericIOBuffer{Array{UInt8, 1}}, Base.Dict{String, Base.Dict{K, V} where V where K}})
+precompile(Tuple{Type{Dataiku.DSSRecipe}, String, Dataiku.DSSProject})
+precompile(Tuple{typeof(Base.:(==)), Dataiku.DSSRecipe, Dataiku.DSSRecipe})
+precompile(Tuple{typeof(Dataiku.get_definition_and_payload), Dataiku.DSSRecipe})
+precompile(Tuple{typeof(Dataiku.get_metadata), Dataiku.DSSRecipe})
+precompile(Tuple{typeof(Dataiku.set_metadata), Dataiku.DSSRecipe, Base.Dict{String, Any}})
+precompile(Tuple{typeof(Base.getproperty), Dataiku.DSSRecipe, Symbol})
+precompile(Tuple{typeof(Dataiku.get_name_or_id), Dataiku.DSSRecipe})
+precompile(Tuple{typeof(Dataiku.full_name), Dataiku.DSSRecipe})
+precompile(Tuple{typeof(Dataiku.get_status), Dataiku.DSSRecipe})
+precompile(Tuple{typeof(Dataiku.delete), Dataiku.DSSRecipe})
+precompile(Tuple{getfield(Dataiku, Symbol("##delete#63")), Bool, typeof(Dataiku.delete), Dataiku.DSSDataset})
+precompile(Tuple{typeof(Dataiku.delete), Dataiku.DSSDataset})
+precompile(Tuple{typeof(Base.uvfinalize), Sockets.TCPSocket})

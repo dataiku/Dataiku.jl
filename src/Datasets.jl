@@ -360,8 +360,8 @@ get_flow_inputs(ds::DSSDataset) = _get_flow_inputs_or_outputs(ds, "in")
 
 function _get_flow_inputs_or_outputs(ds::DSSDataset, option)
     puts = find_field(get_flow()[option], "fullName", full_name(ds))
-    if puts == nothing
-        throw(ArgumentError("Dataset isn't an " * option * "put of the recipe"))
+    if isnothing(puts)
+        throw(ErrorException("Dataset $(ds.name) cannot be used : declare it as " * option * "put of your recipe."))
     end
     puts
 end

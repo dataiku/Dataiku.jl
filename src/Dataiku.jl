@@ -68,7 +68,7 @@ look for a dict that has this `value` at this `field` in an array of dict
 
     function get_current_project()
         if !haskey(ENV, "DKU_CURRENT_PROJECT_KEY")
-            throw(ArgumentError("No projectKey found, initialize project with Dataiku.set_current_project(::DSSProject)"))
+            throw(ErrorException("No projectKey found, initialize project with Dataiku.set_current_project(::DSSProject)"))
         end
         DSSProject(ENV["DKU_CURRENT_PROJECT_KEY"])
     end
