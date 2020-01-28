@@ -36,20 +36,13 @@ module Dataiku
     full_name(object::DSSObject) = object.project.key * "." * get_name_or_id(object)
     export full_name
 
-    # TODO : non-exported functions can't be found with `methodswith(::Types)`
-
-    """
-get the global variable FLOW that would be defined if running inside DSS
-    """
-
-    # TODO : find a way to give flow variable from the backend here
     function get_flow()
-        if isdefined(Main, :FLOW)
-            Main.FLOW
+        if haskey(ENV, "flowSpec")
+            return ENV["flowSpec"]
         end
     end
 
-    runs_remotely() = isdefined(Main, :DKU_ENV) ? Main.DKU_ENV["runsRemotely"] : true
+    _is_inside_recipe() = haskey(ENV, "flowSpec")
 
     """
 ```julia
