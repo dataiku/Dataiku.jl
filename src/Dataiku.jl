@@ -37,12 +37,12 @@ module Dataiku
     export full_name
 
     function get_flow()
-        if haskey(ENV, "flowSpec")
-            return ENV["flowSpec"]
+        if haskey(ENV, "DKUFLOW_SPEC")
+            return ENV["DKUFLOW_SPEC"]
         end
     end
 
-    _is_inside_recipe() = haskey(ENV, "flowSpec")
+    _is_inside_recipe() = haskey(ENV, "DKUFLOW_SPEC")
 
     """
 ```julia
