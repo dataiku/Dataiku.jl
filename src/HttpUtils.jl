@@ -10,6 +10,18 @@
 
 	context = nothing
 
+	struct DkuAPIException<: Exception
+		function DkuAPIException(e::AbstractDict)
+			msg = get(e, "detailedMessage", e["message"])
+			type = split(get(e, "errorType", "Unknown Error"), '.') |> last
+			new(msg, type)
+		end
+		msg::String
+		type::String
+	end
+	
+	Base.showerror(io::IO, e::DkuAPIException) = print(io, "DkuAPIException: " * e.type * ": " * e.msg)
+
 """
 ```julia
 init_context()
@@ -64,26 +76,12 @@ If no argument given, will try to find url and authentication from (in this orde
 	end
 	querystring(params::Nothing) = ""
 	
-
-	function get_url_and_header(url; intern_call=false, params=nothing, verbose=false)
+	function get_url_and_header(url; intern_call=false, content_type="application/"*(intern_call ? "x-www-form-urlencoded" : "json"), params=nothing, verbose=false)
 		header = get_auth_header()
-		header["Content-Type"] = "application/" * (intern_call ? "x-www-form-urlencoded" : "json")
+		header["Content-Type"] = content_type
 		url = get_context().url * (intern_call ? "dip/api/tintercom/" : "public/api/") * url * querystring(params)
 		verbose && @info url, JSON.json(header)
 		url, header
-	end
-
-	function request(req, url, body=""; intern_call=false, kwargs...)
-		if (typeof(body) <: AbstractDict)
-			body = intern_call ? HTTP.URIs.escapeuri(body) : JSON.json(body)
-		end
-		res = HTTP.request(req, get_url_and_header(url; intern_call=intern_call, kwargs...)..., body).body |> String
-		return isempty(res) ? nothing : res
-	end
-
-	function request_json(req::AbstractString, url::AbstractString, body=""; kwargs...)
-		res = request(req, url, body; kwargs...)
-		return isnothing(res) ? res : JSON.parse(res)
 	end
 
 	get_stream(f::Function, url; kwargs...) = HTTP.open(f, "GET", get_url_and_header(url; kwargs...)...)
@@ -94,6 +92,23 @@ If no argument given, will try to find url and authentication from (in this orde
 	function post_multipart(url::AbstractString, file::IO, filename::AbstractString="file")::String
 		body = HTTP.Form(Dict("file" => HTTP.Multipart(filename, file)))
 		url_request, header = get_url_and_header(url)
-		header["Content-Type"] = "multipart/form-data; boundary=$(body.boundary)"
-		HTTP.request("POST", url_request, header, body).body |> String
+		request("POST", url, body; content_type="multipart/form-data; boundary=$(body.boundary)")
+	end
+
+	function request_json(req::AbstractString, url::AbstractString, body=""; kwargs...)
+		res = request(req, url, body; kwargs...)
+		return isnothing(res) ? nothing : JSON.parse(res)
+	end
+
+	function request(req, url, body=""; intern_call=false, kwargs...)
+		if (typeof(body) <: AbstractDict)
+			body = intern_call ? HTTP.URIs.escapeuri(body) : JSON.json(body)
+		end
+		res = ""
+		try
+			res = HTTP.request(req, get_url_and_header(url; intern_call=intern_call, kwargs...)..., body).body |> String
+		catch e
+			throw(DkuAPIException(JSON.parse(String(e.response.body))))
+		end
+		return isempty(res) ? nothing : res
 	end
