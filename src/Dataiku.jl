@@ -38,7 +38,7 @@ module Dataiku
 
     function get_flow()
         if haskey(ENV, "DKUFLOW_SPEC")
-            return ENV["DKUFLOW_SPEC"]
+            return JSON.parse(ENV["DKUFLOW_SPEC"])
         end
     end
 
