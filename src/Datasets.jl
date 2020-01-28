@@ -41,7 +41,7 @@ function get_dataframe(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
 ```
 get the data of a dataset in a DataFrame
 ### Keywords parameters
-- `partitions::AbstractArray` : specify the partitions wanted
+- `partitions::AbstractArray` : specify the partitions wanted (cannot be used inside recipes)
 - `infer_types::Bool=true` : uses the types detected by TextParse.jl rather than the DSS schema
 - `limit::Integer` : Limits the number of rows returned
 - `ratio::AbstractFloat` : Limits the ratio to at n% of the dataset
@@ -76,7 +76,7 @@ function _get_reading_schema(ds::DSSDataset, columns::AbstractArray=[]; infer_ty
 end
 
 function _get_reading_params(ds::DSSDataset; partitions=nothing, kwargs...)
-    if !(!isnothing(partitions) && !isempty(partitions)) && !runs_remotely()
+    if _is_inside_recipe()
         partitions = get(get_flow_inputs(ds), "partitions", "")
     end
     Dict(
@@ -134,7 +134,7 @@ function iter_dataframes(ds::DSSDataset, nrows::Integer=10_000, columns::Abstrac
 ```
 Returns  an iterator over the data of a dataframe. Can be used to access data without loading the full dataset in memory.
 ### Keywords parameters
-- `partitions::AbstractArray` : specify the partitions wanted
+- `partitions::AbstractArray` : specify the partitions wanted (cannot be used inside recipes)
 - `infer_types::Bool=true` : uses the types detected by TextParse.jl rather than the DSS schema
 - `limit::Integer` : Limits the number of rows returned
 - `ratio::AbstractFloat` : Limits the ratio to at n% of the dataset
@@ -322,7 +322,7 @@ end
 function _init_write_session(ds::DSSDataset, schema::AbstractDict; method="STREAM", partition="", overwrite=true)
     req = Dict(
         "method"          => method,
-        "partitionSpec"   => (partition == "" && !runs_remotely()) ? get(get_flow_outputs(ds), "partition", "") : partition,
+        "partitionSpec"   => _is_inside_recipe() ? get(get_flow_outputs(ds), "partition", "") : partition,
         "fullDatasetName" => full_name(ds),
         "writeMode"       => overwrite ? "OVERWRITE" : "APPEND",
         "dataSchema"      => schema
