@@ -40,8 +40,7 @@
     trained_model = DSSTrainedModel(mltask, "s1", "RANDOM_FOREST_REGRESSION")
 
     @test Dataiku.get_snippet(trained_model)["algorithm"] == "RANDOM_FOREST_REGRESSION"
-
-    ensemble_saved_model = Dataiku.deploy_to_flow(ensemble)
+    
     saved_model = Dataiku.deploy_to_flow(trained_model)
     @test Dataiku.redeploy_to_flow(trained_model, saved_model) == Dict("impactsDownstream" => false)
 

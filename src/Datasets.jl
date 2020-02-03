@@ -62,12 +62,8 @@ also see `iter_dataframes`
 """
 function get_dataframe(ds::DSSDataset, columns::AbstractArray=[]; infer_types=true, kwargs...)
     names, types = _get_reading_schema(ds, columns; infer_types=infer_types)
-    df = DataFrame()
-    get_stream("projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=_get_reading_params(ds; kwargs...)) do stream
-        io = BufferedInputStream(stream)
-        df = CSV.read(io; delim='\t', types=types, header=names, dateformat=DKU_DATE_FORMAT)
-    end
-    df
+    data = request("GET", "projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=_get_reading_params(ds; kwargs...))
+    CSV.read(IOBuffer(data); delim='\t', types=types, header=names, dateformat=DKU_DATE_FORMAT)
 end
 
 function _get_reading_schema(ds::DSSDataset, columns::AbstractArray=[]; infer_types=true)
@@ -75,33 +71,31 @@ function _get_reading_schema(ds::DSSDataset, columns::AbstractArray=[]; infer_ty
     get_column_names(schema, columns), infer_types ? nothing : get_column_types(schema, columns)
 end
 
-function _get_reading_params(ds::DSSDataset; partitions=nothing, kwargs...)
-    if _is_inside_recipe()
-        partitions = get(get_flow_inputs(ds), "partitions", "")
-    end
+function _get_reading_params(ds::DSSDataset; partitions="", kwargs...)
     Dict(
         "sampling"   => JSON.json(_create_sampling_argument(; kwargs...)),
         "format"     => "tsv-excel-noheader",
-        "partitions" => partitions
+        "partitions" => _is_inside_recipe() ? get(get_flow_inputs(ds), "partitions", "") : partitions
     )
 end
 
 function iter_data_chunks(ds::DSSDataset, columns::AbstractArray=[]; infer_types=true, kwargs...)
     names, types = _get_reading_schema(ds, columns; infer_types=infer_types)
-    Channel() do chnl
-        get_stream("projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=_get_reading_params(ds; kwargs...)) do stream
-            io = BufferedInputStream(stream)
+    chnl = Channel(Inf)
+    task = @async begin
+        get_stream_read("projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=_get_reading_params(ds; kwargs...)) do stream
             first_line = ""
             open_quotes = false
-            while !eof(io)
-                chunk, last_line, open_quotes = _split_last_line(String(readavailable(io)), open_quotes)
-                c = first_line * chunk
-                df = CSV.read(IOBuffer(c); delim='\t', types=types, header=names, dateformat=DKU_DATE_FORMAT) |>  DataFrame!
+            while !eof(stream)
+                chunk, last_line, open_quotes = _split_last_line(String(readavailable(stream)), open_quotes)
+                df = CSV.read(IOBuffer(first_line * chunk); delim='\t', types=types, header=names, dateformat=DKU_DATE_FORMAT)
                 first_line = last_line
                 put!(chnl, df)
             end
         end
     end
+    @time bind(chnl, task)
+    chnl
 end
 
 # remove the last incomplete line of the chunk, keep the last line in memory to add it to the next chunk
@@ -315,7 +309,7 @@ function write_data(ds, data, schema; infer_schema=false, kwargs...)
     end
     id = _init_write_session(ds, schema; kwargs...)
     task = @async _wait_write_session(id)
-    _push_data(id, data)
+    _push_data(id, data, task)
     Base.wait(task);
 end
 
@@ -335,11 +329,21 @@ function _wait_write_session(id::AbstractString)
     if res["ok"]
         @info "$(res["writtenRows"]) rows successfully written ($id)"
     else
-        error("An error occurred during dataset write ($id): $(res["message"])")
+        throw(DkuAPIException(res))
     end
 end
 
-_push_data(id::AbstractString, data) = request("POST", "datasets/push-data/?id=$(id)", data; intern_call=true)
+function _push_data(id::AbstractString, data, task)
+    try
+        request("POST", "datasets/push-data/?id=$(id)", data; intern_call=true)
+    catch e
+        try
+            Base.wait(task);
+        catch except
+            throw(except.task.exception)
+        end
+    end
+end
 
 function _get_stream_write(df::AbstractDataFrame)
     io = Base.BufferStream()
@@ -371,7 +375,7 @@ get_column_types(schema::AbstractArray, cols::AbstractArray=[]) =
     [col["name"] => _string_to_type(col["type"]) for col in schema if isempty(cols) || Symbol(col["name"]) in cols] |> Dict
 
 get_column_names(ds::DSSDataset, columns::AbstractArray=[]) = get_column_names(get_schema(ds)["columns"], columns)
-get_column_names(schema::AbstractArray, columns::Nothing=nothing) = [Symbol(col["name"]) for col in schema]
+get_column_names(schema::AbstractArray, columns::Nothing=nothing) = Symbol[Symbol(col["name"]) for col in schema]
 get_column_names(schema::AbstractArray, columns::AbstractArray) = isempty(columns) ? get_column_names(schema) : columns
 
 const DKU_DF_TYPE_MAP = Dict(

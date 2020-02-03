@@ -1,7 +1,6 @@
 	using JSON
 	using HTTP
 	using Base64
-	using BufferedStreams
 
 	struct DSSContext
 		url::AbstractString
@@ -13,14 +12,15 @@
 	struct DkuAPIException<: Exception
 		function DkuAPIException(e::AbstractDict)
 			msg = get(e, "detailedMessage", e["message"])
-			type = split(get(e, "errorType", "Unknown Error"), '.') |> last
+			type = split(get(e, "errorType", ""), '.') |> last
 			new(msg, type)
 		end
+		DkuAPIException(e::AbstractString) = new(msg, "")
 		msg::String
 		type::String
 	end
 	
-	Base.showerror(io::IO, e::DkuAPIException) = print(io, "DkuAPIException: " * e.type * ": " * e.msg)
+	Base.showerror(io::IO, e::DkuAPIException) = print(io, "DkuAPIException: " * (isempty(e.type) ? "" : e.type * ": ") * e.msg)
 
 """
 ```julia
@@ -59,14 +59,6 @@ If no argument given, will try to find url and authentication from (in this orde
 
 	get_context() = isnothing(context) ? init_context() : context
 
-	function get_auth_header()
-		if haskey(ENV, "DKU_API_TICKET")
-			Dict("X-DKU-APITicket" => ENV["DKU_API_TICKET"])
-		else
-			Dict("Authorization" => "Basic $(base64encode(get_context().auth * ":"))")
-		end
-	end
-
 	addparam(param, value::Any) = "$param=$value"
 	addparam(param, value::AbstractArray) = addparam(param, join(value, ','))
 	
@@ -77,21 +69,36 @@ If no argument given, will try to find url and authentication from (in this orde
 	querystring(params::Nothing) = ""
 	
 	function get_url_and_header(url; intern_call=false, content_type="application/"*(intern_call ? "x-www-form-urlencoded" : "json"), params=nothing, verbose=false)
-		header = get_auth_header()
+		header = Dict()
+		if haskey(ENV, "DKU_API_TICKET")
+			header["X-DKU-APITicket"] = ENV["DKU_API_TICKET"]
+		else
+			header["Authorization"] = "Basic $(base64encode(get_context().auth * ":"))"
+		end
 		header["Content-Type"] = content_type
 		url = get_context().url * (intern_call ? "dip/api/tintercom/" : "public/api/") * url * querystring(params)
 		verbose && @info url, JSON.json(header)
 		url, header
 	end
 
-	get_stream(f::Function, url; kwargs...) = HTTP.open(f, "GET", get_url_and_header(url; kwargs...)...)
+	using HTTP.IOExtras
+
+	function get_stream_read(f::Function, url; kwargs...)
+		HTTP.open("GET", get_url_and_header(url; kwargs...)...; retry=false) do io
+			r = startread(io)
+			if r.status != 200
+				throw(DkuAPIException(JSON.parse(String(readavailable(io)))))
+			end
+			@async f(io)
+		end
+	end
+
 
 	post_multipart(url::AbstractString, path::AbstractString, filename::AbstractString=basename(path)) =
 		post_multipart(url, open(path, read=true), filename)
 
 	function post_multipart(url::AbstractString, file::IO, filename::AbstractString="file")::String
 		body = HTTP.Form(Dict("file" => HTTP.Multipart(filename, file)))
-		url_request, header = get_url_and_header(url)
 		request("POST", url, body; content_type="multipart/form-data; boundary=$(body.boundary)")
 	end
 
@@ -106,7 +113,7 @@ If no argument given, will try to find url and authentication from (in this orde
 		end
 		res = ""
 		try
-			res = HTTP.request(req, get_url_and_header(url; intern_call=intern_call, kwargs...)..., body).body |> String
+			res = HTTP.request(req, get_url_and_header(url; intern_call=intern_call, kwargs...)..., body; retry=false).body |> String
 		catch e
 			throw(DkuAPIException(JSON.parse(String(e.response.body))))
 		end

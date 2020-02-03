@@ -27,7 +27,7 @@ dataset = Dataiku.create_dataset(datasetName, project)
 Dataiku.write_with_schema(dataset, df)
 include("projects.jl")
 include("datasets.jl")
-include("ml.jl")
+# include("ml.jl")
 include("scenarios.jl")
 include("recipes.jl")
 
