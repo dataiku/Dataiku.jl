@@ -81,4 +81,26 @@
             @test df[4, 6] == true
         end
     end
+
+    @testset "Iteration" begin
+        chnl = Dataiku.iter_rows(dataset)
+        row = take!(chnl)
+        @testset "Row Values" begin
+            @test row[1] == 1
+            @test row[3] == DateTime(2014, 06, 18, 0)
+            @test row[4] == false
+            @test row[16] == "Bordeaux"
+            @test row[end] == 0.
+        end
+
+        chnl = Dataiku.iter_tuples(dataset)
+        tuple = take!(chnl)
+        @testset "Tuples Values" begin
+            @test tuple[1] == 1
+            @test tuple[3] == DateTime(2014, 06, 18, 0)
+            @test tuple[4] == false
+            @test tuple[16] == "Bordeaux"
+            @test tuple[end] == 0.
+        end
+    end
 end

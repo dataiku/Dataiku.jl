@@ -50,6 +50,7 @@ get the data of a dataset in a DataFrame
     * `random` returns a random sample of the dataset
     * `random-column` returns a random sample of the dataset. Incompatible with limit parameter.
 - `sampling_column::AbstractString` : Select the column used for "columnwise-random" sampling
+- `truestrings`, `falsestrings`: Vectors of Strings that indicate how `true` or `false` values are represented
 ### examples
 ```julia
 get_dataframe(dataset"myDataset")
@@ -60,10 +61,19 @@ get_dataframe(dataset"PROJECTKEY.myDataset"; infer_types=false, limit=200, sampl
 also see `iter_dataframes`
 
 """
-function get_dataframe(ds::DSSDataset, columns::AbstractArray=[]; infer_types=true, kwargs...)
+function get_dataframe(ds::DSSDataset, columns::AbstractArray=[];
+                                       infer_types=true,
+                                       truestrings=["true", "True", "TRUE"],
+                                       falsestrings=["false", "False", "FALSE"],
+                                       kwargs...)
     names, types = _get_reading_schema(ds, columns; infer_types=infer_types)
     data = request("GET", "projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=_get_reading_params(ds; kwargs...))
-    CSV.read(IOBuffer(data); delim='\t', types=types, header=names, dateformat=DKU_DATE_FORMAT)
+    CSV.read(IOBuffer(data); delim='\t',
+                             types=types,
+                             header=names,
+                             truestrings=truestrings,
+                             falsestrings=falsestrings,
+                             dateformat=DKU_DATE_FORMAT)
 end
 
 function _get_reading_schema(ds::DSSDataset, columns::AbstractArray=[]; infer_types=true)
@@ -79,23 +89,28 @@ function _get_reading_params(ds::DSSDataset; partitions="", kwargs...)
     )
 end
 
-function iter_data_chunks(ds::DSSDataset, columns::AbstractArray=[]; infer_types=true, kwargs...)
+function iter_data_chunks(ds::DSSDataset, columns::AbstractArray=[];
+                                          infer_types=true,
+                                          truestrings=["true", "True", "TRUE"],
+                                          falsestrings=["false", "False", "FALSE"],
+                                          kwargs...)
     names, types = _get_reading_schema(ds, columns; infer_types=infer_types)
-    chnl = Channel(Inf)
-    task = @async begin
+    Channel() do chnl
         get_stream_read("projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=_get_reading_params(ds; kwargs...)) do stream
             first_line = ""
             open_quotes = false
             while !eof(stream)
                 chunk, last_line, open_quotes = _split_last_line(String(readavailable(stream)), open_quotes)
-                df = CSV.read(IOBuffer(first_line * chunk); delim='\t', types=types, header=names, dateformat=DKU_DATE_FORMAT)
+                put!(chnl, CSV.read(IOBuffer(first_line * chunk); delim='\t',
+                                                                  types=types,
+                                                                  header=names,
+                                                                  truestrings=truestrings,
+                                                                  falsestrings=falsestrings,
+                                                                  dateformat=DKU_DATE_FORMAT))
                 first_line = last_line
-                put!(chnl, df)
             end
         end
     end
-    @time bind(chnl, task)
-    chnl
 end
 
 # remove the last incomplete line of the chunk, keep the last line in memory to add it to the next chunk
@@ -137,6 +152,7 @@ Returns  an iterator over the data of a dataframe. Can be used to access data wi
     * `random` returns a random sample of the dataset
     * `random-column` returns a random sample of the dataset. Incompatible with limit parameter.
 - `sampling_column::AbstractString` : Select the column used for "columnwise-random" sampling
+- `truestrings`, `falsestrings`: Vectors of Strings that indicate how `true` or `false` values are represented
 ### example
 ```julia
 for chunk in Dataiku.iter_dataframes(dataset"example", 500)
@@ -292,14 +308,16 @@ close(chnl) # closing the channel is required
 ```
 """
 function get_writing_chnl(ds::DSSDataset; kwargs...)
-    chnl = Channel{AbstractDataFrame}(0)
+    chnl = Channel()
     @async write_chnl(ds, chnl; kwargs...)
     chnl
 end
 
-function write_chnl(ds, chnl::AbstractChannel; kwargs...)
+function write_chnl(ds, chnl::AbstractChannel, schema=nothing; kwargs...)
     first_chunk = take!(chnl)
-    schema = get_schema_from_df(first_chunk)
+    if isnothing(schema)
+        schema = get_schema_from_df(first_chunk)
+    end
     write_data(ds, _dataframe_chnl_to_csv(chnl, first_chunk), schema; kwargs...)
 end
 

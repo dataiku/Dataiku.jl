@@ -85,11 +85,11 @@ If no argument given, will try to find url and authentication from (in this orde
 
 	function get_stream_read(f::Function, url; kwargs...)
 		HTTP.open("GET", get_url_and_header(url; kwargs...)...; retry=false) do io
-			r = startread(io)
-			if r.status != 200
+			if HTTP.iserror(startread(io))
 				throw(DkuAPIException(JSON.parse(String(readavailable(io)))))
+			else
+				f(io)
 			end
-			@async f(io)
 		end
 	end
 
