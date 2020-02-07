@@ -52,7 +52,7 @@ If no argument given, will try to find url and authentication from (in this orde
 				config["dss_instances"][config["default_instance"]]["api_key"]
 			)
 		else
-			throw(ErrorException("No context found, please initialize context by giving url and authentication parameters"))
+			throw(DkuException("No context found, please initialize context by giving url and authentication parameters"))
 		end
 		context
 	end
@@ -115,7 +115,11 @@ If no argument given, will try to find url and authentication from (in this orde
 		try
 			res = HTTP.request(req, get_url_and_header(url; intern_call=intern_call, kwargs...)..., body; retry=false).body |> String
 		catch e
-			throw(DkuAPIException(JSON.parse(String(e.response.body))))
+			if hasfield(typeof(e), :response)
+				throw(DkuAPIException(JSON.parse(String(e.response.body))))
+			else
+				throw(e)
+			end
 		end
 		return isempty(res) ? nothing : res
 	end

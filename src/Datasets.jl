@@ -42,7 +42,7 @@ function get_dataframe(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
 get the data of a dataset in a DataFrame
 ### Keywords parameters
 - `partitions::AbstractArray` : specify the partitions wanted (cannot be used inside recipes)
-- `infer_types::Bool=true` : uses the types detected by TextParse.jl rather than the DSS schema
+- `infer_types::Bool=true` : uses the types detected by CSV.jl rather than the DSS schema
 - `limit::Integer` : Limits the number of rows returned
 - `ratio::AbstractFloat` : Limits the ratio to at n% of the dataset
 - `sampling::AbstractString="head"` : Sampling method, if
@@ -144,7 +144,7 @@ function iter_dataframes(ds::DSSDataset, nrows::Integer=10_000, columns::Abstrac
 Returns  an iterator over the data of a dataframe. Can be used to access data without loading the full dataset in memory.
 ### Keywords parameters
 - `partitions::AbstractArray` : specify the partitions wanted (cannot be used inside recipes)
-- `infer_types::Bool=true` : uses the types detected by TextParse.jl rather than the DSS schema
+- `infer_types::Bool=true` : uses the types detected by CSV.jl rather than the DSS schema
 - `limit::Integer` : Limits the number of rows returned
 - `ratio::AbstractFloat` : Limits the ratio to at n% of the dataset
 - `sampling::AbstractString="head"` : Sampling method, if
@@ -383,7 +383,7 @@ get_flow_inputs(ds::DSSDataset) = _get_flow_inputs_or_outputs(ds, "in")
 function _get_flow_inputs_or_outputs(ds::DSSDataset, option)
     puts = find_field(get_flow()[option], "fullName", full_name(ds))
     if isnothing(puts)
-        throw(ErrorException("Dataset $(ds.name) cannot be used : declare it as " * option * "put of your recipe."))
+        throw(DkuException("Dataset $(ds.name) cannot be used : declare it as " * option * "put of your recipe."))
     end
     puts
 end
@@ -534,28 +534,10 @@ set_settings(ds::DSSDataset, body::AbstractDict) = request_json("PUT", "projects
 get_metadata(ds::DSSDataset) = request_json("GET", "projects/$(ds.project.key)/datasets/$(ds.name)/metadata")
 set_metadata(ds::DSSDataset, body::AbstractDict) = request_json("PUT", "projects/$(ds.project.key)/datasets/$(ds.name)/metadata", body)
 
-
 get_schema(ds::DSSDataset) = request_json("GET", "projects/$(ds.project.key)/datasets/$(ds.name)/schema")
 set_schema(ds::DSSDataset, body::AbstractDict) = request_json("PUT", "projects/$(ds.project.key)/datasets/$(ds.name)/schema", body)
-
 
 list_partitions(ds::DSSDataset) = request_json("GET", "projects/$(ds.project.key)/datasets/$(ds.name)/partitions")
 
 clear_data(ds::DSSDataset, partitions::AbstractArray=[]) =
     request_json("DELETE", "projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=Dict("partitions" => partitions))
-
-
-get_last_metric_values(ds::DSSDataset, partition::AbstractString="NP") =
-    request_json("GET", "projects/$(ds.project.key)/datasets/$(ds.name)/metrics/last/$(partition)")
-
-
-get_single_metric_history(ds::DSSDataset, metricLookup::AbstractString, partition::AbstractString="NP") =
-    request_json("GET", "projects/$(ds.project.key)/datasets/$(ds.name)/metrics/history/$(partition)?metricLookup=$(metricLookup)")
-
-function compute_metrics(ds::DSSDataset; partition::AbstractString="", metrics_ids=nothing, probes=[])
-    body = !isnothing(metrics_ids) ? Dict("metricIds" => metrics_ids) : probes
-    request_json("POST", "projects/$(ds.project.key)/datasets/$(ds.name)/actions/computeMetrics/", body; params=Dict(:partition => partitions))
-end
-
-run_checks(ds::DSSDataset, checks=[]; partition::AbstractString="") =
-    request_json("POST", "projects/$(ds.project.key)/datasets/$(ds.name)/actions/runChecks/", checks; params=Dict(:partition => partitions))

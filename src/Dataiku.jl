@@ -5,18 +5,16 @@ module Dataiku
 
     using JSON
 
-    include("HttpUtils.jl")
+    struct DkuException<: Exception
+		msg::String
+    end
+	Base.showerror(io::IO, e::DkuException) = print(io, "DkuException: " * e.msg)
+
+    include("api.jl")
     include("Projects.jl")
     include("Datasets.jl")
-    include("Recipes.jl")
-    include("Jobs.jl")
-    include("Scenarios.jl")
     include("Models.jl")
     include("Folders.jl")
-    include("Macros.jl")
-    include("Bundles.jl")
-    include("Plugins.jl")
-    include("Discussions.jl")
 
     createobject(::Type{T}, id) where {T <: DSSObject} = '.' in id ? T(split(id, '.')[end], DSSProject(split(id, '.')[1])) : T(id)
 
@@ -40,6 +38,7 @@ module Dataiku
         if haskey(ENV, "DKUFLOW_SPEC")
             return JSON.parse(ENV["DKUFLOW_SPEC"])
         end
+        throw(DkuException("Env variable 'DKUFLOW_SPEC' not defined inside recipe."))
     end
 
     _is_inside_recipe() = haskey(ENV, "DKUFLOW_SPEC")
@@ -60,81 +59,48 @@ look for a dict that has this `value` at this `field` in an array of dict
 
     function get_current_project()
         if !haskey(ENV, "DKU_CURRENT_PROJECT_KEY")
-            throw(ErrorException("No projectKey found, initialize project with Dataiku.set_current_project(::DSSProject)"))
+            if isinteractive()
+                println("No projectKey found, define current project with Dataiku.set_current_project(::DSSProject) or")
+                set_current_project()
+            else
+                throw(DkuException("No projectKey found, define current project with Dataiku.set_current_project(::DSSProject)"))
+            end
         end
         DSSProject(ENV["DKU_CURRENT_PROJECT_KEY"])
     end
 
-    set_current_project(project::DSSProject) = ENV["DKU_CURRENT_PROJECT_KEY"] = project.key
-
-    list_connections() = request_json("GET", "admin/connections")
-    get_connection(connectionName::AbstractString) = request_json("GET", "admin/connections/$(connectionName)")
-    update_connection(connection::AbstractDict, connectionName::AbstractString) = request_json("PUT", "admin/connections/$(connectionName)", connection)
-    create_connection(body::AbstractDict) = request_json("POST", "admin/connections", body)
-    delete_connection(connectionName::AbstractString) = request_json("DELETE", "admin/connections/$(connectionName)")
-
-    list_users(connected::Bool=false) = request_json("GET", "admin/users/?connected=$(connected)")
-    get_user(login::AbstractString) = request_json("GET", "admin/users/$(login)")
-    update_user(user::AbstractDict, login::AbstractString) = request_json("PUT", "admin/users/$(login)", user)
-
-    list_groups() = request_json("GET", "admin/groups")
-    get_group(groupName::AbstractString) = request_json("GET", "admin/groups/$(groupName)")
-    update_group(group::AbstractDict, groupName::AbstractString) = request_json("PUT", "admin/groups/$(groupName)", group)
-    function create_group(name::AbstractString, description::AbstractString="", admin::Bool=false)
-        data = Dict(
-            "name"        => name,
-            "description" => description,
-            "admin"       => admin
-        )
-        request_json("POST", "admin/groups", data)
+    function set_current_project()
+        if !isinteractive()
+            throw(DkuException("Cannot interactively define project key."))
+        end
+        while true
+            print("enter projectKey (empty for aborting): ")
+            project = DSSProject(readline(stdin))
+            if isempty(project.key)
+                throw(DkuException("No projectKey found, define current project with Dataiku.set_current_project(::DSSProject)"))
+            elseif exists(project)
+                return set_current_project(project)
+            else
+                println("Project \'$(project.key)\' doesn't exist or you don't have permissions to access it.")
+            end
+        end
     end
-
-    create_group(data::AbstractDict) = request_json("POST", "admin/groups", data)
-    delete_group(groupName::AbstractString) = request_json("DELETE", "admin/groups/$(groupName)")
-
-    get_general_settings() = request_json("GET", "admin/general-settings")
-    update_general_settings(settings::AbstractDict) = request_json("PUT", "admin/general-settings", settings)
-
-    list_logs() = request_json("GET", "admin/logs")
-    get_log_content(name::AbstractString) = request_json("GET", "admin/logs/$(name)")
+    
+    function set_current_project(project::DSSProject)
+        if exists(project)
+            ENV["DKU_CURRENT_PROJECT_KEY"] = project.key
+            @info "Current project set to \'$(project.key)\'"
+        else
+            throw(DkuException("Project \'$(project.key)\' doesn't exist or you don't have permissions to access it."))
+        end
+    end
 
     list_custom_variables() = request_json("GET", "admin/variables")
     set_custom_variables(variables::AbstractDict) = request_json("PUT", "admin/variables", variables)
-
 
     get_flow_variable(name::AbstractString) = JSON.parse(ENV["DKUFLOW_VARIABLES"])[name]
 
     list_flow_variables(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(project.key)/variables")
     set_flow_variables(variables::AbstractDict, project::DSSProject=get_current_project()) = request_json("PUT", "projects/$(project.key)/variables", variables)
-
-    list_internal_metrics(; params...) = request_json("GET", "internal-metrics"; params=params) # kwargs : name, metric_type
-
-    list_tasks_in_progress(;allUsers=true, withScenarios=true) = request_json("GET", "futures/?allUsers=$allUsers&withScenarios=$withScenarios")
-
-    get_running_task_status(jobId::AbstractString, peek::Bool=false) = request_json("GET", "futures/$jobId?peek=$peek")
-    abort_task(jobId::AbstractString) = request_json("GET", "futures/$jobId")
-
-    list_meanings() = request_json("GET", "meanings/")
-    get_meaning_definition(meaningId::AbstractString) = request_json("GET", "meanings/$(meaningId)")
-    update_meaning_definition(definition::AbstractDict, meaningId::AbstractString) = request_json("PUT", "meanings/$(meaningId)", definition)
-    create_meaning(data::AbstractDict) = request_json("POST", "meanings/", data)
-
-    get_wiki(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(project.key)/wiki/")
-    update_wiki(wiki::AbstractDict, project::DSSProject=get_current_project()) = request_json("PUT", "projects/$(project.key)/wiki/", wiki)
-
-    get_article(articleId::AbstractString, project::DSSProject=get_current_project()) = request_json("GET", "projects/$(project.key)/wiki/$(articleId)")
-    update_article(article::AbstractDict, articleId, project::DSSProject=get_current_project()) =
-        request_json("PUT", "projects/$(project.key)/wiki/$(articleId)", article)
-
-    function create_article(name::AbstractString, project::DSSProject=get_current_project(); parent=nothing)
-        data = Dict(
-            "projectKey" => project.key,
-            "id"         => name
-        )
-        if !isnothing(parent)
-            data["parent"] = parent
-        end
-        request_json("POST", "projects/$(project.key)/wiki/", data)
-    end
 
 end

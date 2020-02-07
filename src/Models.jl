@@ -257,11 +257,11 @@ struct DSSTrainedModel <: DSSObject
     function DSSTrainedModel(mltask::DSSMLTask, sessionId=nothing, algorithm=nothing)
         fullId = get_trained_models_ids(mltask, sessionId, algorithm)
         if length(fullId) > 1
-            throw(ArgumentError("More than one trained model matches the parameters"))
+            throw(DkuException("More than one trained model matches the parameters"))
         elseif isempty(fullId)
-            throw(ArgumentError("No trained model matches the parameters"))
+            throw(DkuException("No trained model matches the parameters"))
         end
-        new(mltask, fullId[1])
+        new(mltask, first(fullId))
     end
 end
 

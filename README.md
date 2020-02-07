@@ -15,7 +15,7 @@ df = get_dataframe(dataset"PROJECTKEY.myDataset")
 ```
 #### Keywords parameters
 - `partitions::AbstractArray` : specify the partitions wanted
-- `infer_types::Bool=true` : uses the types detected by TextParse.jl rather than the DSS schema
+- `infer_types::Bool=true` : uses the types detected by CSV.jl rather than the DSS schema
 - `limit::Integer` : Limits the number of rows returned
 - `ratio::AbstractFloat` : Limits the ratio to at n% of the dataset
 - `sampling::AbstractString="head"` : Sampling method, if
