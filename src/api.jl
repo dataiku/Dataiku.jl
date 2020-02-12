@@ -67,7 +67,7 @@ If no argument given, will try to find url and authentication from (in this orde
 		isempty(list_params) ? "" : "?" * join(list_params, '&')
 	end
 	querystring(params::Nothing) = ""
-	
+
 	function get_url_and_header(url; intern_call=false, content_type="application/"*(intern_call ? "x-www-form-urlencoded" : "json"), params=nothing, verbose=false)
 		header = Dict()
 		if haskey(ENV, "DKU_API_TICKET")
@@ -84,11 +84,16 @@ If no argument given, will try to find url and authentication from (in this orde
 	using HTTP.IOExtras
 
 	function get_stream_read(f::Function, url; kwargs...)
-		HTTP.open("GET", get_url_and_header(url; kwargs...)...; retry=false) do io
+		url, header = get_url_and_header(url; kwargs...)
+		HTTP.open("GET", url, header; retry=false) do io
 			if HTTP.iserror(startread(io))
 				throw(DkuAPIException(JSON.parse(String(readavailable(io)))))
 			else
-				f(io)
+				try
+					f(io)
+				catch
+					throw(DkuException("Exception thrown while reading " * _identify(ds, params["partitions"])))
+				end
 			end
 		end
 	end
@@ -102,9 +107,16 @@ If no argument given, will try to find url and authentication from (in this orde
 		request("POST", url, body; content_type="multipart/form-data; boundary=$(body.boundary)")
 	end
 
-	function request_json(req::AbstractString, url::AbstractString, body=""; kwargs...)
-		res = request(req, url, body; kwargs...)
-		return isnothing(res) ? nothing : JSON.parse(res)
+	function request_json(req::AbstractString, url::AbstractString, body=""; show_msg=false, kwargs...)
+		raw_res = request(req, url, body; kwargs...)
+		if isnothing(raw_res)
+			return nothing
+		end
+		res = JSON.parse(raw_res)
+		if show_msg && res isa Dict && haskey(res, "msg")
+			@info res["msg"]
+		end
+		return res
 	end
 
 	function request(req, url, body=""; intern_call=false, kwargs...)
@@ -112,14 +124,17 @@ If no argument given, will try to find url and authentication from (in this orde
 			body = intern_call ? HTTP.URIs.escapeuri(body) : JSON.json(body)
 		end
 		res = ""
+		url, header = get_url_and_header(url; intern_call=intern_call, kwargs...)
 		try
-			res = HTTP.request(req, get_url_and_header(url; intern_call=intern_call, kwargs...)..., body; retry=false).body |> String
+			res = HTTP.request(req, url, header, body; retry=false).body |> String
 		catch e
 			if hasfield(typeof(e), :response)
 				throw(DkuAPIException(JSON.parse(String(e.response.body))))
 			else
-				throw(e)
+				throw(DkuException("Exception thrown while reading " * _identify(ds, params["partitions"])))
 			end
 		end
 		return isempty(res) ? nothing : res
 	end
+
+	delete_request(url; body="", kwargs...) = (request_json("DELETE", url, body; show_msg=true, kwargs...); nothing)

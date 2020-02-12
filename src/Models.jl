@@ -12,7 +12,7 @@ end
 
 list_analysis(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(project.key)/lab/")
 
-delete(analysis::DSSAnalysis) = request_json("DELETE", "projects/$(analysis.project.key)/lab/$(analysis.id)/")
+delete(analysis::DSSAnalysis) = delete_request("projects/$(analysis.project.key)/lab/$(analysis.id)/")
 
 struct DSSMLTask <: DSSObject
     analysis::DSSAnalysis
@@ -212,7 +212,7 @@ function wait_guess_complete(mltask::DSSMLTask)
     end
 end
 
-delete(mltask::DSSMLTask) = request_json("DELETE", "projects/$(mltask.analysis.project.key)/models/lab/$(mltask.analysis.id)/$(mltask.id)/")
+delete(mltask::DSSMLTask) = delete_request("projects/$(mltask.analysis.project.key)/models/lab/$(mltask.analysis.id)/$(mltask.id)/")
 
 """
 ```julia
@@ -381,7 +381,7 @@ end
 
 list_saved_models(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(project.key)/savedmodels/")
 
-delete(model::DSSSavedModel) = request_json("DELETE", "projects/$(model.project.key)/savedmodels/$(model.id)")
+delete(model::DSSSavedModel) = delete_request("projects/$(model.project.key)/savedmodels/$(model.id)")
 
 struct DSSModelVersion <: DSSObject
     model::DSSSavedModel

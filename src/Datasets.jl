@@ -67,13 +67,22 @@ function get_dataframe(ds::DSSDataset, columns::AbstractArray=[];
                                        falsestrings=["false", "False", "FALSE"],
                                        kwargs...)
     names, types = _get_reading_schema(ds, columns; infer_types=infer_types)
-    data = request("GET", "projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=_get_reading_params(ds; kwargs...))
-    CSV.read(IOBuffer(data); delim='\t',
-                             types=types,
-                             header=names,
-                             truestrings=truestrings,
-                             falsestrings=falsestrings,
-                             dateformat=DKU_DATE_FORMAT)
+    params = _get_reading_params(ds, columns; kwargs...)
+    data = request("GET", "projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=params)
+    if isnothing(data)
+        throw(DkuException(_identify(ds, params["partitions"]) * " is empty"))
+    end
+    try
+        CSV.read(IOBuffer(data); delim='\t',
+                                types=types,
+                                header=names,
+                                truestrings=truestrings,
+                                falsestrings=falsestrings,
+                                dateformat=DKU_DATE_FORMAT,
+                                silencewarnings=true)
+    catch
+        throw(DkuException("Exception thrown while reading " * _identify(ds, params["partitions"])))
+    end
 end
 
 function _get_reading_schema(ds::DSSDataset, columns::AbstractArray=[]; infer_types=true)
@@ -81,11 +90,12 @@ function _get_reading_schema(ds::DSSDataset, columns::AbstractArray=[]; infer_ty
     get_column_names(schema, columns), infer_types ? nothing : get_column_types(schema, columns)
 end
 
-function _get_reading_params(ds::DSSDataset; partitions="", kwargs...)
+function _get_reading_params(ds::DSSDataset, columns::AbstractArray=[]; partitions=[], kwargs...)
     Dict(
         "sampling"   => JSON.json(_create_sampling_argument(; kwargs...)),
         "format"     => "tsv-excel-noheader",
-        "partitions" => _is_inside_recipe() ? get(get_flow_inputs(ds), "partitions", "") : partitions
+        "partitions" => _is_inside_recipe() ? get(get_flow_inputs(ds), "partitions", []) : partitions,
+        "columns" => columns
     )
 end
 
@@ -95,8 +105,9 @@ function iter_data_chunks(ds::DSSDataset, columns::AbstractArray=[];
                                           falsestrings=["false", "False", "FALSE"],
                                           kwargs...)
     names, types = _get_reading_schema(ds, columns; infer_types=infer_types)
+    params = _get_reading_params(ds, columns; kwargs...)
     Channel() do chnl
-        get_stream_read("projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=_get_reading_params(ds; kwargs...)) do stream
+        get_stream_read("projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=params) do stream
             first_line = ""
             open_quotes = false
             while !eof(stream)
@@ -106,7 +117,8 @@ function iter_data_chunks(ds::DSSDataset, columns::AbstractArray=[];
                                                                   header=names,
                                                                   truestrings=truestrings,
                                                                   falsestrings=falsestrings,
-                                                                  dateformat=DKU_DATE_FORMAT))
+                                                                  dateformat=DKU_DATE_FORMAT,
+                                                                  silencewarnings=true))
                 first_line = last_line
             end
         end
@@ -475,6 +487,8 @@ function _create_sampling_argument(; sampling::String="head", sampling_column=no
     end
 end
 
+_identify(ds::DSSDataset, partitions=[]) = (isempty(partitions) ? "" : "Partition $partitions of ") * "dataset " * full_name(ds)
+
 ###################################################
 #
 #   API FUNCTIONS
@@ -484,8 +498,10 @@ end
 function create_dataset(name::AbstractString, project::DSSProject=get_current_project();
         dataset_type="Filesystem",
         connection="filesystem_managed",
+        path=project.key * "/" * name,
         formatType="csv",
-        style="excel")
+        style="excel",
+        separator="\t")
     body = Dict(
         "projectKey"   => project.key,
         "name"         => name,
@@ -494,37 +510,22 @@ function create_dataset(name::AbstractString, project::DSSProject=get_current_pr
         "managed"      => true,
         "params"       => Dict(
             "connection" => connection,
-            "path"       => project.key * "/" * name
+            "path"       => path
         ),
         "formatParams" => Dict(
             "style"      => style,
-            "separator"  => "\t"
-        ),
+            "separator"  => separator
         )
-    create_dataset(body, project)
-end
-
-function create_dataset(body::AbstractDict, project::DSSProject=get_current_project())
-    request_json("POST", "projects/$(project.key)/datasets/", body)
-    DSSDataset(body["name"], project)
-end
-
-delete(ds::DSSDataset; dropData::Bool=false) = request_json("DELETE", "projects/$(ds.project.key)/datasets/$(ds.name)"; params=Dict("dropData" => dropData))
-
-# RECURSIVE_BUILD, NON_RECURSIVE_FORCED_BUILD, RECURSIVE_FORCED_BUILD, RECURSIVE_MISSING_ONLY_BUILD
-function build(ds::DSSDataset; partitions=nothing, job_type::AbstractString="RECURSIVE_FORCED_BUILD")
-    body = Dict(
-        "outputs" => [Dict(
-            "projectKey" => ds.project.key,
-            "id"         => ds.name
-            )],
-        "type" => job_type
     )
-    if !isnothing(partitions)
-        body["outputs"][1]["partition"] = partitions
-    end
-    start_job(body, ds.project)
+    create_dataset(body)
 end
+
+function create_dataset(body::AbstractDict)
+    request_json("POST", "projects/$(body["projectKey"])/datasets/", body; show_msg=true)
+    DSSDataset(body["name"], DSSProject(body["projectKey"]))
+end
+
+delete(ds::DSSDataset; dropData::Bool=false) = delete_request("projects/$(ds.project.key)/datasets/$(ds.name)"; body=Dict("dropData" => dropData))
 
 list_datasets(project::DSSProject=get_current_project(); kwargs...) = request_json("GET", "projects/$(project.key)/datasets/"; params=kwargs)
 
@@ -539,5 +540,6 @@ set_schema(ds::DSSDataset, body::AbstractDict) = request_json("PUT", "projects/$
 
 list_partitions(ds::DSSDataset) = request_json("GET", "projects/$(ds.project.key)/datasets/$(ds.name)/partitions")
 
-clear_data(ds::DSSDataset, partitions::AbstractArray=[]) =
-    request_json("DELETE", "projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=Dict("partitions" => partitions))
+function clear_data(ds::DSSDataset; partitions::AbstractArray=[])
+    delete_request("projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=Dict("partitions" => partitions))
+end

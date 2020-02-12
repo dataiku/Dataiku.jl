@@ -26,11 +26,15 @@ function create_managed_folder(name::AbstractString, project::DSSProject=get_cur
             "path"       => path
         )
     )
-    response = request_json("POST", "projects/$(project.key)/managedfolders/", body)
+    create_managed_folder(body, project)
+end
+
+function create_managed_folder(body::AbstractDict, project::DSSProject=get_current_project())
+    response = request_json("POST", "projects/$(project.key)/managedfolders/", body; show_msg=true)
     DSSFolder(response["id"], project)
 end
 
-delete(folder::DSSFolder) = request_json("DELETE", "projects/$(folder.project.key)/managedfolders/$(folder.id)")
+delete(folder::DSSFolder) = delete_request("projects/$(folder.project.key)/managedfolders/$(folder.id)")
 
 # get_definition might be better 
 get_settings(folder::DSSFolder) = request_json("GET", "projects/$(folder.project.key)/managedfolders/$(folder.id)")

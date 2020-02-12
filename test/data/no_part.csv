@@ -1,0 +1,4 @@
+c_float,c_bigint,c_string,c_boolean,c_date
+0.0,0,unicØde string,true,1999-12-31T23:59:59.999Z
+42.4,1,"'quoted' ""string""",false,2000-01-01T00:00:00.001Z
+,,,,

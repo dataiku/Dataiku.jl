@@ -25,7 +25,7 @@ function create_project(name::AbstractString, projectKey=make_project_key(name),
         "name"       => name,
         "owner"      => owner
     )
-    request_json("POST", "projects/", params)
+    request_json("POST", "projects/", params; show_msg=true)
     DSSProject(projectKey)
 end
 
@@ -38,8 +38,7 @@ function exists(project::DSSProject)
     return false
 end
 
-delete(project::DSSProject, dropData::Bool=false) =
-    request_json("DELETE", "projects/$(project.key)", params=Dict("dropData" => dropData))
+delete(project::DSSProject, dropData::Bool=false) = delete_request("projects/$(project.key)", params=Dict("dropData" => dropData))
 
 get_variables(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(project.key)/variables")
 set_variables(project::DSSProject, body::AbstractDict) = set_variables(body, project)

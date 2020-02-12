@@ -8,7 +8,7 @@ module Dataiku
     struct DkuException<: Exception
 		msg::String
     end
-	Base.showerror(io::IO, e::DkuException) = print(io, "DkuException: " * e.msg)
+    Base.showerror(io::IO, e::DkuException) = print(io, "DkuException: " * e.msg)
 
     include("api.jl")
     include("Projects.jl")
