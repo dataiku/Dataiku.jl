@@ -22,6 +22,7 @@ df = get_dataframe(dataset"PROJECTKEY.myDataset")
     * `head` returns the first rows of the dataset. Incompatible with ratio parameter.
     * `random` returns a random sample of the dataset
     * `random-column` returns a random sample of the dataset. Incompatible with limit parameter.
+- `truestrings`, `falsestrings`: Vectors of Strings that indicate how `true` and `false` values are represented
 - `sampling_column::AbstractString` : Select the column used for "columnwise-random" sampling
 
 Examples :
@@ -31,14 +32,14 @@ get_dataframe(dataset"myDataset", [:col1, :col2, :col5]; partitions=["2019-02", 
 get_dataframe(dataset"PROJECTKEY.myDataset"; infer_types=false, limit=200, sampling="random")
 ```
 
-### Load a Dataset as a Channel
+### Load a Dataset with Channel
 To be able to read data by chunk, without loading all the data in memory. The same keyword parameters can be given.
 ```julia
 chnl = Dataiku.iter_dataframes(dataset"myDataset", 1000)
 first_thousand_row = take!(chnk)
 second_thousand_row = take!(chnk)
 ```
-It is then possible to iterate through it
+It is possible to iterate through it
 ```julia
 for chunk in chnl
     do_stuff(chunk)
@@ -55,14 +56,13 @@ The output datasets must already exist in the project.
 ### Full dataframes
 ```julia
 Dataiku.write_with_schema(dataset"myOutputDataset", df)
-Dataiku.write_dataframe(dataset"myOutputDataset", df) # Will break if output dataset doesn't have the right schema
+Dataiku.write_dataframe(dataset"myOutputDataset", df) # does not set the schema of the dataset.
 ```
 The output dataset must already exist in the project.
 
-### Write dataset as a Channel
-It is also possible to write datasets chunk by chunk to avoid loading full datasets in memory. They are 2 ways to do that :
+### Write dataset with Channel
+It is also possible to write datasets chunk by chunk to avoid loading full datasets in memory.
 
-#### By providing a function
 ```julia
 input = Dataiku.iter_dataframes(dataset"myInputDataset", 500)
 Dataiku.write_dataframe(dataset"myOutputDataset") do chnl
@@ -72,22 +72,9 @@ Dataiku.write_dataframe(dataset"myOutputDataset") do chnl
 end
 ```
 
-#### By using a Channel
-```julia
-input = Dataiku.iter_dataframes(dataset"myInputDataset", 500)
-chnl = Dataiku.get_writing_chnl(dataset"myOutputDataset")
-for chunk in input
-    put!(chnl, chunk)
-end
-close(chnl) # closing the channel is required
-```
-
 ### Keywords parameters
 - `partition::AbstractString` : specify the partition to write.
 - `overwrite::Bool=true` : if `false`, appends the data to the already existing dataset.
-
-## API functions
-The package also implements an interface to most of the calls of the [DSS REST API](https://doc.dataiku.com/dss/api/5.0/rest/)
 
 ### Project initialization
 When using the package inside DSS (recipe or notebook) the projectKey doesn't need to be initialized. Otherwise, you may want to use `Dataiku.set_current_project(project"MYPROJECTKEY")`.
@@ -124,7 +111,7 @@ Dataiku.init_context(url::AbstractString, auth::AbstractString)
 ### Types
 The Package implements DSSTypes to interact with different DSS objects
 
-`DSSAnalysis` `DSSBundle` `DSSDataset` `DSSDiscussion` `DSSManagedFolder` `DSSJob` `DSSMLTask` `DSSMacro` `DSSModelVersion` `DSSProject` `DSSRecipe` `DSSSavedModel` `DSSScenario` `DSSScenarioRun` `DSSTrainedModel` `DSSTriggerFire`
+ `DSSDataset` `DSSFolder` `DSSMLTask` `DSSModelVersion` `DSSProject` `DSSSavedModel` `DSSTrainedModel`
 
  
 *These types are only indicators and don't store any data or metadata.*
@@ -135,8 +122,7 @@ For more accessibility, str_macros exist to create most of these types :
 * `dataset"mydataset"` is equivalent to `DSSDataset("mydataset")`
 * `dataset"PROJECTKEY.mydataset"` => `DSSDataset("mydataset", DSSProject("PROJECTKEY"))`
 * `project"PROJECTKEY"` => `DSSProject("PROJECTKEY")`
-* `recipes"myrecipe"` => `DSSRecipes("myrecipe")`
-* `recipes"myscenario"` => `DSSScenario("myscenario")`
+* `folder"XXXXXX"` => `DSSFolder("XXXXXX")`
 
 ## Tests
 

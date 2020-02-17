@@ -10,7 +10,7 @@ module Dataiku
     end
     Base.showerror(io::IO, e::DkuException) = print(io, "DkuException: " * e.msg)
 
-    include("api.jl")
+    include("request.jl")
     include("Projects.jl")
     include("Datasets.jl")
     include("Models.jl")
@@ -35,10 +35,10 @@ module Dataiku
     export full_name
 
     function get_flow()
-        if haskey(ENV, "DKUFLOW_SPEC")
+        if _is_inside_recipe()
             return JSON.parse(ENV["DKUFLOW_SPEC"])
         end
-        throw(DkuException("Env variable 'DKUFLOW_SPEC' not defined inside recipe."))
+        throw(DkuException("Env variable 'DKUFLOW_SPEC' not defined."))
     end
 
     _is_inside_recipe() = haskey(ENV, "DKUFLOW_SPEC")
@@ -60,7 +60,7 @@ look for a dict that has this `value` at this `field` in an array of dict
     function get_current_project()
         if !haskey(ENV, "DKU_CURRENT_PROJECT_KEY")
             if isinteractive()
-                println("No projectKey found, define current project with Dataiku.set_current_project(::DSSProject) or")
+                println("No projectKey found, define current project with Dataiku.set_current_project(::DSSProject)")
                 set_current_project()
             else
                 throw(DkuException("No projectKey found, define current project with Dataiku.set_current_project(::DSSProject)"))
@@ -74,6 +74,10 @@ look for a dict that has this `value` at this `field` in an array of dict
             throw(DkuException("Cannot interactively define project key."))
         end
         while true
+            println("Existing projects:")
+            for project in list_projects()
+                println(project["projectKey"])
+            end
             print("enter projectKey (empty for aborting): ")
             project = DSSProject(readline(stdin))
             if isempty(project.key)
@@ -95,12 +99,19 @@ look for a dict that has this `value` at this `field` in an array of dict
         end
     end
 
-    list_custom_variables() = request_json("GET", "admin/variables")
-    set_custom_variables(variables::AbstractDict) = request_json("PUT", "admin/variables", variables)
+    function get_custom_variables(resolved=true, project::DSSProject=get_current_project())
+        if haskey(ENV, "DKU_CUSTOM_VARIABLES")
+            return JSON.parse(ENV["DKU_CUSTOM_VARIABLES"])
+        else
+            request_json("GET", "projects/$(project.key)/variables"*(resolved ? "-resolved" : ""))
+        end
+    end
 
-    get_flow_variable(name::AbstractString) = JSON.parse(ENV["DKUFLOW_VARIABLES"])[name]
-
-    list_flow_variables(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(project.key)/variables")
-    set_flow_variables(variables::AbstractDict, project::DSSProject=get_current_project()) = request_json("PUT", "projects/$(project.key)/variables", variables)
-
+    function get_flow_variable(name::AbstractString)
+        if _is_inside_recipe()
+            JSON.parse(ENV["DKUFLOW_VARIABLES"])[name]
+        else
+            throw(DkuException("Cannot get flow variables outside of a recipe"))
+        end
+    end
 end

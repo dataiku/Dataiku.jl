@@ -50,7 +50,7 @@ get the data of a dataset in a DataFrame
     * `random` returns a random sample of the dataset
     * `random-column` returns a random sample of the dataset. Incompatible with limit parameter.
 - `sampling_column::AbstractString` : Select the column used for "columnwise-random" sampling
-- `truestrings`, `falsestrings`: Vectors of Strings that indicate how `true` or `false` values are represented
+- `truestrings`, `falsestrings`: Vectors of Strings that indicate how `true` and `false` values are represented
 ### examples
 ```julia
 get_dataframe(dataset"myDataset")
@@ -99,6 +99,17 @@ function _get_reading_params(ds::DSSDataset, columns::AbstractArray=[]; partitio
     )
 end
 
+"""
+```julia
+function iter_data_chunks(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
+```
+Returns an iterator over the data of a dataframe. Can be used to access data without loading the full dataset in memory.
+
+Support the same keyword arguments as `get_dataframe()`.
+
+The size of the chunks aren't fixed and depends on the size of the chunks from the DSS backend and of the length of each rows.
+Other iter_* functions rely on `iter_data_chunks`.
+"""
 function iter_data_chunks(ds::DSSDataset, columns::AbstractArray=[];
                                           infer_types=true,
                                           truestrings=["true", "True", "TRUE"],
@@ -107,7 +118,8 @@ function iter_data_chunks(ds::DSSDataset, columns::AbstractArray=[];
     names, types = _get_reading_schema(ds, columns; infer_types=infer_types)
     params = _get_reading_params(ds, columns; kwargs...)
     Channel() do chnl
-        get_stream_read("projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=params) do stream
+        get_stream("projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=params,
+                err_msg="Exception thrown while reading " * _identify(ds, params["partitions"]) * ": \n") do stream
             first_line = ""
             open_quotes = false
             while !eof(stream)
@@ -125,8 +137,10 @@ function iter_data_chunks(ds::DSSDataset, columns::AbstractArray=[];
     end
 end
 
-# remove the last incomplete line of the chunk, keep the last line in memory to add it to the next chunk
-# only consider newlines that aren't in quotes
+"""
+remove the last incomplete line of the chunk, keep the last line in memory to add it to the next chunk
+only consider newlines that aren't in quotes
+"""
 function _split_last_line(str::AbstractString, open_quotes::Bool=false, quotechar='"')
     inquote = open_quotes = count(i -> (i == quotechar), str) % 2 == 1 ⊻ open_quotes
     for i in Iterators.reverse(eachindex(str))
@@ -139,6 +153,15 @@ function _split_last_line(str::AbstractString, open_quotes::Bool=false, quotecha
     str, "", open_quotes
 end
 
+"""
+```julia
+function iter_rows(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
+```
+Returns an iterator over the rows of a dataframe. Can be used to access data without loading the full dataset in memory.
+
+Note that row-by-row reading is inefficient in comparison with other reading methods.
+The usage of `iter_dataframes` is recommended for bigger datasets.
+"""
 function iter_rows(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
     Channel(;ctype=DataFrameRow) do chnl
         for chunk in iter_data_chunks(ds, columns; kwargs...)
@@ -151,9 +174,29 @@ end
 
 """
 ```julia
+function iter_tuples(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
+```
+Returns an iterator over the rows of a dataframe. Can be used to access data without loading the full dataset in memory.
+Returns the rows of the dataset as tuples. The order and type of the values are the same are matching the dataset's parameter
+
+Note that row-by-row reading is inefficient in comparison with other reading methods.
+The usage of `iter_dataframes` is recommended for bigger datasets.
+"""
+function iter_tuples(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
+    Channel(;ctype=Tuple) do chnl
+        for chunk in iter_data_chunks(ds, columns; kwargs...)
+            for row in 1:nrow(chunk)
+                put!(chnl, Tuple(chunk[row,col] for col in 1:ncol(chunk)))
+            end
+        end
+    end
+end
+
+"""
+```julia
 function iter_dataframes(ds::DSSDataset, nrows::Integer=10_000, columns::AbstractArray=[]; kwargs...)
 ```
-Returns  an iterator over the data of a dataframe. Can be used to access data without loading the full dataset in memory.
+Returns an iterator over the data of a dataframe. Can be used to access data without loading the full dataset in memory.
 ### Keywords parameters
 - `partitions::AbstractArray` : specify the partitions wanted (cannot be used inside recipes)
 - `infer_types::Bool=true` : uses the types detected by CSV.jl rather than the DSS schema
@@ -164,7 +207,7 @@ Returns  an iterator over the data of a dataframe. Can be used to access data wi
     * `random` returns a random sample of the dataset
     * `random-column` returns a random sample of the dataset. Incompatible with limit parameter.
 - `sampling_column::AbstractString` : Select the column used for "columnwise-random" sampling
-- `truestrings`, `falsestrings`: Vectors of Strings that indicate how `true` or `false` values are represented
+- `truestrings`, `falsestrings`: Vectors of Strings that indicate how `true` and `false` values are represented
 ### example
 ```julia
 for chunk in Dataiku.iter_dataframes(dataset"example", 500)
@@ -184,16 +227,6 @@ function iter_dataframes(ds::DSSDataset, n::Integer=10_000, columns::AbstractArr
             end
         end
         put!(chnl, df)
-    end
-end
-
-function iter_tuples(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
-    Channel(;ctype=Tuple) do chnl
-        for chunk in iter_data_chunks(ds, columns; kwargs...)
-            for row in 1:nrow(chunk)
-                put!(chnl, Tuple(chunk[row,col] for col in 1:ncol(chunk)))
-            end
-        end
     end
 end
 
@@ -250,8 +283,6 @@ of the dataframe.
 
 Provides ability to write data by chunks without having to load full datasets in memory.
 
-Also see `get_writing_chnl`.
-
 example:
 ```julia
 input = Dataiku.write_with_schema(dataset"input_dataset", 500)
@@ -272,19 +303,17 @@ write_dataframe(f::Function, ds::DSSDataset; infer_schema=false, kwargs...)
 Writes this dataset (or its target partition) from a single DataFrame.
 
 This variant only edit the schema if infer_schema is True, otherwise you must
-    take care to only write dataframes that have a compatible schema.
+take care to only write dataframes that have a compatible schema.
 
-    Provides ability to write data by chunks without having to load full datasets in memory.
+Provides ability to write data by chunks without having to load full datasets in memory.
 
-    Also see `get_writing_chnl`.
-
-    example:
-    ```julia
-    input = Dataiku.iter_dataframes(dataset"input_dataset", 500)
-    Dataiku.write_dataframe(dataset"output") do chnl
-        for chunk in input
-            put!(chnl, chunk)
-        end
+example:
+```julia
+input = Dataiku.iter_dataframes(dataset"input_dataset", 500)
+Dataiku.write_dataframe(dataset"output") do chnl
+    for chunk in input
+        put!(chnl, chunk)
+    end
 end
 ```
 """
@@ -301,28 +330,6 @@ function _dataframe_chnl_to_csv(chnl::Channel{AbstractDataFrame}, first_chunk)
             put!(output, _get_stream_write(df))
         end
     end
-end
-
-"""
-```julia
-get_writing_chnl(ds::DSSDataset; kwargs...)
-```
-Provides a Channel to write data to a dataset.
-Open the connection to dss and stream the data until the channel is closed.
-
-example:
-```julia
-chnl = Dataiku.get_writing_chnl(dataset"output")
-for chunk in Dataiku.iter_dataframes(dataset"input")
-    put!(chnl, chunk)
-end
-close(chnl) # closing the channel is required
-```
-"""
-function get_writing_chnl(ds::DSSDataset; kwargs...)
-    chnl = Channel()
-    @async write_chnl(ds, chnl; kwargs...)
-    chnl
 end
 
 function write_chnl(ds, chnl::AbstractChannel, schema=nothing; kwargs...)
@@ -540,6 +547,12 @@ set_schema(ds::DSSDataset, body::AbstractDict) = request_json("PUT", "projects/$
 
 list_partitions(ds::DSSDataset) = request_json("GET", "projects/$(ds.project.key)/datasets/$(ds.name)/partitions")
 
+"""
+```julia
+function clear_data(ds::DSSDataset; partitions=[])
+```
+Clears the data of a datasets or some of its partitions.
+"""
 function clear_data(ds::DSSDataset; partitions::AbstractArray=[])
     delete_request("projects/$(ds.project.key)/datasets/$(ds.name)/data"; params=Dict("partitions" => partitions))
 end

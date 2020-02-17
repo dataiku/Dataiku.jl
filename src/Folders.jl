@@ -36,7 +36,7 @@ end
 
 delete(folder::DSSFolder) = delete_request("projects/$(folder.project.key)/managedfolders/$(folder.id)")
 
-# get_definition might be better 
+
 get_settings(folder::DSSFolder) = request_json("GET", "projects/$(folder.project.key)/managedfolders/$(folder.id)")
 
 set_settings(folder::DSSFolder, settings::AbstractDict) =
