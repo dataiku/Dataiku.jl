@@ -109,12 +109,6 @@ function post_multipart(url::AbstractString, file::IO, filename::AbstractString)
 	request("POST", url, body; content_type="multipart/form-data; boundary=$(body.boundary)")
 end
 
-"""
-```julia
-request_json(req::AbstractString, url::AbstractString, body=""; show_msg=false, kwargs...)
-```
-
-"""
 function request_json(req::AbstractString, url::AbstractString, body=""; show_msg=false, kwargs...)
 	raw_res = request(req, url, body; kwargs...)
 	if isnothing(raw_res)

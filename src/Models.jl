@@ -18,7 +18,7 @@ struct DSSMLTask <: DSSObject
     analysis::DSSAnalysis
     id::AbstractString
     DSSMLTask(analysisId, mlTaskId, project::DSSProject=get_current_project()) = new(DSSAnalysis(analysisId, project), mlTaskId)
-    DSSMLTask(name::AbstractString, project::DSSProject=get_current_project()) = DSSMLTask(find_field(list_ml_tasks(), "mlTaskName", name), project)
+    DSSMLTask(name::AbstractString, project::DSSProject=get_current_project()) = DSSMLTask(filter(x->x["mlTaskId"] == name, list_ml_tasks())[1], project)
     DSSMLTask(dict::AbstractDict, project::DSSProject=get_current_project()) = DSSMLTask(dict["analysisId"], dict["mlTaskId"], project)
 end
 export DSSMLTask
@@ -351,7 +351,7 @@ returns a `DSSSavedModel`
 function deploy_to_flow(model::DSSTrainedModel; params...)
     body = Dict(params...)
     if !haskey(body, "trainDatasetRef") || !haskey(body, "modelName")
-        mltask = find_field(list_ml_tasks(), "mlTaskId", model.mltask.id)
+        mltask = filter(x->x["mlTaskId"] == model.mltask.id, list_ml_tasks())[1]
         if !haskey(body, "modelName")
             algo = get_snippet(model)["algorithm"]
             body["modelName"] = "$(algo != "KMEANS" ? "Prediction" : "Clustering") ($algo) on $(mltask["inputDataset"])"

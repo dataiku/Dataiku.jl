@@ -3,16 +3,29 @@ using Dates
 using CSV
 
 """
-```julia…
-struct DSSDataset <: DSSObject
-    project::DSSProject
-    name::AbstractString
-    DSSDataset(name::AbstractString, project::DSSProject=get_current_project()) = new(project, name)
-end
-```
+`DSSDataset <: DSSObject`
+
+Representation of a Dataset in DSS.
+This object does not contain any data apart from its ID.
+
 Can be created using dataset_str macro :
-- `dataset"datasetName"` if you are inside DSS
-- `dataset"PROJECTKEY.datasetName"` if you are outside of DSS or want to have dataset from another project
+- `dataset"datasetName"`
+- `dataset"PROJECTKEY.datasetName"`
+
+### functions
+(the most important ones, not exhaustive list)
+
+* `list_datasets()`
+* `create_dataset(name)`
+* `get_dataframe(::DSSDataset[, columns])`
+* `write_with_schema(::DSSDataset, ::AbstractDataFrame)`
+* `iter_dataframes(::DSSDataset[, nrows])`
+* `get_schema(::DSSDataset)`
+* `get_settings(::DSSDataset)`
+* `get_metadata(::DSSDataset)`
+* `list_partitions(::DSSDataset)`
+* `delete(::DSSDataset)`
+* `clear_data(::DSSDataset`
 """
 struct DSSDataset <: DSSObject
     project::DSSProject
@@ -394,18 +407,6 @@ end
 #   UTILITY FUNCTIONS
 #
 ###################################################
-
-get_flow_outputs(ds::DSSDataset) = _get_flow_inputs_or_outputs(ds, "out")
-
-get_flow_inputs(ds::DSSDataset) = _get_flow_inputs_or_outputs(ds, "in")
-
-function _get_flow_inputs_or_outputs(ds::DSSDataset, option)
-    puts = find_field(get_flow()[option], "fullName", full_name(ds))
-    if isnothing(puts)
-        throw(DkuException("Dataset $(ds.name) cannot be used : declare it as " * option * "put of your recipe."))
-    end
-    puts
-end
 
 get_column_types(ds::DSSDataset, columns::AbstractArray=[]) = get_column_types(get_schema(ds)["columns"], columns)
 get_column_types(schema::AbstractArray, cols::AbstractArray=[]) =

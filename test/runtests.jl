@@ -11,8 +11,3 @@ end
 @testset "Models" begin
     include("ml.jl")
 end
-
-## TODO :
-# repair & test folders
-# repair & test models
-# test data streaming

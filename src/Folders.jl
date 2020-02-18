@@ -49,7 +49,12 @@ set_settings(folder::DSSFolder, settings::AbstractDict) =
 
 list_contents(folder::DSSFolder) = request_json("GET", "projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/")
 
-get_stream_from_file(f::Function, folder::DSSFolder, path) = get_stream(f, "projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/$(path)")
+function get_stream_from_file(f::Function, folder::DSSFolder, path)
+    if _is_inside_recipe()
+        get_flow_inputs(folder)
+    end
+    get_stream(f, "projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/$(path)")
+end
 
 function get_file_content(folder::DSSFolder, path)
     ret = UInt8[]
@@ -68,7 +73,12 @@ function download_file(folder::DSSFolder, path_in_folder, writing_path)
     end
 end
 
-upload_file(folder::DSSFolder, file, filename) = post_multipart("projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/", file, filename)
+function upload_file(folder::DSSFolder, file, filename)
+    if _is_inside_recipe()
+        get_flow_outputs(folder)
+    end
+    post_multipart("projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/", file, filename)
+end
 
 function copy_file(ifolder::DSSFolder, ipath, ofolder::DSSFolder, opath=ipath)
     Dataiku.get_stream_from_file(ifolder, ipath) do io
