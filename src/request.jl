@@ -15,7 +15,7 @@ struct DkuAPIException<: Exception
 		type = split(get(e, "errorType", ""), '.') |> last
 		new(msg, type)
 	end
-	DkuAPIException(e::AbstractString) = new(msg, "")
+	DkuAPIException(msg::AbstractString) = new(msg, "")
 	msg::String
 	type::String
 end
@@ -83,31 +83,28 @@ end
 
 using HTTP.IOExtras
 
-
 function get_stream(f::Function, url; err_msg="", kwargs...)
 	url, header = get_url_and_header(url; kwargs...)
 	HTTP.open("GET", url, header; retry=false) do io
 		if HTTP.iserror(startread(io))
-			throw(DkuAPIException(JSON.parse(String(readavailable(io)))))
-		else
-			try
-				f(io)
-			catch e
-				if e isa DkuException
-					throw(e)
-				else
-					throw(DkuException(err_msg * string(typeof(e)) *  ": " * e.msg))
-				end
+			error = String(readavailable(io))
+			if error[1] == '{'
+				throw(DkuAPIException(JSON.parse(error)))
+			else
+				throw(throw(DkuAPIException(error)))
 			end
+		else
+			f(io)
 		end
 	end
+	nothing
 end
 
 
 post_multipart(url::AbstractString, path::AbstractString, filename::AbstractString=basename(path)) =
 	post_multipart(url, open(path, read=true), filename)
 
-function post_multipart(url::AbstractString, file::IO, filename::AbstractString="file")::String
+function post_multipart(url::AbstractString, file::IO, filename::AbstractString)
 	body = HTTP.Form(Dict("file" => HTTP.Multipart(filename, file)))
 	request("POST", url, body; content_type="multipart/form-data; boundary=$(body.boundary)")
 end
