@@ -8,6 +8,10 @@ using Dates
     include("datasets.jl")
 end
 
+@testset "Folders" begin
+    include("folders.jl")
+end
+
 @testset "Models" begin
     include("ml.jl")
 end

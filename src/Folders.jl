@@ -115,7 +115,7 @@ function upload_file(folder::DSSFolder, file::IO, path="")
     if _is_inside_recipe()
         get_flow_outputs(folder)
     end
-    post_multipart("projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/$path", file)
+    post_multipart("projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/$path", file, basename(path))
 end
 
 
@@ -124,7 +124,7 @@ end
 
 Uploads `file` to the selected `path`. If `path` is empty, the file is uploaded at the root of the folder.
 """
-function upload_file(folder::DSSFolder, file, path="")
+function upload_file(folder::DSSFolder, file, path=basename(file))
     if isfile(file)
         upload_file(folder, open(file, read=true), path)
     else
@@ -141,7 +141,7 @@ function copy_file(ifolder::DSSFolder, ipath, ofolder::DSSFolder, opath=ipath)
     Dataiku.get_stream_from_file(ifolder, ipath) do io
         buf = Base.BufferStream()
         len = write(buf, io)
-        @async Dataiku.upload_file(ofolder, IOContext(buf, :readerror=>false), opath)
+        @async Dataiku.upload_file(ofolder, IOContext(buf, :readerror => false), opath)
         close(buf)
         @info "$len bytes copied to $opath in $ofolder"
     end
