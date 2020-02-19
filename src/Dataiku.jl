@@ -45,6 +45,7 @@ Abstraction of all DSS objects.
     get_name_or_id(object::DSSObject) = :id in fieldnames(typeof(object)) ? object.id : object.name
 
     full_name(object::DSSObject) = object.project.key * "." * get_name_or_id(object)
+    full_name(project::DSSProject) = project.key
     export full_name
 
     function get_custom_variables(resolved=true, project::DSSProject=get_current_project())

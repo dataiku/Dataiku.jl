@@ -100,14 +100,11 @@ function get_stream(f::Function, url; err_msg="", kwargs...)
 	nothing
 end
 
-
-post_multipart(url::AbstractString, path::AbstractString, filename::AbstractString=basename(path)) =
-	post_multipart(url, open(path, read=true), filename)
-
-function post_multipart(url::AbstractString, file::IO, filename::AbstractString)
-	body = HTTP.Form(Dict("file" => HTTP.Multipart(filename, file)))
-	request("POST", url, body; content_type="multipart/form-data; boundary=$(body.boundary)")
+function post_multipart(url::AbstractString, file::IO)
+	body = HTTP.Form(Dict("file" => file))
+	request_json("POST", url, body; content_type="multipart/form-data; boundary=$(body.boundary)")
 end
+
 
 function request_json(req::AbstractString, url::AbstractString, body=""; show_msg=false, kwargs...)
 	raw_res = request(req, url, body; kwargs...)

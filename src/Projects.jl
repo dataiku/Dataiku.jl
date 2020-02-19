@@ -11,7 +11,7 @@ Can be created using project_str macro :
 (the most important ones, not exhaustive list)
 
 * `list_projects()`
-* `create_project(name)`
+* `create_project(name, projectKey, owner)`
 * `delete(::DSSProject)`
 * `get_current_project()`
 * `set_current_project(::DSSProject)`
