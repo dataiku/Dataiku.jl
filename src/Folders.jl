@@ -115,9 +115,8 @@ function upload_file(folder::DSSFolder, file::IO, path="")
     if _is_inside_recipe()
         get_flow_outputs(folder)
     end
-    post_multipart("projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/$path", file, basename(path))
+    post_multipart("projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/", file, basename(path))
 end
-
 
 """
 `upload_file(folder::DSSFolder, file, path="")`
@@ -138,13 +137,16 @@ end
 Copies a file from a folder to another.
 """
 function copy_file(ifolder::DSSFolder, ipath, ofolder::DSSFolder, opath=ipath)
+    res = nothing
     Dataiku.get_stream_from_file(ifolder, ipath) do io
         buf = Base.BufferStream()
-        len = write(buf, io)
-        @async Dataiku.upload_file(ofolder, IOContext(buf, :readerror => false), opath)
-        close(buf)
-        @info "$len bytes copied to $opath in $ofolder"
+        @async begin 
+            write(buf, io)
+            close(buf)
+        end
+        res = Dataiku.upload_file(ofolder, IOContext(buf, :readerror => false), opath)
     end
+    res
 end
 
 """

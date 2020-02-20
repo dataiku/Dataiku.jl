@@ -29,6 +29,7 @@ Abstraction of all DSS objects.
     include("flow.jl")
     include("request.jl")
     include("Projects.jl")
+    include("variables.jl")
     include("Datasets.jl")
     include("Models.jl")
     include("Folders.jl")
@@ -47,12 +48,4 @@ Abstraction of all DSS objects.
     full_name(object::DSSObject) = object.project.key * "." * get_name_or_id(object)
     full_name(project::DSSProject) = project.key
     export full_name
-
-    function get_custom_variables(resolved=true, project::DSSProject=get_current_project())
-        if haskey(ENV, "DKU_CUSTOM_VARIABLES")
-            return JSON.parse(ENV["DKU_CUSTOM_VARIABLES"])
-        else
-            request_json("GET", "projects/$(project.key)/variables"*(resolved ? "-resolved" : ""))
-        end
-    end
 end

@@ -180,13 +180,4 @@ end
     Dataiku.delete(ds_part)
 end
 
-@testset "Variables" begin
-    variables = Dataiku.get_custom_variables(true, project)
-    @test variables["projectKey"] == project.key
-
-    variables = Dataiku.get_custom_variables(false, project)
-    @test haskey(variables, "local")
-    @test haskey(variables, "standard")
-end
-
 Dataiku.delete(project)

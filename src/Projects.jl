@@ -15,7 +15,6 @@ Can be created using project_str macro :
 * `delete(::DSSProject)`
 * `get_current_project()`
 * `set_current_project(::DSSProject)`
-* `get_variables(::DSSProject)`
 """
 struct DSSProject <: DSSObject
     key::AbstractString
@@ -53,10 +52,6 @@ function exists(project::DSSProject)
 end
 
 delete(project::DSSProject, dropData::Bool=false) = delete_request("projects/$(project.key)", params=Dict("dropData" => dropData))
-
-get_variables(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(project.key)/variables")
-set_variables(project::DSSProject, body::AbstractDict) = set_variables(body, project)
-set_variables(body::AbstractDict, project::DSSProject=get_current_project()) = request_json("PUT", "projects/$(project.key)/variables", body)
 
 list_projects(; tags=[]) = request_json("GET", "projects/"; params=Dict("tags" => tags))
 

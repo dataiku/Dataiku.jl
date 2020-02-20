@@ -15,3 +15,7 @@ end
 @testset "Models" begin
     include("ml.jl")
 end
+
+@testset "Variables" begin
+    include("variables.jl")
+end
