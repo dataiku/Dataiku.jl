@@ -11,11 +11,11 @@ get_flow_outputs(obj::DSSObject) = _get_flow_inputs_or_outputs(obj, "out")
 get_flow_inputs(obj::DSSObject) = _get_flow_inputs_or_outputs(obj, "in")
 
 function _get_flow_inputs_or_outputs(obj::DSSObject, option)
-    puts = filter(x->x["fullName"] == full_name(ds), get_flow()[option])
+    puts = filter(x->x["fullName"] == full_name(obj), get_flow()[option])
     if isempty(puts)
-        throw(DkuException("$(_type_as_string(obj)) $(ds.name) cannot be used : declare it as " * option * "put of your recipe."))
+        throw(DkuException("$(_type_as_string(obj)) $(obj.name) cannot be used : declare it as " * option * "put of your recipe."))
     end
-    return get_flow()[option][index]
+    return get_flow()[option][1]
 end
 
 function get_flow_variable(name::AbstractString)
