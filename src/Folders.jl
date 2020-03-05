@@ -11,10 +11,11 @@ This object does not contain any data apart from its ID.
     * `create_managed_folder(name)`
     * `get_settings(::DSSFolder)`
     * `list_contents(::DSSFolder)`
-    * `get_stream_from_file(::DSSFolder)`
+    * `get_download_stream(f::Function, ::DSSFolder)`
     * `delete(::DSSFolder)`
-    * `get_stream_from_file(f::Function, ::DSSFolder)`
-    * `get_file_content(::DSSFolder)`
+    * `get_file_content(::DSSFolder, path)`
+    * `read_json(folder::DSSFolder, path)`
+    * `read_json(folder::DSSFolder, path, data)`
     * `copy_file(::DSSFolder, input_path, ::DSSFolder, output_path)`
     * `upload_file(::DSSFolder, input_file, path)`
     * `delete_path(::DSSFolder, path)`
@@ -64,25 +65,40 @@ set_settings(folder::DSSFolder, settings::AbstractDict) =
 list_contents(folder::DSSFolder) = request_json("GET", "projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/")
 
 """
-`get_stream_from_file(f::Function, folder::DSSFolder, path)`
+`get_download_stream(f::Function, folder::DSSFolder, path)`
 
 Get a stream from the file. A function must be provided. The stream is automatically closed at the end of the function.
 
 #### Example
 ```julia
-function print_file(folder::DSSFolder, file)
-    Dataiku.get_stream_from_file(folder, file) do io
-        println(String(read(io)))
-    end
+Dataiku.get_download_stream(folder, file) do io
+    println(String(read(io)))
 end
 ```
 """
-function get_stream_from_file(f::Function, folder::DSSFolder, path)
-    if _is_inside_recipe()
-        get_flow_inputs(folder)
-    end
+function get_download_stream(f::Function, folder::DSSFolder, path)
+    _check_inputs(folder)
     get_stream(f, "projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/$(path)")
 end
+
+"""
+`get_download_stream(folder::DSSFolder, path)`
+
+Get a stream from the file.
+
+#### Example
+```julia
+io = Dataiku.get_download_stream(folder, file)
+while !eof(io)
+    println(readline(io))
+end
+```
+"""
+function get_download_stream(folder::DSSFolder, path)
+    _check_inputs(folder)
+    get_stream("projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/$(path)")
+end
+
 
 """
 `get_file_content(folder::DSSFolder, path)`
@@ -91,43 +107,70 @@ Returns the content of the file, as an array of bytes.
 """
 function get_file_content(folder::DSSFolder, path)
     ret = UInt8[]
-    get_stream_from_file(folder, path) do io
+    get_download_stream(folder, path) do io
         ret = read(io)
     end
     return ret
 end
 
 """
-`download_file(folder::DSSFolder, path_in_folder, writing_path)`
+`read_json(folder::DSSFolder, path)`
+
+Returns the content of the file, as a Dict.
+"""
+read_json(folder::DSSFolder, path) = get_file_content(folder, path) |> String |> JSON.parse
+
+"""
+`write_json(folder::DSSFolder, path, obj::AbstractDict)`
+
+Returns the content of the file, as an array of bytes.
+"""
+write_json(folder::DSSFolder, path, obj::AbstractDict) = upload_data(folder, path, JSON.json(obj, 2))
+
+"""
+`download_file(folder::DSSFolder, path_in_folder, local_path)`
 
 Downloads a file to your local path.
 """
-function download_file(folder::DSSFolder, path_in_folder, writing_path)
-    open(writing_path, "w") do output
-        get_stream_from_file(folder, path_in_folder) do input
+function download_file(folder::DSSFolder, path_in_folder, local_path)
+    open(local_path, "w") do output
+        get_download_stream(folder, path_in_folder) do input
             len = write(output, input)
-            @info "$len bytes written to $writing_path"
+            @info "$len bytes written to $local_path"
         end
     end
 end
 
-function upload_file(folder::DSSFolder, file::IO, path="")
-    if _is_inside_recipe()
-        get_flow_outputs(folder)
-    end
-    post_multipart("projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/", file, basename(path))
+"""
+`upload_data(folder::DSSFolder, path, data)`
+
+Uploads data to a specific path in the managed folder.
+If the file already exists, it will be replaced.
+"""
+upload_data(folder::DSSFolder, path, data) = upload_stream(folder, path, IOBuffer(data))
+
+"""
+`upload_stream(folder::DSSFolder, path, file::IO)`
+
+Uploads the content of a stream object to a specific path in the managed folder.
+If the file already exists, it will be replaced.
+"""
+function upload_stream(folder::DSSFolder, path, file::IO)
+    _check_outputs(folder)
+    post_multipart("projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/", path, file)
 end
 
 """
-`upload_file(folder::DSSFolder, file, path="")`
+`upload_file(folder::DSSFolder, path, file_path)`
 
-Uploads `file` to the selected `path`. If `path` is empty, the file is uploaded at the root of the folder.
+Uploads the content of the file to a specific path in the managed folder.
+If the file already exists, it will be replaced.
 """
-function upload_file(folder::DSSFolder, file, path=basename(file))
-    if isfile(file)
-        upload_file(folder, open(file, read=true), path)
+function upload_file(folder::DSSFolder, path, file_path)
+    if isfile(file_path)
+        upload_stream(folder, path, open(file_path, read=true))
     else
-        throw(DkuException("$file does not exist or is not a file.")) 
+        throw(DkuException("$file_path does not exist or is not a file.")) 
     end
 end
 
@@ -138,13 +181,13 @@ Copies a file from a folder to another.
 """
 function copy_file(ifolder::DSSFolder, ipath, ofolder::DSSFolder, opath=ipath)
     res = nothing
-    Dataiku.get_stream_from_file(ifolder, ipath) do io
+    Dataiku.get_download_stream(ifolder, ipath) do io
         buf = Base.BufferStream()
         @async begin 
             write(buf, io)
             close(buf)
         end
-        res = Dataiku.upload_file(ofolder, IOContext(buf, :readerror => false), opath)
+        res = Dataiku.upload_stream(ofolder, opath, IOContext(buf, :readerror => false))
     end
     res
 end

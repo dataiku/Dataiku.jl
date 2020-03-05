@@ -34,6 +34,7 @@ Abstraction of all DSS objects.
     include("Models.jl")
     include("Folders.jl")
 
+    _type_as_string(obj::T) where {T <: DSSObject} = _type_as_string(T)
     _type_as_string(::Type{DSSDataset}) = "dataset"
     _type_as_string(::Type{DSSFolder}) = "folder"
     _type_as_string(::Type{DSSProject}) = "project"

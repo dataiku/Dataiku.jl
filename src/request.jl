@@ -83,6 +83,13 @@ end
 
 using HTTP.IOExtras
 
+function get_stream(url; kwargs...)
+	url, header = get_url_and_header(url; kwargs...)
+	io = Base.BufferStream()
+	@async HTTP.get(url, header; retry=false, response_stream=io)
+	return io
+end
+
 function get_stream(f::Function, url; err_msg="", kwargs...)
 	url, header = get_url_and_header(url; kwargs...)
 	HTTP.open("GET", url, header; retry=false) do io
@@ -100,7 +107,7 @@ function get_stream(f::Function, url; err_msg="", kwargs...)
 	nothing
 end
 
-post_multipart(url, file::IO, filename) = post_multipart(url, HTTP.Multipart(filename, file))
+post_multipart(url, filename, file::IO) = post_multipart(url, HTTP.Multipart(filename, file))
 function post_multipart(url::AbstractString, file)
 	body = HTTP.Form(Dict("file" => file))
 	request_json("POST", url, body; content_type="multipart/form-data; boundary=$(body.boundary)")
