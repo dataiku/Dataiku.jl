@@ -104,10 +104,11 @@ function _get_reading_schema(ds::DSSDataset, columns::AbstractArray=[]; infer_ty
 end
 
 function _get_reading_params(ds::DSSDataset, columns::AbstractArray=[]; partitions=[], kwargs...)
+    _check_inputs(ds, partitions)
     Dict(
         "sampling"   => JSON.json(_create_sampling_argument(; kwargs...)),
         "format"     => "tsv-excel-noheader",
-        "partitions" => _is_inside_recipe() ? get(get_flow_inputs(ds), "partitions", []) : partitions,
+        "partitions" => _is_inside_recipe() ? get_input_partitions(ds) : partitions,
         "columns" => columns
     )
 end
@@ -364,9 +365,10 @@ function write_data(ds, data, schema; infer_schema=false, kwargs...)
 end
 
 function _init_write_session(ds::DSSDataset, schema::AbstractDict; method="STREAM", partition="", overwrite=true)
+    _check_outputs(ds, partition)
     req = Dict(
         "method"          => method,
-        "partitionSpec"   => _is_inside_recipe() ? get(get_flow_outputs(ds), "partition", "") : partition,
+        "partitionSpec"   => _is_inside_recipe() ? get_output_partition(ds) : partition,
         "fullDatasetName" => full_name(ds),
         "writeMode"       => overwrite ? "OVERWRITE" : "APPEND",
         "dataSchema"      => schema
