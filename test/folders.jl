@@ -15,13 +15,15 @@ test_folder = Dataiku.create_managed_folder("test_folder")
 
 test_dict = Dict("A" => 5, "B" => 6)
 @test Dataiku.write_json(test_folder, "test.json", test_dict)["size"] == 23
+@test Dataiku.write_json(test_folder, "test/test.json", test_dict)["size"] == 23
 @test Dataiku.read_json(test_folder, "test.json") == test_dict
+@test Dataiku.read_json(test_folder, "test/test.json") == test_dict
 
-@test Dataiku.list_contents(test_folder)["items"] |> length == 3
+@test Dataiku.list_contents(test_folder)["items"] |> length == 4
 @test Dataiku.get_file_content(test_folder, "/no_part2.csv") |> length == 160
 Dataiku.delete_path(test_folder, "/no_part2.csv")
 
-@test Dataiku.list_contents(test_folder)["items"] |> length == 2
+@test Dataiku.list_contents(test_folder)["items"] |> length == 3
 Dataiku.clear_data(test_folder)
 
 @test Dataiku.list_contents(test_folder)["items"] |> length == 0

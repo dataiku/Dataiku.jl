@@ -157,7 +157,7 @@ If the file already exists, it will be replaced.
 """
 function upload_stream(folder::DSSFolder, path, file::IO)
     _check_outputs(folder)
-    post_multipart("projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/", path, file)
+    post_multipart("projects/$(folder.project.key)/managedfolders/$(folder.id)/contents/$path", path, file)
 end
 
 """
