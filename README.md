@@ -1,7 +1,10 @@
+# Description
+A Julia package providing functions to interact with Dataiu DSS instances
+
 # Overview
 This package provides an interface to use DSS remotely and to create recipes/notebooks in [Dataiku DSS](https://www.dataiku.com/dss/)
 
-Note: This documentation is only for remote use. If you want to use the Julia language from within DSS, install the plugin from DSS UI or ask your administrator. More info on the plugin integration here: https://www.dataiku.com/dss/plugins/info/julia.html
+Note: This documentation is for remote use. If you want to use the Julia language from within DSS, install the plugin from DSS UI or ask your administrator. More info on the plugin integration here: https://www.dataiku.com/dss/plugins/info/julia.html
 
 # Usage
 ## Reading Data
