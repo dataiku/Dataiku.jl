@@ -1,5 +1,5 @@
 # Description
-A Julia package providing functions to interact with Dataiu DSS instances
+A Julia package providing functions to interact with Dataiku DSS instances
 
 # Overview
 This package provides an interface to use DSS remotely and to create recipes/notebooks in [Dataiku DSS](https://www.dataiku.com/dss/)
