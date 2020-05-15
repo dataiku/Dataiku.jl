@@ -38,13 +38,13 @@ get_dataframe(dataset"PROJECTKEY.myDataset"; infer_types=false, limit=200, sampl
 ### Load a Dataset with Channel
 To be able to read data by chunk, without loading all the data in memory. The same keyword parameters can be given.
 ```julia
-chnl = Dataiku.iter_dataframes(dataset"myDataset", 1000)
-first_thousand_row = take!(chnk)
-second_thousand_row = take!(chnk)
+channel = Dataiku.iter_dataframes(dataset"myDataset", 1000)
+first_thousand_row = take!(channel)
+second_thousand_row = take!(channel)
 ```
-It is possible to iterate through it
+It is possible to iterate through the channel
 ```julia
-for chunk in chnl
+for chunk in channel
     do_stuff(chunk)
 end
 ```
@@ -54,7 +54,6 @@ Dataiku.iter_rows(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
 Dataiku.iter_tuples(ds::DSSDataset, columns::AbstractArray=[]; kwargs...)
 ```
 ## Writing Data
-The output datasets must already exist in the project.
 
 ### Full dataframes
 ```julia
