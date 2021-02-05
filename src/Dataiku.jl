@@ -39,14 +39,21 @@ Abstraction of all DSS objects.
     _type_as_string(::Type{DSSFolder}) = "folder"
     _type_as_string(::Type{DSSProject}) = "project"
 
+    _type_as_string(::Type{DSSAnalysis}) = "analysis"
+    _type_as_string(::Type{DSSMLTask}) = "mltask"
     _type_as_string(::Type{DSSTrainedModel}) = "trainedmodel"
     _type_as_string(::Type{DSSSavedModel}) = "model"
+    _type_as_string(::Type{DSSModelVersion}) = "modelversion"
 
     createobject(::Type{T}, id) where {T <: DSSObject} = '.' in id ? T(split(id, '.')[end], DSSProject(split(id, '.')[1])) : T(id)
 
     get_name_or_id(object::DSSObject) = :id in fieldnames(typeof(object)) ? object.id : object.name
 
-    full_name(object::DSSObject) = object.project.key * "." * get_name_or_id(object)
+    function full_name(object::DSSObject)
+      project = :project in fieldnames(typeof(object)) ? object.project : get_project(object)
+      return project.key * "." * get_name_or_id(object)
+    end
+
     full_name(project::DSSProject) = project.key
     export full_name
 end

@@ -9,12 +9,14 @@ body = Dict(
     "type"         => "Filesystem",
     "formatType"   => "csv",
     "managed"      => false,
-    "params"       => Dict("connection" => "filesystem_root", "path" => joinpath(test_dir, "data", "part")),
+    "params"       => Dict("connection" => "filesystem_root", "path" => joinpath(test_dir, "data", "dataset.csv")),
     "formatParams" => Dict("style" => "excel", "separator"  => ",", "parseHeaderRow" => true),
     "schema"       => Dict("userModified" => false, "columns" => [
-        Dict("name" => "A", "type" => "bigint"),
+        Dict("name" => "A", "type" => "boolean"),
         Dict("name" => "B", "type" => "bigint"),
-        Dict("name" => "C", "type" => "bigint")
+        Dict("name" => "C", "type" => "bigint"),
+        Dict("name" => "D", "type" => "bigint"),
+        Dict("name" => "E", "type" => "bigint")
     ]),
     "partitioning" => Dict(
         "filePathPattern" => "%{A}/.*",
@@ -32,44 +34,29 @@ Dataiku.create_clustering_ml_task(dataset)
 Dataiku.create_clustering_ml_task(analysis)
 
 @test Dataiku.get_status(mltask)["guessing"] == false
-@test Dataiku.guess(mltask)["predictionType"] == "REGRESSION"
+@test Dataiku.guess(mltask)["predictionType"] == "BINARY_CLASSIFICATION"
 
 @test Dataiku.list_analysis() |> length == 3
 @test Dataiku.list_ml_tasks(analysis) |> length == 2
 @test Dataiku.list_ml_tasks() |> length == 4
 
 settings = Dataiku.get_settings(mltask)
+
 @test settings["targetVariable"] == "A"
 @test Dataiku.guess(mltask)["targetVariable"] == "A"
-settings["preprocessing"]["per_feature"]["B"]["role"] = "INPUT"
-settings["preprocessing"]["per_feature"]["B"]["missing_handling"] = "IMPUTE"
-settings["preprocessing"]["per_feature"]["B"]["missing_impute_with"] = "MEDIAN"
-settings["preprocessing"]["per_feature"]["B"]["numerical_handling"] = "REGULAR"
-settings["preprocessing"]["per_feature"]["B"]["rescaling"] = "AVGSTD"
-
-settings["preprocessing"]["per_feature"]["C"]["role"] = "INPUT"
-settings["preprocessing"]["per_feature"]["C"]["missing_handling"] = "IMPUTE"
-settings["preprocessing"]["per_feature"]["C"]["missing_impute_with"] = "MEDIAN"
-settings["preprocessing"]["per_feature"]["C"]["numerical_handling"] = "REGULAR"
-settings["preprocessing"]["per_feature"]["C"]["rescaling"] = "AVGSTD"
-
-Dataiku.set_settings(mltask, settings)
 
 trained_model_id = Dataiku.train(mltask)
 
 @test length(trained_model_id) == 2
 
-trained_model = DSSTrainedModel(mltask, 1, "RIDGE_REGRESSION")
+trained_model = DSSTrainedModel(Dataiku.get_trained_models_ids(mltask)[2])
 
-@test Dataiku.get_snippet(trained_model)["algorithm"] == "RIDGE_REGRESSION"
+@test Dataiku.get_snippet(trained_model)["algorithm"] == "RANDOM_FOREST_CLASSIFICATION"
 
 saved_model = Dataiku.deploy_to_flow(trained_model)
 @test Dataiku.redeploy_to_flow(trained_model, saved_model) == Dict("impactsDownstream" => false)
 
-versions = Dataiku.list_versions(saved_model)
-@test length(versions) == 2
-
-version = DSSModelVersion(saved_model, versions[versions[1]["active"] ? 2 : 1])
+version = DSSModelVersion(saved_model, "initial")
 @test Dataiku.set_active(version) == Dict("schemaChanged" => false)
 
 version_user_meta = Dataiku.get_user_meta(version)

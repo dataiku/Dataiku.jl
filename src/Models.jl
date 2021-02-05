@@ -23,6 +23,8 @@ struct DSSMLTask <: DSSObject
 end
 export DSSMLTask
 
+get_project(mlTask::DSSMLTask) = mlTask.analysis.project
+
 list_ml_tasks(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(project.key)/models/lab/")["mlTasks"]
 list_ml_tasks(analysis::DSSAnalysis) = request_json("GET", "projects/$(analysis.project.key)/lab/$(analysis.id)/models/")["mlTasks"]
 
@@ -218,7 +220,7 @@ delete(mltask::DSSMLTask) = delete_request("projects/$(mltask.analysis.project.k
 ```julia
 struct DSSTrainedModel <: DSSObject
     mltask::DSSMLTask
-    fullId::AbstractString
+    id::AbstractString
 end
 
 DSSTrainedModel(modelFullId::AbstractString)
@@ -244,7 +246,7 @@ algorithms:
 """
 struct DSSTrainedModel <: DSSObject
     mltask::DSSMLTask
-    fullId::AbstractString
+    id::AbstractString
 
     function DSSTrainedModel(modelFullId::AbstractString)
         s = split(modelFullId, '-')
@@ -255,15 +257,17 @@ struct DSSTrainedModel <: DSSObject
     end
 
     function DSSTrainedModel(mltask::DSSMLTask, sessionId=nothing, algorithm=nothing)
-        fullId = get_trained_models_ids(mltask, sessionId, algorithm)
-        if length(fullId) > 1
+        id = get_trained_models_ids(mltask, sessionId, algorithm)
+        if length(id) > 1
             throw(DkuException("More than one trained model matches the parameters"))
-        elseif isempty(fullId)
+        elseif isempty(id)
             throw(DkuException("No trained model matches the parameters"))
         end
-        new(mltask, first(fullId))
+        new(mltask, first(id))
     end
 end
+
+get_project(trained_model::DSSTrainedModel) = get_project(trained_model.mltask)
 
 macro trainedmodel_str(str)
     DSSTrainedModel(str)
@@ -299,7 +303,7 @@ get_snippet(mltask::DSSMLTask, ids)
 Gets a quick summary of a trained model.
 For complete information, use `get_detail(::DSSTrainedModel)`
 """
-get_snippet(model::DSSTrainedModel) = get_trained_model_snippet(model.mltask, model.fullId)
+get_snippet(model::DSSTrainedModel) = get_trained_model_snippet(model.mltask, model.id)
 """
 ```julia
 get_trained_model_snippet(mltask::DSSMLTask, id::AbstractString)
@@ -313,7 +317,7 @@ get_trained_model_snippet(mltask::DSSMLTask, ids::AbstractArray) =
 
 
 get_details(model::DSSTrainedModel) =
-    request_json("GET", "projects/$(model.mltask.analysis.project.key)/models/lab/$(model.mltask.analysis.id)/$(model.mltask.id)/models/$(model.fullId)/details")
+    request_json("GET", "projects/$(model.mltask.analysis.project.key)/models/lab/$(model.mltask.analysis.id)/$(model.mltask.id)/models/$(model.id)/details")
 
 """
 Updates the user metadata of a model. Update the “userMeta” field of a previously-retrieved model-details object.
@@ -322,7 +326,7 @@ set_user_meta(model::DSSTrainedModel, userMeta::AbstractDict)
 ```
 """
 set_user_meta(model::DSSTrainedModel, userMeta::AbstractDict) =
-    request_json("PUT", "projects/$(model.mltask.analysis.project.key)/models/lab/$(model.mltask.analysis.id)/$(model.mltask.id)/models/$(model.fullId)/user-meta", userMeta)
+    request_json("PUT", "projects/$(model.mltask.analysis.project.key)/models/lab/$(model.mltask.analysis.id)/$(model.mltask.id)/models/$(model.id)/user-meta", userMeta)
 
 struct DSSSavedModel <: DSSObject
     project::DSSProject
@@ -360,7 +364,7 @@ function deploy_to_flow(model::DSSTrainedModel; params...)
             body["trainDatasetRef"] = mltask["inputDataset"]
         end
     end
-    res = request_json("POST", "projects/$(model.mltask.analysis.project.key)/models/lab/$(model.mltask.analysis.id)/$(model.mltask.id)/models/$(model.fullId)/actions/deployToFlow", body)
+    res = request_json("POST", "projects/$(model.mltask.analysis.project.key)/models/lab/$(model.mltask.analysis.id)/$(model.mltask.id)/models/$(model.id)/actions/deployToFlow", body)
     DSSSavedModel(res["savedModelId"], model.mltask.analysis.project)
 end
 
@@ -376,7 +380,7 @@ function redeploy_to_flow(model::DSSTrainedModel, saved_model::DSSSavedModel, ac
         "savedModelId" => saved_model.id,
         "activate" => activate
     )
-    request_json("POST", "projects/$(model.mltask.analysis.project.key)/models/lab/$(model.mltask.analysis.id)/$(model.mltask.id)/models/$(model.fullId)/actions/redeployToFlow", body)
+    request_json("POST", "projects/$(model.mltask.analysis.project.key)/models/lab/$(model.mltask.analysis.id)/$(model.mltask.id)/models/$(model.id)/actions/redeployToFlow", body)
 end
 
 list_saved_models(project::DSSProject=get_current_project()) = request_json("GET", "projects/$(project.key)/savedmodels/")
@@ -391,6 +395,7 @@ struct DSSModelVersion <: DSSObject
 end
 export DSSModelVersion
 
+get_project(model_version::DSSModelVersion) = model_version.model.project
 
 list_versions(model::DSSSavedModel) = request_json("GET", "projects/$(model.project.key)/savedmodels/$(model.id)/versions")
 
