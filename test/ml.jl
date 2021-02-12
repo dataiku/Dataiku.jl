@@ -33,8 +33,8 @@ Dataiku.create_prediction_ml_task(analysis, :A)
 Dataiku.create_clustering_ml_task(dataset)
 Dataiku.create_clustering_ml_task(analysis)
 
-@test Dataiku.get_status(mltask)["guessing"] == false
-@test Dataiku.guess(mltask)["predictionType"] == "BINARY_CLASSIFICATION"
+@test Dataiku.get_status(mltask)["guessing"] == falseq
+@test Dataiku.guess(mltask)["id"] == mltask.id
 
 @test Dataiku.list_analysis() |> length == 3
 @test Dataiku.list_ml_tasks(analysis) |> length == 2
@@ -51,7 +51,7 @@ trained_model_id = Dataiku.train(mltask)
 
 trained_model = DSSTrainedModel(Dataiku.get_trained_models_ids(mltask)[2])
 
-@test Dataiku.get_snippet(trained_model)["algorithm"] == "RANDOM_FOREST_CLASSIFICATION"
+@test Dataiku.get_snippet(trained_model)["sessionId"] == "s1"
 
 saved_model = Dataiku.deploy_to_flow(trained_model)
 @test Dataiku.redeploy_to_flow(trained_model, saved_model) == Dict("impactsDownstream" => false)
