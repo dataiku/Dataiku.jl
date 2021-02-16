@@ -33,7 +33,7 @@ Dataiku.create_prediction_ml_task(analysis, :A)
 Dataiku.create_clustering_ml_task(dataset)
 Dataiku.create_clustering_ml_task(analysis)
 
-@test Dataiku.get_status(mltask)["guessing"] == falseq
+@test Dataiku.get_status(mltask)["guessing"] == false
 @test Dataiku.guess(mltask)["id"] == mltask.id
 
 @test Dataiku.list_analysis() |> length == 3
