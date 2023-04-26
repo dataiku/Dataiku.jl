@@ -1,11 +1,19 @@
 function get_flow()
     if _is_inside_recipe()
-        return JSON.parse(ENV["DKUFLOW_SPEC"])
+        return _get_dkuflow_spec()
     end
     throw(DkuException("Env variable 'DKUFLOW_SPEC' not defined."))
 end
 
-_is_inside_recipe() = haskey(ENV, "DKUFLOW_SPEC")
+function _is_inside_recipe()
+    if isfile("remote-run-env-def.json")
+        DKU_ENV = JSON.parsefile("remote-run-env-def.json")
+        if haskey(DKU_ENV, "flowSpec")
+            return true
+        end
+    end
+    return haskey(ENV, "DKUFLOW_SPEC")
+end
 
 function get_input_partitions(ds)
     input = filter(x->x["fullName"] == full_name(ds), get_flow()["in"])[1]
@@ -34,8 +42,28 @@ end
 
 function get_flow_variable(name::AbstractString)
     if _is_inside_recipe()
-        JSON.parse(ENV["DKUFLOW_VARIABLES"])[name]
+        _get_dkuflow_variables()[name]
     else
         throw(DkuException("Cannot get flow variables outside of a recipe"))
     end
+end
+
+function _get_dkuflow_spec()
+    if isfile("remote-run-env-def.json")
+        DKU_ENV = JSON.parsefile("remote-run-env-def.json")
+        if haskey(DKU_ENV, "flowSpec")
+            return DKU_ENV["flowSpec"]
+        end
+    end
+    return JSON.parse(ENV["DKUFLOW_SPEC"])
+end
+
+function _get_dkuflow_variables()
+    if isfile("remote-run-env-def.json")
+        DKU_ENV = JSON.parsefile("remote-run-env-def.json")
+        if haskey(DKU_ENV, "flowVariables")
+            return DKU_ENV["flowVariables"]
+        end
+    end
+    return JSON.parse(ENV["DKUFLOW_VARIABLES"])
 end
